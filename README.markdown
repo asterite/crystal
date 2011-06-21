@@ -31,8 +31,9 @@ Examples:
     Value = fib 6
     puts Value
 
-    # Compiles to...
-    # puts 8
+Compiles to...
+
+    puts 8
 
 3. Constants as arguments
 
@@ -46,7 +47,8 @@ Examples:
 
     puts static(2, 6)
 
-    # Compiles to...
+Compiles to...
+
     def static_2 x
      3 * x
     end
