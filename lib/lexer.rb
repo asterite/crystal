@@ -1,12 +1,15 @@
 require 'rltk/lexer'
 
 class Lexer < RLTK::Lexer
-  rule(/\s/)
+  rule(/\n/) { :NEWLINE }
+  rule(/\s+/) { :SPACE }
 
   rule(/def/) { [:IDENT, :def] }
   rule(/if/) { [:IDENT, :if] }
   rule(/else/) { [:IDENT, :else] }
   rule(/end/) { [:IDENT, :end] }
+
+  rule(/;/) { :SEMI }
 
   rule(/\d+/) { |num| [:INT, num.to_i] }
   rule(/[a-zA-Z_][a-zA-Z_0-9]*/) { |id| [:IDENT, id] }

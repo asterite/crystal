@@ -1,4 +1,3 @@
-require 'test/unit'
 require(File.expand_path("../../lib/lexer",  __FILE__))
 
 describe Lexer do
@@ -22,6 +21,8 @@ describe Lexer do
     end
   end
 
+  it_lexes " ", :SPACE
+  it_lexes "\n", :NEWLINE
   it_lexes "def", :IDENT, :def
   it_lexes "if", :IDENT, :if
   it_lexes "else", :IDENT, :else
@@ -41,4 +42,5 @@ describe Lexer do
   it_lexes ")", :RPAREN
   it_lexes "==", :COMP
   it_lexes ",", :COMMA
+  it_lexes ";", :SEMI
 end
