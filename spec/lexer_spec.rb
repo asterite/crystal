@@ -23,6 +23,22 @@ describe Lexer do
   end
 
   it_lexes "def", :IDENT, :def
+  it_lexes "if", :IDENT, :if
+  it_lexes "else", :IDENT, :else
+  it_lexes "end", :IDENT, :end
   it_lexes_idents "ident", "something", "with_underscores", "with_1"
   it_lexes_ints "1", "1hello"
+  it_lexes "=", :EQ
+  it_lexes "<", :LT
+  it_lexes "<=", :LET
+  it_lexes ">", :GT
+  it_lexes ">=", :GET
+  it_lexes "+", :PLUS
+  it_lexes "-", :MINUS
+  it_lexes "*", :STAR
+  it_lexes "/", :SLASH
+  it_lexes "(", :LPAREN
+  it_lexes ")", :RPAREN
+  it_lexes "==", :COMP
+  it_lexes ",", :COMMA
 end
