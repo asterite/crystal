@@ -77,3 +77,13 @@ class Def
     fun
   end
 end
+
+class Call
+  def codegen(mod)
+    fun = mod.module.functions.named(name)
+    if !fun
+      fun = mod.module.functions.add name, [], LLVM::Int
+    end
+    mod.builder.call fun
+  end
+end

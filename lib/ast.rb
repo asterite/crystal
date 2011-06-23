@@ -62,6 +62,52 @@ class Def < Expression
   end
 
   def to_s
-    "def #{name}\n  #{body}\nend"
+    s = "def #{name}"
+    unless args.empty?
+      s << "("
+      i = 0
+      args.each do |arg|
+        s << ", " if i > 0
+        s << arg.to_s
+        i += 1
+      end
+      s << ")"
+    end
+    s << "\n"
+    s << "  #{body}\n"
+    s << "end"
+    s
+  end
+end
+
+class Call < Expression
+  attr_accessor :name
+
+  def initialize(name)
+    @name = name
+  end
+
+  def ==(other)
+    other.is_a?(Call) && other.name == name
+  end
+
+  def to_s
+    name
+  end
+end
+
+class Arg
+  attr_accessor :name
+
+  def initialize(name)
+    @name = name
+  end
+
+  def ==(other)
+    other.is_a?(Arg) && other.name == name
+  end
+
+  def to_s
+    name
   end
 end

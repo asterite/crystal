@@ -19,4 +19,8 @@ describe "ast nodes" do
   it "should to_s Def" do
     Def.new("foo", [], Int.new(1)).to_s.should eq("def foo\n  1\nend")
   end
+
+  it "should to_s Call" do
+    Call.new("foo").to_s.should eq("foo")
+  end
 end

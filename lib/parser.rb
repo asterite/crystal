@@ -8,7 +8,7 @@ class Parser < Lexer
 
   def initialize(str)
     super
-    next_token_skip_space
+    next_token_skip_statement_end
   end
 
   def parse
@@ -19,7 +19,7 @@ class Parser < Lexer
     exps = []
     while @token.type != :EOF
       exps << parse_expression
-      next_token if @token.type == :SPACE || @token.type == :NEWLINE || @token.type == :";"
+      skip_statement_end
     end
     exps
   end
@@ -31,7 +31,7 @@ class Parser < Lexer
       when :def
         return parse_def
       else
-        raise "Variables and function calls are not yet supported"
+        return parse_call
       end
     else
       return parse_add_or_sub
@@ -39,10 +39,38 @@ class Parser < Lexer
   end
 
   def parse_def
-    next_token_skip_space
+    next_token_skip_space_or_newline
     check :IDENT
+
     name = @token.value
-    next_token_skip_statement_end
+    args = []
+
+    next_token_skip_space
+
+    if @token.type == :'('
+      next_token_skip_space_or_newline
+      while @token.type != :')'
+        check_ident
+        args << Arg.new(@token.value)
+        next_token_skip_space_or_newline
+        if @token.type == :','
+          next_token_skip_space_or_newline
+        end
+      end
+      next_token_skip_statement_end
+    elsif @token.type == :IDENT
+      while @token.type != :NEWLINE && @token.type != :";"
+        check_ident
+        args << Arg.new(@token.value)
+        next_token_skip_space
+        if @token.type == :','
+          next_token_skip_space_or_newline
+        end
+      end
+      next_token_skip_statement_end
+    else
+      skip_statement_end
+    end
 
     if @token.type == :IDENT && @token.value == :end
       body = nil
@@ -52,8 +80,12 @@ class Parser < Lexer
       check_ident :end
     end
 
-    next_token_skip_space
-    Def.new name, [], body
+    next_token_skip_statement_end
+    Def.new name, args, body
+  end
+
+  def parse_call
+    node_and_next_token Call.new(@token.value)
   end
 
   def parse_add_or_sub
@@ -63,11 +95,11 @@ class Parser < Lexer
       when :SPACE
         next_token
       when :"+"
-        next_token_skip_space
+        next_token_skip_space_or_newline
         right = parse_mul_or_div
         left = Add.new left, right
       when :"-"
-        next_token_skip_space
+        next_token_skip_space_or_newline
         right = parse_mul_or_div
         left = Sub.new left, right
       else
@@ -84,11 +116,11 @@ class Parser < Lexer
       when :SPACE
         next_token
       when :"*"
-        next_token_skip_space
+        next_token_skip_space_or_newline
         right = parse_atomic
         left = Mul.new left, right
       when :"/"
-        next_token_skip_space
+        next_token_skip_space_or_newline
         right = parse_atomic
         left = Div.new left, right
       else
@@ -100,17 +132,17 @@ class Parser < Lexer
   def parse_atomic
     case @token.type
     when :"+"
-      next_token_skip_space
+      next_token_skip_space_or_newline
       check :INT
       node_and_next_token Int.new(@token.value)
     when :"-"
-      next_token_skip_space
+      next_token_skip_space_or_newline
       check :INT
       node_and_next_token Int.new(-@token.value)
     when :INT
       node_and_next_token Int.new(@token.value)
     else
-      raise "Unexpected token: #{@token.type}"
+      raise "Unexpected token: #{@token}"
     end
   end
 
@@ -125,7 +157,11 @@ class Parser < Lexer
     raise "Expecting token #{token_types}" unless token_types.any?{|type| @token.type == type}
   end
 
-  def check_ident(value)
-    raise "Expecting token #{value}" unless @token.type == :IDENT && @token.value == value
+  def check_ident(value = nil)
+    if value
+      raise "Expecting token: #{@token.to_s}" unless @token.type == :IDENT && @token.value == value
+    else
+      raise "Unexpected token: #{@token.to_s}" unless @token.type == :IDENT && @token.value.is_a?(String)
+    end
   end
 end
