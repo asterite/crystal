@@ -1,3 +1,6 @@
+class Module
+end
+
 class Expression
 end
 
@@ -41,4 +44,24 @@ end
       end
     end
   )
+end
+
+class Def < Expression
+  attr_accessor :name
+  attr_accessor :args
+  attr_accessor :body
+
+  def initialize(name, args, body)
+    @name = name
+    @args = args
+    @body = body
+  end
+
+  def ==(other)
+    other.is_a?(Def) && other.name == name && other.args == args && other.body == body
+  end
+
+  def to_s
+    "def #{name}\n  #{body}\nend"
+  end
 end

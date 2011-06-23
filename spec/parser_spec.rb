@@ -29,4 +29,7 @@ describe Parser do
   it_parses_single_node "1 / 2", Div.new(Int.new(1), Int.new(2))
   it_parses_single_node "1 / -2", Div.new(Int.new(1), Int.new(-2))
   it_parses_single_node "2 / 3 + 4 / 5", Add.new(Div.new(Int.new(2), Int.new(3)), Div.new(Int.new(4), Int.new(5)))
+
+  it_parses_single_node "def foo\n1\nend", Def.new("foo", [], Int.new(1))
+  it_parses_single_node "def foo ; 1 ; end", Def.new("foo", [], Int.new(1))
 end

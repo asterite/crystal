@@ -36,6 +36,19 @@ class Lexer < StringScanner
 
   def next_token_skip_space
     next_token
-    next_token if @token.type == :SPACE || @token.type == :NEWLINE
+    skip_space
+  end
+
+  def next_token_skip_statement_end
+    next_token
+    skip_statement_end
+  end
+
+  def skip_space
+    next_token while @token.type == :SPACE || @token.type == :NEWLINE
+  end
+
+  def skip_statement_end
+    next_token while @token.type == :SPACE || @token.type == :NEWLINE || @token.type == :";"
   end
 end

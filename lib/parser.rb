@@ -25,7 +25,27 @@ class Parser < Lexer
   end
 
   def parse_expression
-    parse_add_or_sub
+    case @token.type
+    when :IDENT
+      case @token.value
+      when :def
+        return parse_def
+      end
+    else
+      return parse_add_or_sub
+    end
+  end
+
+  def parse_def
+    next_token_skip_space
+    check :IDENT
+    name = @token.value
+    next_token_skip_statement_end
+    body = parse_expression
+    skip_statement_end
+    check_ident :end
+    next_token_skip_space
+    Def.new name, [], body
   end
 
   def parse_add_or_sub
@@ -81,6 +101,8 @@ class Parser < Lexer
       node_and_next_token Int.new(-@token.value)
     when :INT
       node_and_next_token Int.new(@token.value)
+    else
+      raise "Unexpected token: #{@token.type}"
     end
   end
 
@@ -93,5 +115,9 @@ class Parser < Lexer
 
   def check(*token_types)
     raise "Expecting token #{token_types}" unless token_types.any?{|type| @token.type == type}
+  end
+
+  def check_ident(value)
+    raise "Expecting token #{value}" unless @token.type == :IDENT && @token.value == value
   end
 end
