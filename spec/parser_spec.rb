@@ -20,5 +20,6 @@ describe Parser do
   it_parses "1\n+2", [Int.new(1), Int.new(2)]
   it_parses_single_node "1 - 2", Sub.new(Int.new(1), Int.new(2))
   it_parses_single_node "1 -\n2", Sub.new(Int.new(1), Int.new(2))
-  it_parses "1\n-2", [Int.new(1), Int.new(-2)]
+  it_parses "1\n-2", Sub.new(Int.new(1), Int.new(2))
+  it_parses_single_node "1 * 2", Mul.new(Int.new(1), Int.new(2))
 end
