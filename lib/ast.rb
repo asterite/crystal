@@ -17,38 +17,28 @@ class Int < Expression
   end
 end
 
-class Add < Expression
-  attr_accessor :left
-  attr_accessor :right
+[["Add", "+"],
+ ["Sub", "-"],
+ ["Mul", "*"],
+ ["Div", "/"]
+].each do |name, op|
+  eval %Q(
+    class #{name} < Expression
+      attr_accessor :left
+      attr_accessor :right
 
-  def initialize(left, right)
-    @left = left
-    @right = right
-  end
+      def initialize(left, right)
+        @left = left
+        @right = right
+      end
 
-  def ==(other)
-    other.is_a?(Add) && other.left == left && other.right == right
-  end
+      def ==(other)
+        other.is_a?(#{name}) && other.left == left && other.right == right
+      end
 
-  def to_s
-    "#{left} + #{right}"
-  end
-end
-
-class Sub < Expression
-  attr_accessor :left
-  attr_accessor :right
-
-  def initialize(left, right)
-    @left = left
-    @right = right
-  end
-
-  def ==(other)
-    other.is_a?(Sub) && other.left == left && other.right == right
-  end
-
-  def to_s
-    "#{left} - #{right}"
-  end
+      def to_s
+        "\#{left} #{op} \#{right}"
+      end
+    end
+  )
 end

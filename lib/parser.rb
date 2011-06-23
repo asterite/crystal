@@ -1,4 +1,5 @@
 require(File.expand_path("../../lib/ast",  __FILE__))
+require(File.expand_path("../../lib/lexer",  __FILE__))
 
 class Parser < Lexer
   def self.parse(str)
@@ -49,7 +50,23 @@ class Parser < Lexer
   end
 
   def parse_mul_or_div
-    parse_atomic
+    left = parse_atomic
+    while true
+      case @token.type
+      when :SPACE
+        next_token
+      when :"*"
+        next_token_skip_space
+        right = parse_atomic
+        left = Mul.new left, right
+      when :"/"
+        next_token_skip_space
+        right = parse_atomic
+        left = Div.new left, right
+      else
+        return left
+      end
+    end
   end
 
   def parse_atomic
