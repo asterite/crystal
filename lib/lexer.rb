@@ -14,7 +14,9 @@ class Lexer < StringScanner
       @token.type = :NEWLINE
     elsif scan /\s+/
       @token.type = :SPACE
-    elsif match = scan(%r(;|==|=|<=|<|>=|>|\+|-|\*|/|\(|\)|,))
+    elsif scan /;+/
+      @token.type = :";"
+    elsif match = scan(%r(==|=|<=|<|>=|>|\+|-|\*|/|\(|\)|,))
       @token.type = match.to_sym
     elsif match = scan(/def|else|end|if/)
       @token.type = :IDENT

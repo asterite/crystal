@@ -19,7 +19,7 @@ class Parser < Lexer
     exps = []
     while @token.type != :EOF
       exps << parse_expression
-      next_token if @token.type == :SPACE || @token.type == :NEWLINE
+      next_token if @token.type == :SPACE || @token.type == :NEWLINE || @token.type == :";"
     end
     exps
   end
