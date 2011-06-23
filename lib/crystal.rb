@@ -12,7 +12,7 @@ loop do
   begin
     nodes = Parser.parse line
     nodes.each do |node|
-      result = mod.define node
+      result = mod.eval(node)
     end
 
     puts " => #{result}"

@@ -30,6 +30,8 @@ class Parser < Lexer
       case @token.value
       when :def
         return parse_def
+      else
+        raise "Variables and function calls are not yet supported"
       end
     else
       return parse_add_or_sub
