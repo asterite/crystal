@@ -7,6 +7,7 @@ result = nil
 loop do
   print "crystal > "
   line = gets.strip
+  next if line.empty?
   break if line == "exit" || line == "quit"
 
   begin
@@ -15,7 +16,7 @@ loop do
       result = mod.eval(node)
     end
 
-    puts " => #{result}"
+    puts " => #{result ? result : 'nil'}"
   rescue => ex
     puts ex
   end

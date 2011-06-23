@@ -43,9 +43,15 @@ class Parser < Lexer
     check :IDENT
     name = @token.value
     next_token_skip_statement_end
-    body = parse_expression
-    skip_statement_end
-    check_ident :end
+
+    if @token.type == :IDENT && @token.value == :end
+      body = nil
+    else
+      body = parse_expression
+      skip_statement_end
+      check_ident :end
+    end
+
     next_token_skip_space
     Def.new name, [], body
   end

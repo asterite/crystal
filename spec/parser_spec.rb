@@ -32,4 +32,5 @@ describe Parser do
 
   it_parses_single_node "def foo\n1\nend", Def.new("foo", [], Int.new(1))
   it_parses_single_node "def foo ; 1 ; end", Def.new("foo", [], Int.new(1))
+  it_parses_single_node "def foo; end", Def.new("foo", [], nil)
 end
