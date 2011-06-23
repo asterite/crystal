@@ -37,6 +37,10 @@ class Parser < Lexer
         next_token_skip_space
         right = parse_mul_or_div
         left = Add.new left, right
+      when :"-"
+        next_token_skip_space
+        right = parse_mul_or_div
+        left = Sub.new left, right
       else
         return left
       end
