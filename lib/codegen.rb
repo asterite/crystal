@@ -62,6 +62,9 @@ class Def
   def codegen(mod)
     ret_type = body ? LLVM::Int : LLVM::Type.void
 
+    fun = mod.module.functions.named name
+    mod.module.functions.delete fun if fun
+
     fun = mod.module.functions.add name, [], ret_type
     entry = fun.basic_blocks.append 'entry'
     mod.builder.position_at_end entry
