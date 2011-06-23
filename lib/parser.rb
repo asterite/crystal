@@ -85,7 +85,7 @@ class Parser < Lexer
   end
 
   def parse_call
-    node_and_next_token Call.new(@token.value)
+    node_and_next_token Ref.new(@token.value)
   end
 
   def parse_add_or_sub

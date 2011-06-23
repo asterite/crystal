@@ -78,7 +78,7 @@ class Def
   end
 end
 
-class Call
+class Ref
   def codegen(mod)
     fun = mod.module.functions.named(name)
     if !fun

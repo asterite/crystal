@@ -80,7 +80,7 @@ class Def < Expression
   end
 end
 
-class Call < Expression
+class Ref < Expression
   attr_accessor :name
 
   def initialize(name)
@@ -88,7 +88,7 @@ class Call < Expression
   end
 
   def ==(other)
-    other.is_a?(Call) && other.name == name
+    other.is_a?(Ref) && other.name == name
   end
 
   def to_s

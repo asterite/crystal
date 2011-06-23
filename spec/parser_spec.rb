@@ -44,5 +44,5 @@ describe Parser do
   it_parses_single_node "def foo var1, var2\n end", Def.new("foo", [Arg.new("var1"), Arg.new("var2")], nil)
   it_parses_single_node "def foo var1,\nvar2\n end", Def.new("foo", [Arg.new("var1"), Arg.new("var2")], nil)
 
-  it_parses_single_node "foo", Call.new("foo")
+  it_parses_single_node "foo", Ref.new("foo")
 end
