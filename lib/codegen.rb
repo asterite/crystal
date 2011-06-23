@@ -21,18 +21,19 @@ class Module
     @fpm << :simplifycfg
   end
 
-  def define(node)
-    node = Def.new "", [], node unless node.is_a? Def
-    node.codegen self
+  def define(*nodes)
+    fun = nil
+    nodes.each do |node|
+      node = Def.new "", [], node unless node.is_a? Def
+      fun = node.codegen self
+    end
+    fun
   end
 
-  def eval(node)
-    fun = define node
-    if node.is_a? Def
-      nil
-    else
-      @engine.run_function(fun).to_i LLVM::Int.type
-    end
+  def eval(string)
+    nodes = Parser.parse string
+    fun = define *nodes
+    @engine.run_function(fun).to_i LLVM::Int.type unless nodes[-1].is_a? Def
   end
 end
 
@@ -73,7 +74,7 @@ class Def
 
     fun.verify
     mod.fpm.run fun
-    fun.dump
+    #fun.dump
     fun
   end
 end

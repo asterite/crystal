@@ -11,11 +11,7 @@ loop do
   break if line == "exit" || line == "quit"
 
   begin
-    nodes = Parser.parse line
-    nodes.each do |node|
-      result = mod.eval(node)
-    end
-
+    result = mod.eval line
     puts " => #{result ? result : 'nil'}"
   rescue => ex
     puts ex
