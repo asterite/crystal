@@ -1,12 +1,28 @@
-require 'rltk/ast'
-
-class Expression < RLTK::ASTNode
+class Expression
 end
 
 class Int < Expression
-  value :value, Integer
+  attr_accessor :value
+
+  def initialize(value)
+    @value = value
+  end
 
   def to_s
     value.to_s
+  end
+end
+
+class Add < Expression
+  attr_accessor :left
+  attr_accessor :right
+
+  def initialize(left, right)
+    @left = left
+    @right = right
+  end
+
+  def to_s
+    "#{left} + #{right}"
   end
 end
