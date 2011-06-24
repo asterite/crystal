@@ -26,7 +26,17 @@ module Crystal
     def visit_int(node)
     end
 
-    ['add', 'sub', 'mul', 'div'].each do |node|
+    [
+      'add',
+      'sub',
+      'mul',
+      'div',
+      'lt',
+      'let',
+      'eq',
+      'gt',
+      'get',
+    ].each do |node|
       class_eval %Q(
         def visit_#{node}(node)
           node.left.resolve @mod

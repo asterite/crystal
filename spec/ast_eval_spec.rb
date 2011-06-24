@@ -11,6 +11,11 @@ describe "ast eval" do
 
   it_evals "5", 5
   it_evals "1 + 2", 3
+  it_evals "1 - 2", -1
+  it_evals "4 / 2", 2
+  it_evals "4 * 2", 8
+  it_evals "8 < 4", 0
+  it_evals "4 < 8", 1
   it_evals "def foo; end", nil
   it_evals "def foo; 1; end", nil
   it_evals "def foo; 1; end; foo", 1

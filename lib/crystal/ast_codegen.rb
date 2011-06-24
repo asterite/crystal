@@ -75,6 +75,21 @@ module Crystal
     )
   end
 
+  [
+    [LT, "slt"],
+  ].each do |node, method|
+    eval %Q(
+      class #{node}
+        def codegen(mod)
+          @code ||= begin
+            cond = mod.builder.icmp :#{method}, left.codegen(mod), right.codegen(mod), '#{node.to_s.downcase}tmp'
+            mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
+          end
+        end
+      end
+    )
+  end
+
   class Def
     def codegen(mod)
       @code ||= begin

@@ -33,7 +33,20 @@ module Crystal
       @mod = mod
     end
 
-    ['int', 'add', 'sub', 'mul', 'div', 'call', 'ref'].each do |node|
+    [
+      'int',
+      'add',
+      'sub',
+      'mul',
+      'div',
+      'lt',
+      'let',
+      'eq',
+      'gt',
+      'get',
+      'call',
+      'ref'
+    ].each do |node|
       class_eval %Q(
         def visit_#{node}(node)
           anon_def = Def.new "", [], node
