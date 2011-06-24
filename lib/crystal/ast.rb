@@ -34,7 +34,12 @@ module Crystal
   [["Add", "+"],
    ["Sub", "-"],
    ["Mul", "*"],
-   ["Div", "/"]
+   ["Div", "/"],
+   ["LT",  "<"],
+   ["LET",  "<="],
+   ["EQ",  "=="],
+   ["GT",  ">"],
+   ["GET",  ">="],
   ].each do |name, op|
     eval %Q(
       class #{name} < Expression

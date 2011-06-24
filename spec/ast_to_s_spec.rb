@@ -11,7 +11,12 @@ describe "ast nodes" do
     [Add, "+"],
     [Sub, "-"],
     [Mul, "*"],
-    [Div, "/"]
+    [Div, "/"],
+    [LT, "<"],
+    [LET, "<="],
+    [EQ, "=="],
+    [GT, ">"],
+    [GET, ">="],
   ].each do |node, op|
     it "should to_s #{node}" do
       node.new(Int.new(5), Int.new(6)).to_s.should eq("5 #{op} 6")

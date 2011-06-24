@@ -1,6 +1,22 @@
 module Crystal
   class Visitor
-    ['module', 'int', 'add', 'sub', 'mul', 'div', 'def', 'ref', 'arg', 'call'].each do |name|
+    [
+      'module',
+      'int',
+      'add',
+      'sub',
+      'mul',
+      'div',
+      'def',
+      'ref',
+      'arg',
+      'call',
+      'lt',
+      'let',
+      'eq',
+      'gt',
+      'get',
+    ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)
           true

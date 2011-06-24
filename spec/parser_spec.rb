@@ -59,4 +59,10 @@ describe Parser do
   it_parses_single_node "foo", Ref.new("foo")
   it_parses_single_node "foo + 1", Add.new(Ref.new("foo"), Int.new(1)), :focus => true
   it_parses_single_node "foo +1", Call.new("foo", Int.new(1))
+
+  it_parses_single_node "1 < 2", LT.new(Int.new(1), Int.new(2))
+  it_parses_single_node "1 <= 2", LET.new(Int.new(1), Int.new(2))
+  it_parses_single_node "1 == 2", EQ.new(Int.new(1), Int.new(2))
+  it_parses_single_node "1 > 2", GT.new(Int.new(1), Int.new(2))
+  it_parses_single_node "1 >= 2", GET.new(Int.new(1), Int.new(2))
 end

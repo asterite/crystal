@@ -36,7 +36,7 @@ module Crystal
         return exp
       end
 
-      parse_add_or_sub
+      parse_primary_expression
     end
 
     def parse_def
@@ -84,6 +84,38 @@ module Crystal
 
       next_token_skip_statement_end
       Def.new name, args, body
+    end
+
+    def parse_primary_expression
+      left = parse_add_or_sub
+      while true
+        case @token.type
+        when :SPACE
+          next_token
+        when :"<"
+          next_token_skip_space_or_newline
+          right = parse_add_or_sub
+          left = LT.new left, right
+        when :"<="
+          next_token_skip_space_or_newline
+          right = parse_add_or_sub
+          left = LET.new left, right
+        when :"=="
+          next_token_skip_space_or_newline
+          right = parse_add_or_sub
+          left = EQ.new left, right
+        when :">"
+          next_token_skip_space_or_newline
+          right = parse_add_or_sub
+          left = GT.new left, right
+        when :">="
+          next_token_skip_space_or_newline
+          right = parse_add_or_sub
+          left = GET.new left, right
+        else
+          return left
+        end
+      end
     end
 
     def parse_add_or_sub

@@ -31,7 +31,12 @@ module Crystal
       ["add", "+"],
       ["sub", "-"],
       ["mul", "*"],
-      ["div", "/"]
+      ["div", "/"],
+      ["lt", "<"],
+      ["let", "<="],
+      ["eq", "=="],
+      ["gt", ">"],
+      ["get", ">="],
     ].each do |node, op|
       class_eval %Q(
         def visit_#{node}(node)
