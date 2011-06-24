@@ -1,4 +1,4 @@
-require(File.expand_path("../../lib/lexer",  __FILE__))
+require(File.expand_path("../../lib/crystal",  __FILE__))
 
 describe Lexer do
   def self.it_lexes(string, type, value = nil)
