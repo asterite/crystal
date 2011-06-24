@@ -18,6 +18,9 @@ module Crystal
         @token.type = :SPACE
       elsif scan /;+/
         @token.type = :";"
+      elsif match = scan(/(\+|-)?\d+/)
+        @token.type = :INT
+        @token.value = match.to_i
       elsif match = scan(%r(==|=|<=|<|>=|>|\+|-|\*|/|\(|\)|,))
         @token.type = match.to_sym
       elsif match = scan(/def|else|end|if/)
@@ -26,9 +29,6 @@ module Crystal
       elsif match = scan(/[a-zA-Z_][a-zA-Z_0-9]*/)
         @token.type = :IDENT
         @token.value = match
-      elsif match = scan(/\d+/)
-        @token.type = :INT
-        @token.value = match.to_i
       else
         raise "Can't lex anymore: #{rest}"
       end

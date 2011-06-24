@@ -9,6 +9,12 @@ module Crystal
     end
   end
 
+  class Module
+    def to_s
+      "<Module>"
+    end
+  end
+
   class ToSVisitor < Visitor
     def initialize
       @str = ""
@@ -45,11 +51,9 @@ module Crystal
     def visit_call(node)
       @str << node.name
       @str << "("
-      i = 0
-      node.args.each do |arg|
+      node.args.each_with_index do |arg, i|
         @str << ", " if i > 0
         arg.accept self
-        i += 1
       end
       @str << ")"
       false
@@ -60,8 +64,7 @@ module Crystal
       @str << node.name
       unless node.args.empty?
         @str << "("
-        i = 0
-        node.args.each do |arg|
+        node.args.each_with_index do |arg, i|
           @str << ", " if i > 0
           arg.accept self
           i += 1

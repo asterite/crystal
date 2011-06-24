@@ -33,12 +33,13 @@ module Crystal
       @mod = mod
     end
 
-    ['int', 'add', 'sub', 'mul', 'div'].each do |node|
+    ['int', 'add', 'sub', 'mul', 'div', 'call', 'ref'].each do |node|
       class_eval %Q(
         def visit_#{node}(node)
           anon_def = Def.new "", [], node
-          fun = anon_def.codegen @mod
-          @value = @mod.run fun
+          anon_def.resolve @mod
+          anon_def.codegen @mod
+          @value = @mod.run anon_def.code
           false
         end
       )
@@ -47,11 +48,6 @@ module Crystal
     def visit_def(node)
       @mod.add_expression node
       false
-    end
-
-    def visit_ref(node)
-      resolved = node.resolve @mod
-      @value = @mod.run resolved.code
     end
   end
 end

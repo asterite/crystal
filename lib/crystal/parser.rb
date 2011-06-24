@@ -28,17 +28,15 @@ module Crystal
         case @token.value
         when :def
           return parse_def
-        else
-          return parse_ref_or_call
         end
       when :'('
         next_token_skip_space_or_newline
         exp = parse_expression
         next_token_skip_statement_end
         return exp
-      else
-        return parse_add_or_sub
       end
+
+      parse_add_or_sub
     end
 
     def parse_def
@@ -86,44 +84,6 @@ module Crystal
 
       next_token_skip_statement_end
       Def.new name, args, body
-    end
-
-    def parse_ref_or_call
-      name = @token.value
-      next_token
-
-      case @token.type
-      when :"("
-        args = []
-        next_token_skip_space
-        while @token.type != :")"
-          args << parse_expression
-          skip_space
-          if @token.type == :","
-            next_token_skip_space_or_newline
-          end
-        end
-        next_token_skip_space
-        Call.new name, *args
-      when :SPACE
-        next_token
-        if @token.type == :NEWLINE || @token.type == :";"
-          Ref.new name
-        else
-          args = []
-          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF
-            args << parse_expression
-            skip_space
-            if @token.type == :","
-              next_token_skip_space_or_newline
-            end
-          end
-          next_token_skip_space
-          Call.new name, *args
-        end
-      else
-        Ref.new name
-      end
     end
 
     def parse_add_or_sub
@@ -179,8 +139,49 @@ module Crystal
         node_and_next_token Int.new(-@token.value)
       when :INT
         node_and_next_token Int.new(@token.value)
+      when :IDENT
+        parse_ref_or_call
       else
         raise "Unexpected token: #{@token.to_s}"
+      end
+    end
+
+    def parse_ref_or_call
+      name = @token.value
+      next_token
+
+      case @token.type
+      when :"("
+        args = []
+        next_token_skip_space
+        while @token.type != :")"
+          args << parse_expression
+          skip_space
+          if @token.type == :","
+            next_token_skip_space_or_newline
+          end
+        end
+        next_token_skip_space
+        Call.new name, *args
+      when :SPACE
+        next_token
+        case @token.type
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/"
+          Ref.new name
+        else
+          args = []
+          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF
+            args << parse_expression
+            skip_space
+            if @token.type == :","
+              next_token_skip_space_or_newline
+            end
+          end
+          next_token_skip_space
+          Call.new name, *args
+        end
+      else
+        Ref.new name
       end
     end
 

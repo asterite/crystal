@@ -1,5 +1,7 @@
 require(File.expand_path("../../lib/crystal",  __FILE__))
 
+include Crystal
+
 describe Lexer do
   def self.it_lexes(string, type, value = nil)
     it "lexes #{string}" do
@@ -36,7 +38,7 @@ describe Lexer do
   it_lexes "else", :IDENT, :else
   it_lexes "end", :IDENT, :end
   it_lexes_idents "ident", "something", "with_underscores", "with_1"
-  it_lexes_ints "1", "1hello"
+  it_lexes_ints "1", "1hello", "+1", "-1"
 
   it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", ","
 end

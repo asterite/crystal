@@ -55,4 +55,8 @@ describe Parser do
   it_parses_single_node "foo 1, 2", Call.new("foo", Int.new(1), Int.new(2))
   it_parses_single_node "foo (1 + 2), 3", Call.new("foo", Add.new(Int.new(1), Int.new(2)), Int.new(3))
   it_parses_single_node "foo(1 + 2)", Call.new("foo", Add.new(Int.new(1), Int.new(2)))
+
+  it_parses_single_node "foo", Ref.new("foo")
+  it_parses_single_node "foo + 1", Add.new(Ref.new("foo"), Int.new(1)), :focus => true
+  it_parses_single_node "foo +1", Call.new("foo", Int.new(1))
 end

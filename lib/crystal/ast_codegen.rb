@@ -1,11 +1,14 @@
-require 'llvm/core'
-require 'llvm/core/builder'
-require 'llvm/execution_engine'
-require 'llvm/transforms/scalar'
+['core', 'core/builder', 'execution_engine', 'transforms/scalar'].each do |filename|
+  #require(File.expand_path("../../../../ruby-llvm/lib/llvm/#{filename}",  __FILE__))
+  require "llvm/#{filename}"
+end
 
 LLVM.init_x86
 
 module Crystal
+  DefaultType = LLVM::Int
+  def self.DefaultType(*args); LLVM::Int(*args); end
+
   class ASTNode
     attr_accessor :code
   end
@@ -37,7 +40,7 @@ module Crystal
     end
 
     def run(fun)
-      @engine.run_function(fun).to_i LLVM::Int.type
+      @engine.run_function(fun).to_i Crystal::DefaultType.type
     end
 
     private
@@ -53,7 +56,7 @@ module Crystal
 
   class Int
     def codegen(mod)
-      @code ||= LLVM::Int value
+      @code ||= Crystal::DefaultType value
     end
   end
 
@@ -75,13 +78,20 @@ module Crystal
   class Def
     def codegen(mod)
       @code ||= begin
-        ret_type = body ? LLVM::Int : LLVM::Type.void
+        ret_type = body ? Crystal::DefaultType : LLVM::Type.void
 
         fun = mod.module.functions.named name
         mod.module.functions.delete fun if fun
 
-        fun = mod.module.functions.add name, [], ret_type
+        args_types = Array.new(args.length, Crystal::DefaultType)
+        fun = mod.module.functions.add name, args_types, ret_type
+        args.each_with_index do |arg, i|
+          arg.code = fun.params[i]
+          fun.params[i].name = arg.name
+        end
+
         entry = fun.basic_blocks.append 'entry'
+
         mod.builder.position_at_end entry
 
         if body
@@ -100,10 +110,16 @@ module Crystal
 
   class Ref
     def codegen(mod)
-      @code ||= begin
-        fun = mod.module.functions.named(name)
-        fun = mod.module.functions.add name, [], LLVM::Int unless fun
-        mod.builder.call fun
+      block = mod.builder.get_insert_block
+
+      resolved.codegen mod
+
+      case resolved
+      when Arg
+        resolved.code
+      when Def
+        mod.builder.position_at_end block
+        mod.builder.call resolved.code
       end
     end
   end
@@ -111,10 +127,21 @@ module Crystal
   class Call
     def codegen(mod)
       @code ||= begin
-        fun = mod.module.functions.named(name)
-        fun = mod.module.functions.add name, [], LLVM::Int unless fun
-        mod.builder.call fun
+        block = mod.builder.get_insert_block
+
+        resolved.codegen mod
+
+        args = self.args.map{|arg| arg.codegen(mod)}.push('calltmp')
+
+        mod.builder.position_at_end block
+        mod.builder.call resolved.code, *args
       end
+    end
+  end
+
+  class Arg
+    def codegen(mod)
+      code
     end
   end
 end
