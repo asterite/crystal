@@ -1,7 +1,7 @@
-Joy
-===
+Crystal
+=======
 
-Joy is a programming language that compiles to native code.
+Crystal is a programming language that compiles to native code.
 It has a syntax strongly inspired by Ruby:
   * No need to declare types: everything is inferred.
   * Classes and Modules can be opened: at compile time everything is mixed together
