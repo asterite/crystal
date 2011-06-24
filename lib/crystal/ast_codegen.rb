@@ -77,6 +77,10 @@ module Crystal
 
   [
     [LT, "slt"],
+    [LET, "sle"],
+    [GT, "sgt"],
+    [GET, "sge"],
+    [EQ, "eq"],
   ].each do |node, method|
     eval %Q(
       class #{node}

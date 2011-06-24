@@ -16,6 +16,14 @@ describe "ast eval" do
   it_evals "4 * 2", 8
   it_evals "8 < 4", 0
   it_evals "4 < 8", 1
+  it_evals "8 <= 7", 0
+  it_evals "8 <= 8", 1
+  it_evals "8 > 4", 1
+  it_evals "4 > 8", 0
+  it_evals "8 >= 9", 0
+  it_evals "8 >= 8", 1
+  it_evals "8 == 8", 1
+  it_evals "8 == 9", 0
   it_evals "def foo; end", nil
   it_evals "def foo; 1; end", nil
   it_evals "def foo; 1; end; foo", 1
