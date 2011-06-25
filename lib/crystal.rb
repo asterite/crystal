@@ -8,6 +8,8 @@
   'parser',
   'token',
   'visitor',
+  'core_ext/fixnum',
+  'core_ext/string',
 ].each do |filename|
   require(File.expand_path("../../lib/crystal/#{filename}",  __FILE__))
 end
