@@ -14,6 +14,7 @@ describe "ast eval" do
   it_evals "1 - 2", -1
   it_evals "4 / 2", 2
   it_evals "4 * 2", 8
+  it_evals "2 * (3 + 4)", 14
   it_evals "8 < 4", 0
   it_evals "4 < 8", 1
   it_evals "8 <= 7", 0

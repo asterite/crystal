@@ -23,17 +23,8 @@ module Crystal
     end
 
     def parse_expression
-      case @token.type
-      when :IDENT
-        case @token.value
-        when :def
-          return parse_def
-        end
-      when :'('
-        next_token_skip_space_or_newline
-        exp = parse_expression
-        next_token_skip_statement_end
-        return exp
+      if @token.type == :IDENT && @token.value == :def
+        return parse_def
       end
 
       parse_primary_expression
@@ -161,6 +152,11 @@ module Crystal
 
     def parse_atomic
       case @token.type
+      when :'('
+        next_token_skip_space_or_newline
+        exp = parse_expression
+        next_token_skip_statement_end
+        return exp
       when :"+"
         next_token_skip_space_or_newline
         check :INT
