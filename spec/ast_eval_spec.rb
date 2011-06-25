@@ -27,7 +27,8 @@ describe "ast eval" do
   it_evals "def foo; end", nil
   it_evals "def foo; 1; end", nil
   it_evals "def foo; 1; end; foo", 1
+  it_evals "def foo; 1; 2; end; foo", 2
   it_evals "def foo; 1; end; def foo; 2; end; foo", 2
   it_evals "def foo(var); 1; end; foo(2)", 1
-  it_evals "def foo(var); var + 1; end; foo(2)", 3
+  it_evals "def foo(var); var + 1; end; foo(2)", 3, :focus => true
 end

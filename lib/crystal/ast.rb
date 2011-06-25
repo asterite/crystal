@@ -74,13 +74,13 @@ module Crystal
     def initialize(name, args, body)
       @name = name
       @args = args
-      @body = body
+      @body = body || []
     end
 
     def accept(visitor)
       if visitor.visit_def self
         args.each { |arg| arg.accept visitor }
-        body.accept visitor if body
+        body.each { |exp| exp.accept visitor }
       end
       visitor.end_visit_def self
     end

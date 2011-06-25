@@ -1,11 +1,18 @@
-require(File.expand_path("../visitor",  __FILE__))
-
 module Crystal
   class ASTNode
     def eval(mod)
-      visitor = EvalVisitor.new mod
-      self.accept visitor
-      visitor.value
+      anon_def = Def.new "", [], [self]
+      anon_def.resolve mod
+      anon_def.codegen mod
+      #mod.module.dump
+      mod.run anon_def.code
+    end
+  end
+
+  class Def
+    def eval(mod)
+      mod.add_expression self
+      nil
     end
   end
 
@@ -23,44 +30,6 @@ module Crystal
       return nil if nodes.empty?
 
       define *nodes
-    end
-  end
-
-  class EvalVisitor < Visitor
-    attr_reader :value
-
-    def initialize(mod)
-      @mod = mod
-    end
-
-    [
-      'int',
-      'add',
-      'sub',
-      'mul',
-      'div',
-      'lt',
-      'let',
-      'eq',
-      'gt',
-      'get',
-      'call',
-      'ref'
-    ].each do |node|
-      class_eval %Q(
-        def visit_#{node}(node)
-          anon_def = Def.new "", [], node
-          anon_def.resolve @mod
-          anon_def.codegen @mod
-          @value = @mod.run anon_def.code
-          false
-        end
-      )
-    end
-
-    def visit_def(node)
-      @mod.add_expression node
-      false
     end
   end
 end

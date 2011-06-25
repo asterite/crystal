@@ -69,7 +69,7 @@ module Crystal
     eval %Q(
       class #{node}
         def codegen(mod)
-          @code ||= mod.builder.#{method} left.codegen(mod), right.codegen(mod), '#{node.to_s.downcase}tmp'
+          @code ||= mod.builder.#{method} left.codegen(mod), right.codegen(mod), '#{method}tmp'
         end
       end
     )
@@ -86,7 +86,7 @@ module Crystal
       class #{node}
         def codegen(mod)
           @code ||= begin
-            cond = mod.builder.icmp :#{method}, left.codegen(mod), right.codegen(mod), '#{node.to_s.downcase}tmp'
+            cond = mod.builder.icmp :#{method}, left.codegen(mod), right.codegen(mod), '#{method}tmp'
             mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
           end
         end
@@ -111,12 +111,16 @@ module Crystal
 
         entry = fun.basic_blocks.append 'entry'
 
-        mod.builder.position_at_end entry
-
-        if body
-          mod.builder.ret body.codegen(mod)
-        else
+        if body.empty?
           mod.builder.ret_void
+        else
+          last = nil
+          body.each do |exp|
+            mod.builder.position_at_end entry
+            last = exp.codegen mod
+          end
+          mod.builder.position_at_end entry
+          mod.builder.ret last
         end
 
         fun.verify

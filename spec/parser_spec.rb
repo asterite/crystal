@@ -34,8 +34,8 @@ describe Parser do
 
   it_parses_single_node "(1)", Int.new(1)
 
-  it_parses_single_node "def foo\n1\nend", Def.new("foo", [], Int.new(1))
-  it_parses_single_node "def foo ; 1 ; end", Def.new("foo", [], Int.new(1))
+  it_parses_single_node "def foo\n1\nend", Def.new("foo", [], [Int.new(1)])
+  it_parses_single_node "def foo ; 1 ; end", Def.new("foo", [], [Int.new(1)])
   it_parses_single_node "def foo; end", Def.new("foo", [], nil)
   it_parses_single_node "def foo(var); end", Def.new("foo", [Arg.new("var")], nil)
   it_parses_single_node "def foo(\nvar); end", Def.new("foo", [Arg.new("var")], nil)
@@ -46,6 +46,8 @@ describe Parser do
   it_parses_single_node "def foo var\n end", Def.new("foo", [Arg.new("var")], nil)
   it_parses_single_node "def foo var1, var2\n end", Def.new("foo", [Arg.new("var1"), Arg.new("var2")], nil)
   it_parses_single_node "def foo var1,\nvar2\n end", Def.new("foo", [Arg.new("var1"), Arg.new("var2")], nil)
+
+  it_parses_single_node "def foo; 1; 2; end", Def.new("foo", [], [Int.new(1), Int.new(2)])
 
   it_parses_single_node "foo", Ref.new("foo")
   it_parses_single_node "foo(1)", Call.new("foo", Int.new(1))

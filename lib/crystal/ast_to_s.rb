@@ -18,6 +18,7 @@ module Crystal
   class ToSVisitor < Visitor
     def initialize
       @str = ""
+      @indent = 0
     end
 
     def visit_module(node)
@@ -77,9 +78,13 @@ module Crystal
         @str << ")"
       end
       @str << "\n"
-      @str << "  "
-      node.body.accept self if node.body
-      @str << "\n"
+      @indent += 1
+      node.body.each do |exp|
+        @str << ('  ' * @indent)
+        exp.accept self
+        @str << "\n"
+      end
+      @indent -= 1
       @str << "end"
       false
     end

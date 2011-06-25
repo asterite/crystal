@@ -48,25 +48,29 @@ module Crystal
 
     def visit_def(node)
       @mod.add_expression node
-      node.body.resolve DefScope.new(@mod, node)
+
+      scope = DefScope.new(@mod, node)
+      node.body.each { |exp| exp.resolve scope }
+      false
     end
 
     def visit_ref(node)
       exp = @mod.find_expression(node.name) or raise "Error: undefined local variable or method '#{node.name}'"
-      exp.resolve @mod
+      if exp.is_a?(Def) && exp.args.length > 0
+        raise "Error: wrong number of arguments (0 for #{exp.args.length})"
+      end
 
+      exp.resolve @mod
       node.resolved = exp
     end
 
     def visit_call(node)
       exp = @mod.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
-
       if node.args.length != exp.args.length
         raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
       end
 
       exp.resolve @mod
-
       node.resolved = exp
     end
   end

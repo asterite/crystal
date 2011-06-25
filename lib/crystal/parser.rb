@@ -15,7 +15,7 @@ module Crystal
 
     def parse_expressions
       exps = []
-      while @token.type != :EOF
+      while @token.type != :EOF && !(@token.type == :IDENT && @token.value == :end)
         exps << parse_expression
         skip_statement_end
       end
@@ -77,7 +77,7 @@ module Crystal
       if @token.type == :IDENT && @token.value == :end
         body = nil
       else
-        body = parse_expression
+        body = parse_expressions
         skip_statement_end
         check_ident :end
       end
@@ -230,7 +230,7 @@ module Crystal
 
     def check_ident(value = nil)
       if value
-        raise "Expecting token: #{@token.to_s}" unless @token.type == :IDENT && @token.value == value
+        raise "Expecting token: #{value}" unless @token.type == :IDENT && @token.value == value
       else
         raise "Unexpected token: #{@token.to_s}" unless @token.type == :IDENT && @token.value.is_a?(String)
       end
