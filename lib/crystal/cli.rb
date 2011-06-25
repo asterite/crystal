@@ -28,12 +28,13 @@ loop do
   line = gets
   next if line.strip.empty?
 
+  break if line.strip == "exit" || line.strip == "quit"
+  next mod.module.dump if line.strip == "dump"
+
   buffer << line
   openings = count_openings buffer
 
   if openings == 0
-    break if line.strip == "exit" || line.strip == "quit"
-
     begin
       result = mod.eval buffer
       puts " => #{result ? result : 'nil'}"
