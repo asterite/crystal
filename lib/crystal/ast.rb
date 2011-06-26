@@ -53,13 +53,17 @@ module Crystal
       @value = value
     end
 
+    def has_sign?
+      @value[0] == '+' || @value[0] == '-'
+    end
+
     def accept(visitor)
       visitor.visit_int self
       visitor.end_visit_int self
     end
 
     def ==(other)
-      other.is_a?(Int) && other.value == value
+      other.is_a?(Int) && other.value.to_i == value.to_i
     end
   end
 

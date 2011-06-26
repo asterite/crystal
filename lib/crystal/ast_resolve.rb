@@ -19,8 +19,8 @@ module Crystal
   class ResolveVisitor < Visitor
     attr_accessor :resolved
 
-    def initialize(mod)
-      @mod = mod
+    def initialize(scope)
+      @scope = scope
     end
 
     def visit_int(node)
@@ -39,65 +39,89 @@ module Crystal
     ].each do |node|
       class_eval %Q(
         def visit_#{node}(node)
-          node.left.resolve @mod
-          node.right.resolve @mod
+          node.left.accept self
+          node.right.accept self
           false
         end
       )
     end
 
     def visit_def(node)
-      @mod.add_expression node
+      @scope.add_expression node
 
-      scope = DefScope.new(@mod, node)
-      node.body.resolve scope
+      with_new_scope DefScope.new(@scope, node) do
+        node.body.accept self
+      end
       false
     end
 
     def visit_ref(node)
-      exp = @mod.find_expression(node.name) or raise "Error: undefined local variable or method '#{node.name}'"
+      return if node.resolved
+
+      exp = @scope.find_expression(node.name) or raise "Error: undefined local variable or method '#{node.name}'"
       if exp.is_a?(Def) && exp.args.length > 0
         raise "Error: wrong number of arguments (0 for #{exp.args.length})"
       end
 
-      exp.resolve @mod
       node.resolved = exp
+      exp.accept self
     end
 
     def visit_call(node)
-      exp = @mod.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
+      return if node.resolved
+
+      exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
+      if exp.is_a? Arg
+        # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
+        if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
+          node.resolved = exp
+          return false
+        else
+          raise "Error: undefined method #{node.name}"
+        end
+      end
+
       if node.args.length != exp.args.length
         raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
       end
 
-      exp.resolve @mod
       node.resolved = exp
+      exp.accept self
+      node.args.each { |arg| arg.accept self }
+      false
+    end
+
+    def with_new_scope(scope)
+      old_scope = @scope
+      @scope = scope
+      yield
+      @scope = old_scope
     end
   end
 
   class DefScope
-    def initialize(mod, a_def)
-      @mod = mod
+    def initialize(scope, a_def)
+      @scope = scope
       @def = a_def
     end
 
     def add_expression(node)
-      @mod.add_expression node
+      @scope.add_expression node
     end
 
     def find_expression(name)
       arg = @def.args.select{|arg| arg.name == name}.first
       return arg if arg
 
-      @mod.find_expression name
+      @scope.find_expression name
     end
 
     def module
-      @mod.module
+      @scope.module
     end
 
     def builder
-      @mod.builder
+      @scope.builder
     end
   end
 end

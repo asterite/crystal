@@ -15,7 +15,7 @@ module Crystal
 
     def parse_expressions
       exps = []
-      while @token.type != :EOF && !(@token.type == :IDENT && @token.value == :end)
+      while @token.type != :EOF && !(@token.type == :IDENT && (@token.value == :end || @token.value == :else))
         exps << parse_expression
         skip_statement_end
       end
@@ -88,13 +88,20 @@ module Crystal
       cond = parse_expression
       skip_statement_end
 
-      body = parse_expressions
+      a_then = parse_expressions
       skip_statement_end
+
+      a_else = if @token.type == :IDENT && @token.value == :else
+                 next_token_skip_statement_end
+                 parse_expressions
+               else
+                 nil
+               end
 
       check_ident :end
       next_token_skip_statement_end
 
-      If.new cond, body
+      If.new cond, a_then, a_else
     end
 
     def parse_primary_expression
@@ -143,6 +150,17 @@ module Crystal
           next_token_skip_space_or_newline
           right = parse_mul_or_div
           left = Sub.new left, right
+        when :INT
+          case @token.value[0]
+          when '+'
+            left = Add.new left, Int.new(@token.value)
+            next_token_skip_space_or_newline
+          when '-'
+            left = Add.new left, Int.new(@token.value)
+            next_token_skip_space_or_newline
+          else
+            return left
+          end
         else
           return left
         end
@@ -214,18 +232,18 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/"
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
           Ref.new name
         else
           args = []
-          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF
+          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')'
             args << parse_expression
             skip_space
             if @token.type == :","
               next_token_skip_space_or_newline
             end
           end
-          next_token_skip_space
+          next_token_skip_space unless @token.type == :')'
           Call.new name, *args
         end
       else

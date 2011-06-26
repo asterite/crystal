@@ -19,6 +19,8 @@ describe Parser do
   it_parses_single_node "-1", -1.int
   it_parses_single_node "1 + 2", Add.new(1.int, 2.int)
   it_parses_single_node "1 +\n2", Add.new(1.int, 2.int)
+  it_parses_single_node "1 +2", Add.new(1.int, 2.int)
+  it_parses_single_node "1 -2", Add.new(1.int, -2.int)
   it_parses "1\n+2", [1.int, 2.int]
   it_parses "1;+2", [1.int, 2.int]
   it_parses_single_node "1 - 2", Sub.new(1.int, 2.int)
@@ -47,8 +49,8 @@ describe Parser do
   it_parses_single_node "def foo var\n end", Def.new("foo", ["var".arg], nil)
   it_parses_single_node "def foo var1, var2\n end", Def.new("foo", ["var1".arg, "var2".arg], nil)
   it_parses_single_node "def foo var1,\nvar2\n end", Def.new("foo", ["var1".arg, "var2".arg], nil)
-
   it_parses_single_node "def foo; 1; 2; end", Def.new("foo", [], [1.int, 2.int])
+  it_parses_single_node "def foo(n); foo(n -1); end", Def.new("foo", ["n".arg], Call.new("foo", Call.new("n", -1.int)))
 
   it_parses_single_node "foo", "foo".ref
   it_parses_single_node "foo(1)", Call.new("foo", 1.int)
@@ -68,7 +70,14 @@ describe Parser do
   it_parses_single_node "1 == 2", EQ.new(1.int, 2.int)
   it_parses_single_node "1 > 2", GT.new(1.int, 2.int)
   it_parses_single_node "1 >= 2", GET.new(1.int, 2.int)
+  it_parses_single_node "n < 2", LT.new("n".ref, 2.int)
+  it_parses_single_node "n <= 2", LET.new("n".ref, 2.int)
+  it_parses_single_node "n == 2", EQ.new("n".ref, 2.int)
+  it_parses_single_node "n > 2", GT.new("n".ref, 2.int)
+  it_parses_single_node "n >= 2", GET.new("n".ref, 2.int)
 
   it_parses_single_node "if foo; 1; end", If.new("foo".ref, 1.int)
   it_parses_single_node "if foo\n1\nend", If.new("foo".ref, 1.int)
+  it_parses_single_node "if foo; 1; else; 2; end", If.new("foo".ref, 1.int, 2.int)
+  it_parses_single_node "if foo\n1\nelse\n2\nend", If.new("foo".ref, 1.int, 2.int)
 end

@@ -72,7 +72,7 @@ module Crystal
 
   class Int
     def codegen(mod)
-      Crystal::DefaultType value
+      Crystal::DefaultType value.to_i
     end
   end
 
@@ -110,29 +110,31 @@ module Crystal
 
   class Def
     def codegen(mod)
-      @code ||= begin
-        fun = mod.module.functions.named name
-        mod.module.functions.delete fun if fun
+      return @code if @code
 
-        args_types = Array.new(args.length, Crystal::DefaultType)
-        fun = mod.module.functions.add name, args_types, Crystal::DefaultType
-        args.each_with_index do |arg, i|
-          arg.code = fun.params[i]
-          fun.params[i].name = arg.name
-        end
+      fun = mod.module.functions.named name
+      mod.module.functions.delete fun if fun
 
-        entry = fun.basic_blocks.append 'entry'
-
-        mod.builder.position_at_end entry
-        mod.builder.ret body.codegen(mod)
-
-        #fun.dump
-
-        fun.verify
-        mod.fpm.run fun
-        #fun.dump
-        fun
+      args_types = Array.new(args.length, Crystal::DefaultType)
+      fun = mod.module.functions.add name, args_types, Crystal::DefaultType
+      args.each_with_index do |arg, i|
+        arg.code = fun.params[i]
+        fun.params[i].name = arg.name
       end
+
+      @code = fun
+
+      entry = fun.basic_blocks.append 'entry'
+
+      mod.builder.position_at_end entry
+      mod.builder.ret body.codegen(mod)
+
+      #fun.dump
+
+      fun.verify
+      mod.fpm.run fun
+      #fun.dump
+      fun
     end
   end
 
@@ -151,14 +153,19 @@ module Crystal
 
   class Call
     def codegen(mod)
-      block = mod.builder.get_insert_block
+      if resolved.is_a? Arg
+        # Case when the call is "foo -1" but foo is an arg, not a call
+        Add.new(resolved, args[0]).codegen mod
+      else
+        block = mod.builder.get_insert_block
 
-      resolved.codegen mod
+        resolved.codegen mod
 
-      args = self.args.map{|arg| arg.codegen(mod)}.push('calltmp')
+        args = self.args.map{|arg| arg.codegen(mod)}.push('calltmp')
 
-      mod.builder.position_at_end block
-      mod.builder.call resolved.code, *args
+        mod.builder.position_at_end block
+        mod.builder.call resolved.code, *args
+      end
     end
   end
 

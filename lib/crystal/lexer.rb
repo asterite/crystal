@@ -20,7 +20,7 @@ module Crystal
         @token.type = :";"
       elsif match = scan(/(\+|-)?\d+/)
         @token.type = :INT
-        @token.value = match.to_i
+        @token.value = match
       elsif match = scan(%r(==|=|<=|<|>=|>|\+|-|\*|/|\(|\)|,))
         @token.type = match.to_sym
       elsif match = scan(/def|else|end|if/)

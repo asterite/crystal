@@ -26,7 +26,11 @@ describe Lexer do
 
   def self.it_lexes_ints(*args)
     args.each do |arg|
-      it_lexes arg, :INT, arg.to_i
+      if arg.is_a? Array
+        it_lexes arg[0], :INT, arg[1]
+      else
+        it_lexes arg, :INT, arg
+      end
     end
   end
 
@@ -38,7 +42,7 @@ describe Lexer do
   it_lexes "else", :IDENT, :else
   it_lexes "end", :IDENT, :end
   it_lexes_idents "ident", "something", "with_underscores", "with_1"
-  it_lexes_ints "1", "1hello", "+1", "-1"
+  it_lexes_ints "1", ["1hello", "1"], "+1", "-1"
 
   it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", ","
 end
