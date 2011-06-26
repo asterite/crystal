@@ -14,6 +14,25 @@ module Crystal
   class Expression < ASTNode
   end
 
+  class Expressions < Expression
+    attr_accessor :expressions
+
+    def initialize(expressions = nil)
+      @expressions = expressions || []
+    end
+
+    def accept(visitor)
+      if visitor.visit_expressions self
+        expressions.each { |exp| exp.accept visitor }
+      end
+      visitor.end_visit_expressions self
+    end
+
+    def ==(other)
+      other.is_a?(Expressions) && other.expressions == expressions
+    end
+  end
+
   class Int < Expression
     attr_accessor :value
 
@@ -74,13 +93,14 @@ module Crystal
     def initialize(name, args, body)
       @name = name
       @args = args
-      @body = body || []
+      @body = body || Expressions.new
+      @body = Expressions.new @body if @body.is_a?(Array)
     end
 
     def accept(visitor)
       if visitor.visit_def self
         args.each { |arg| arg.accept visitor }
-        body.each { |exp| exp.accept visitor }
+        body.accept visitor
       end
       visitor.end_visit_def self
     end
@@ -142,6 +162,31 @@ module Crystal
 
     def ==(other)
       other.is_a?(Call) && other.name == name && other.args == args
+    end
+  end
+
+  class If < Expression
+    attr_accessor :cond
+    attr_accessor :then
+    attr_accessor :else
+
+    def initialize(cond, a_then, a_else = nil)
+      @cond = cond
+      @then = a_then
+      @else = a_else
+    end
+
+    def accept(visitor)
+      if visitor.visit_if self
+        self.cond.accept visitor
+        self.then.accept visitor
+        self.else.accept visitor if self.else
+      end
+      visitor.end_visit_if self
+    end
+
+    def ==(other)
+      other.is_a?(If) && other.cond == cond && other.then == self.then && other.else == self.else
     end
   end
 end

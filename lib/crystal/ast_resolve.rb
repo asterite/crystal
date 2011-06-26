@@ -50,7 +50,7 @@ module Crystal
       @mod.add_expression node
 
       scope = DefScope.new(@mod, node)
-      node.body.each { |exp| exp.resolve scope }
+      node.body.resolve scope
       false
     end
 

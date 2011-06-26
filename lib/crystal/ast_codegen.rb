@@ -19,7 +19,6 @@ module Crystal
     attr_reader :fpm
 
     def initialize
-      @symbols = {}
       @expressions = {}
       @module = LLVM::Module.create ''
       @builder = LLVM::Builder.create
@@ -27,8 +26,11 @@ module Crystal
       create_function_pass_manager
     end
 
-    def find_symbol(name)
-      @symbols[name]
+    def remember_block
+      block = builder.get_insert_block
+      code = yield
+      builder.position_at_end block
+      code
     end
 
     def add_expression(node)
@@ -54,9 +56,23 @@ module Crystal
     end
   end
 
+  class Expressions
+    def codegen(mod)
+      if expressions.empty?
+        Crystal::DefaultType 0
+      else
+        last = nil
+        expressions.each do |exp|
+          last = exp.codegen mod
+        end
+        last
+      end
+    end
+  end
+
   class Int
     def codegen(mod)
-      @code ||= Crystal::DefaultType value
+      Crystal::DefaultType value
     end
   end
 
@@ -69,7 +85,7 @@ module Crystal
     eval %Q(
       class #{node}
         def codegen(mod)
-          @code ||= mod.builder.#{method} left.codegen(mod), right.codegen(mod), '#{method}tmp'
+          mod.builder.#{method} left.codegen(mod), right.codegen(mod), '#{method}tmp'
         end
       end
     )
@@ -85,10 +101,8 @@ module Crystal
     eval %Q(
       class #{node}
         def codegen(mod)
-          @code ||= begin
-            cond = mod.builder.icmp :#{method}, left.codegen(mod), right.codegen(mod), '#{method}tmp'
-            mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
-          end
+          cond = mod.builder.icmp :#{method}, left.codegen(mod), right.codegen(mod), '#{method}tmp'
+          mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
         end
       end
     )
@@ -97,13 +111,11 @@ module Crystal
   class Def
     def codegen(mod)
       @code ||= begin
-        ret_type = body ? Crystal::DefaultType : LLVM::Type.void
-
         fun = mod.module.functions.named name
         mod.module.functions.delete fun if fun
 
         args_types = Array.new(args.length, Crystal::DefaultType)
-        fun = mod.module.functions.add name, args_types, ret_type
+        fun = mod.module.functions.add name, args_types, Crystal::DefaultType
         args.each_with_index do |arg, i|
           arg.code = fun.params[i]
           fun.params[i].name = arg.name
@@ -111,17 +123,10 @@ module Crystal
 
         entry = fun.basic_blocks.append 'entry'
 
-        if body.empty?
-          mod.builder.ret_void
-        else
-          last = nil
-          body.each do |exp|
-            mod.builder.position_at_end entry
-            last = exp.codegen mod
-          end
-          mod.builder.position_at_end entry
-          mod.builder.ret last
-        end
+        mod.builder.position_at_end entry
+        mod.builder.ret body.codegen(mod)
+
+        #fun.dump
 
         fun.verify
         mod.fpm.run fun
@@ -133,32 +138,27 @@ module Crystal
 
   class Ref
     def codegen(mod)
-      block = mod.builder.get_insert_block
-
-      resolved.codegen mod
+      code = mod.remember_block { resolved.codegen mod }
 
       case resolved
       when Arg
-        resolved.code
+        code
       when Def
-        mod.builder.position_at_end block
-        mod.builder.call resolved.code
+        mod.builder.call code
       end
     end
   end
 
   class Call
     def codegen(mod)
-      @code ||= begin
-        block = mod.builder.get_insert_block
+      block = mod.builder.get_insert_block
 
-        resolved.codegen mod
+      resolved.codegen mod
 
-        args = self.args.map{|arg| arg.codegen(mod)}.push('calltmp')
+      args = self.args.map{|arg| arg.codegen(mod)}.push('calltmp')
 
-        mod.builder.position_at_end block
-        mod.builder.call resolved.code, *args
-      end
+      mod.builder.position_at_end block
+      mod.builder.call resolved.code, *args
     end
   end
 

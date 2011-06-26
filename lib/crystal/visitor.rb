@@ -2,6 +2,7 @@ module Crystal
   class Visitor
     [
       'module',
+      'expressions',
       'int',
       'add',
       'sub',
@@ -16,6 +17,7 @@ module Crystal
       'eq',
       'gt',
       'get',
+      'if',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

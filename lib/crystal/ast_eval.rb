@@ -19,17 +19,14 @@ module Crystal
   class Module
     def define(*nodes)
       value = nil
-      nodes.each do |node|
-        value = node.eval self
-      end
+      nodes.each { |node| value = node.eval self }
       value
     end
 
     def eval(string)
-      nodes = Parser.parse string
-      return nil if nodes.empty?
+      exps = Parser.parse string
 
-      define *nodes
+      define *exps.expressions
     end
   end
 end
