@@ -143,7 +143,7 @@ module Crystal
       code = mod.remember_block { resolved.codegen mod }
 
       case resolved
-      when Arg
+      when Var
         code
       when Def
         mod.builder.call code
@@ -153,7 +153,7 @@ module Crystal
 
   class Call
     def codegen(mod)
-      if resolved.is_a? Arg
+      if resolved.is_a? Var
         # Case when the call is "foo -1" but foo is an arg, not a call
         Add.new(resolved, args[0]).codegen mod
       else
@@ -169,7 +169,7 @@ module Crystal
     end
   end
 
-  class Arg
+  class Var
     def codegen(mod)
       code
     end

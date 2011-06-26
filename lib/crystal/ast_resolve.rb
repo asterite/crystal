@@ -71,7 +71,7 @@ module Crystal
       return if node.resolved
 
       exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
-      if exp.is_a? Arg
+      if exp.is_a? Var
         # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
         if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
           node.resolved = exp

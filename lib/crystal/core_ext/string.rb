@@ -1,6 +1,6 @@
 class String
-  def arg
-    Crystal::Arg.new self
+  def var
+    Crystal::Var.new self
   end
 
   def ref

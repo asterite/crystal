@@ -10,7 +10,7 @@ module Crystal
       'div',
       'def',
       'ref',
-      'arg',
+      'var',
       'call',
       'lt',
       'let',

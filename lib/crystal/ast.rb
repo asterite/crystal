@@ -143,7 +143,7 @@ module Crystal
     end
   end
 
-  class Arg < ASTNode
+  class Var < ASTNode
     attr_accessor :name
 
     def initialize(name)
@@ -151,12 +151,12 @@ module Crystal
     end
 
     def accept(visitor)
-      visitor.visit_arg self
-      visitor.end_visit_arg self
+      visitor.visit_var self
+      visitor.end_visit_var self
     end
 
     def ==(other)
-      other.is_a?(Arg) && other.name == name
+      other.is_a?(Var) && other.name == name
     end
   end
 

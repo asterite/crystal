@@ -85,7 +85,7 @@ module Crystal
       false
     end
 
-    def visit_arg(node)
+    def visit_var(node)
       @str << node.name
     end
 
