@@ -167,4 +167,41 @@ module Crystal
       code
     end
   end
+
+  class If
+    def codegen(mod)
+      cond_code = cond.codegen mod
+      cond_code = mod.builder.icmp(:ne, cond_code, Crystal::DefaultType(0), 'ifcond')
+
+      start_block = mod.builder.get_insert_block
+      fun = start_block.parent
+
+      then_block = fun.basic_blocks.append 'then'
+      mod.builder.position_at_end then_block
+      then_code = self.then.codegen mod
+      new_then_block = mod.builder.get_insert_block
+
+      else_block = fun.basic_blocks.append 'else'
+      mod.builder.position_at_end else_block
+      else_code = self.else.codegen mod
+      new_else_block = mod.builder.get_insert_block
+
+      merge_block = fun.basic_blocks.append 'merge'
+      mod.builder.position_at_end merge_block
+      phi = mod.builder.phi LLVM::Int.type, then_code, new_then_block, else_code, new_else_block, 'iftmp'
+
+      mod.builder.position_at_end start_block
+      mod.builder.cond cond_code, then_block, else_block
+
+      mod.builder.position_at_end new_then_block
+      mod.builder.br merge_block
+
+      mod.builder.position_at_end new_else_block
+      mod.builder.br merge_block
+
+      mod.builder.position_at_end merge_block
+
+      phi
+    end
+  end
 end

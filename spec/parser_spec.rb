@@ -70,4 +70,5 @@ describe Parser do
   it_parses_single_node "1 >= 2", GET.new(1.int, 2.int)
 
   it_parses_single_node "if foo; 1; end", If.new("foo".ref, 1.int)
+  it_parses_single_node "if foo\n1\nend", If.new("foo".ref, 1.int)
 end
