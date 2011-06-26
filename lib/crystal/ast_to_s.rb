@@ -103,6 +103,10 @@ module Crystal
       node.cond.accept self
       @str << "\n"
       @indent += 1
+      node.then.accept self
+      @indent -= 1
+      @str << "end"
+      false
     end
 
     def to_s

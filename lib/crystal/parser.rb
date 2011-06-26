@@ -23,8 +23,13 @@ module Crystal
     end
 
     def parse_expression
-      if @token.type == :IDENT && @token.value == :def
-        return parse_def
+      if @token.type == :IDENT
+        case @token.value
+        when :def
+          return parse_def
+        when :if
+          return parse_if
+        end
       end
 
       parse_primary_expression
@@ -75,6 +80,21 @@ module Crystal
 
       next_token_skip_statement_end
       Def.new name, args, body
+    end
+
+    def parse_if
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      body = parse_expressions
+      skip_statement_end
+
+      check_ident :end
+      next_token_skip_statement_end
+
+      If.new cond, body
     end
 
     def parse_primary_expression

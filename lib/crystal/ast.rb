@@ -17,6 +17,19 @@ module Crystal
   class Expressions < Expression
     attr_accessor :expressions
 
+    def self.from(obj)
+      case obj
+      when nil
+        Expressions.new
+      when Expressions
+        obj
+      when Array
+        Expressions.new obj
+      else
+        Expressions.new [obj]
+      end
+    end
+
     def initialize(expressions = nil)
       @expressions = expressions || []
     end
@@ -93,8 +106,7 @@ module Crystal
     def initialize(name, args, body)
       @name = name
       @args = args
-      @body = body || Expressions.new
-      @body = Expressions.new @body if @body.is_a?(Array)
+      @body = Expressions.from body
     end
 
     def accept(visitor)
@@ -172,8 +184,8 @@ module Crystal
 
     def initialize(cond, a_then, a_else = nil)
       @cond = cond
-      @then = a_then
-      @else = a_else
+      @then = Expressions.from a_then
+      @else = Expressions.from a_else
     end
 
     def accept(visitor)

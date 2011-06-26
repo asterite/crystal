@@ -46,4 +46,8 @@ describe "ast nodes" do
   it "should to_s Call with args" do
     Call.new("foo", 1.int, 2.int).to_s.should eq("foo(1, 2)")
   end
+
+  it "should to_s If" do
+    If.new("foo".ref, 1.int).to_s.should eq("if foo\n  1\nend")
+  end
 end
