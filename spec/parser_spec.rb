@@ -77,5 +77,6 @@ describe Parser do
 
   ['bar', :'+', :'-', :'*', :'/', :'<', :'<=', :'==', :'>', :'>='].each do |name|
     it_parses_single_node "foo.#{name}", Call.new("foo".ref, name)
+    it_parses_single_node "foo.#{name} 1, 2", Call.new("foo".ref, name, 1.int, 2.int)
   end
 end

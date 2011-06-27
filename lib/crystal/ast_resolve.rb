@@ -58,6 +58,10 @@ module Crystal
           @scope.add_expression exp
         end
 
+        if node.args.length != exp.args.length - 1 # Without self
+          raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
+        end
+
         node.args = [node.obj] + node.args
         node.name = exp.name
         node.obj = nil

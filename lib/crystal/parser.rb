@@ -42,8 +42,10 @@ module Crystal
           next_token_skip_space_or_newline
           check :IDENT, :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
           name = @token.type == :IDENT ? @token.value : @token.type
-          next_token_skip_space
-          left = Call.new left, name
+          next_token
+
+          args = parse_args
+          left = args ? (Call.new left, name, *args) : (Call.new left, name)
         else
           return left
         end
@@ -208,6 +210,11 @@ module Crystal
       name = @token.value
       next_token
 
+      args = parse_args
+      args ? Call.new(nil, name, *args) : Ref.new(name)
+    end
+
+    def parse_args
       case @token.type
       when :"("
         args = []
@@ -220,12 +227,12 @@ module Crystal
           end
         end
         next_token_skip_space
-        Call.new nil, name, *args
+        args
       when :SPACE
         next_token
         case @token.type
         when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
-          Ref.new name
+          nil
         else
           args = []
           while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')'
@@ -236,10 +243,10 @@ module Crystal
             end
           end
           next_token_skip_space unless @token.type == :')'
-          Call.new nil, name, *args
+          args
         end
       else
-        Ref.new name
+        nil
       end
     end
 
