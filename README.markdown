@@ -14,11 +14,11 @@ It has a syntax strongly inspired by Ruby:
 
 Examples:
 
-1. Hello World
+Hello World
 
     puts "Hello World"
 
-2. Fibbonacci
+Fibbonacci
 
     def fib n
       if n <= 2
@@ -35,7 +35,7 @@ Compiles to...
 
     puts 8
 
-3. Constants as arguments
+Constants as arguments
 
     def static N, x
       if N == 1
