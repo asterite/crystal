@@ -32,24 +32,7 @@ module Crystal
         end
       end
 
-      left = parse_primary_expression
-
-      while true
-        case @token.type
-        when :SPACE
-          next_token
-        when :'.'
-          next_token_skip_space_or_newline
-          check :IDENT, :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
-          name = @token.type == :IDENT ? @token.value : @token.type
-          next_token
-
-          args = parse_args
-          left = args ? (Call.new left, name, *args) : (Call.new left, name)
-        else
-          return left
-        end
-      end
+      parse_primary_expression
     end
 
     def parse_def
@@ -166,7 +149,7 @@ module Crystal
     end
 
     def parse_mul_or_div
-      left = parse_atomic
+      left = parse_atomic_with_method
       while true
         case @token.type
         when :SPACE
@@ -174,10 +157,31 @@ module Crystal
         when :"*", :"/"
           method = @token.type
           next_token_skip_space_or_newline
-          right = parse_atomic
+          right = parse_atomic_with_method
           left = Call.new left, method, right
         else
           return left
+        end
+      end
+    end
+
+    def parse_atomic_with_method
+      atomic = parse_atomic
+
+      while true
+        case @token.type
+        when :SPACE
+          next_token
+        when :'.'
+          next_token_skip_space_or_newline
+          check :IDENT, :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
+          name = @token.type == :IDENT ? @token.value : @token.type
+          next_token
+
+          args = parse_args
+          atomic = args ? (Call.new atomic, name, *args) : (Call.new atomic, name)
+        else
+          return atomic
         end
       end
     end
@@ -187,8 +191,9 @@ module Crystal
       when :'('
         next_token_skip_space_or_newline
         exp = parse_expression
+        check :')'
         next_token_skip_statement_end
-        return exp
+        exp
       when :"+"
         next_token_skip_space_or_newline
         check :INT
