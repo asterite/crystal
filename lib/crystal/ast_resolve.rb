@@ -61,29 +61,27 @@ module Crystal
         node.args = [node.obj] + node.args
         node.name = exp.name
         node.obj = nil
-        node.accept self
-        false
-      else
-        exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
-        if exp.is_a? Var
-          # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
-          if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
-            node.resolved = exp
-            return false
-          else
-            raise "Error: undefined method #{node.name}"
-          end
-        end
-
-        if node.args.length != exp.args.length
-          raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
-        end
-
-        node.args.each { |arg| arg.accept self }
-        node.resolved = exp
-        exp.accept self
-        false
       end
+
+      exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
+      if exp.is_a? Var
+        # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
+        if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
+          node.resolved = exp
+          return false
+        else
+          raise "Error: undefined method #{node.name}"
+        end
+      end
+
+      if node.args.length != exp.args.length
+        raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
+      end
+
+      node.args.each { |arg| arg.accept self }
+      node.resolved = exp
+      exp.accept self
+      false
     end
 
     def with_new_scope(scope)
