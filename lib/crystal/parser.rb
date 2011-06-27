@@ -110,26 +110,12 @@ module Crystal
         case @token.type
         when :SPACE
           next_token
-        when :"<"
+        when :"<", :"<=", :"==", :">", :">="
+          method = @token.type
+
           next_token_skip_space_or_newline
           right = parse_add_or_sub
-          left = LT.new left, right
-        when :"<="
-          next_token_skip_space_or_newline
-          right = parse_add_or_sub
-          left = LET.new left, right
-        when :"=="
-          next_token_skip_space_or_newline
-          right = parse_add_or_sub
-          left = EQ.new left, right
-        when :">"
-          next_token_skip_space_or_newline
-          right = parse_add_or_sub
-          left = GT.new left, right
-        when :">="
-          next_token_skip_space_or_newline
-          right = parse_add_or_sub
-          left = GET.new left, right
+          left = Call.new left, method, right
         else
           return left
         end
@@ -142,21 +128,15 @@ module Crystal
         case @token.type
         when :SPACE
           next_token
-        when :"+"
+        when :"+", :"-"
+          method = @token.type
           next_token_skip_space_or_newline
           right = parse_mul_or_div
-          left = Add.new left, right
-        when :"-"
-          next_token_skip_space_or_newline
-          right = parse_mul_or_div
-          left = Sub.new left, right
+          left = Call.new left, method, right
         when :INT
           case @token.value[0]
-          when '+'
-            left = Add.new left, Int.new(@token.value)
-            next_token_skip_space_or_newline
-          when '-'
-            left = Add.new left, Int.new(@token.value)
+          when '+', '-'
+            left = Call.new left, @token.value[0].to_sym, Int.new(@token.value)
             next_token_skip_space_or_newline
           else
             return left
@@ -174,14 +154,11 @@ module Crystal
         case @token.type
         when :SPACE
           next_token
-        when :"*"
+        when :"*", :"/"
+          method = @token.type
           next_token_skip_space_or_newline
           right = parse_atomic
-          left = Mul.new left, right
-        when :"/"
-          next_token_skip_space_or_newline
-          right = parse_atomic
-          left = Div.new left, right
+          left = Call.new left, method, right
         else
           return left
         end
@@ -228,7 +205,7 @@ module Crystal
           end
         end
         next_token_skip_space
-        Call.new name, *args
+        Call.new nil, name, *args
       when :SPACE
         next_token
         case @token.type
@@ -244,7 +221,7 @@ module Crystal
             end
           end
           next_token_skip_space unless @token.type == :')'
-          Call.new name, *args
+          Call.new nil, name, *args
         end
       else
         Ref.new name

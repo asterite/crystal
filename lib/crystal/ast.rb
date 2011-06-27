@@ -67,41 +67,6 @@ module Crystal
     end
   end
 
-  [["Add", "+"],
-   ["Sub", "-"],
-   ["Mul", "*"],
-   ["Div", "/"],
-   ["LT",  "<"],
-   ["LET",  "<="],
-   ["EQ",  "=="],
-   ["GT",  ">"],
-   ["GET",  ">="],
-  ].each do |name, op|
-    eval %Q(
-      class #{name} < Expression
-        attr_accessor :left
-        attr_accessor :right
-
-        def initialize(left, right)
-          @left = left
-          @right = right
-        end
-
-        def accept(visitor)
-          if visitor.visit_#{name.downcase} self
-            left.accept visitor
-            right.accept visitor
-          end
-          visitor.end_visit_#{name.downcase} self
-        end
-
-        def ==(other)
-          other.is_a?(#{name}) && other.left == left && other.right == right
-        end
-      end
-    )
-  end
-
   class Def < Expression
     attr_accessor :name
     attr_accessor :args
@@ -161,10 +126,12 @@ module Crystal
   end
 
   class Call < Expression
+    attr_accessor :obj
     attr_accessor :name
     attr_accessor :args
 
-    def initialize(name, *args)
+    def initialize(obj, name, *args)
+      @obj = obj
       @name = name
       @args = args
     end
@@ -177,7 +144,7 @@ module Crystal
     end
 
     def ==(other)
-      other.is_a?(Call) && other.name == name && other.args == args
+      other.is_a?(Call) && other.obj == obj && other.name == name && other.args == args
     end
   end
 

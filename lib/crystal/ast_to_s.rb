@@ -28,40 +28,27 @@ module Crystal
       @str << node.value.to_s
     end
 
-    [
-      ["add", "+"],
-      ["sub", "-"],
-      ["mul", "*"],
-      ["div", "/"],
-      ["lt", "<"],
-      ["let", "<="],
-      ["eq", "=="],
-      ["gt", ">"],
-      ["get", ">="],
-    ].each do |node, op|
-      class_eval %Q(
-        def visit_#{node}(node)
-          node.left.accept self
-          @str << " #{op} "
-          node.right.accept self
-          false
-        end
-      )
-    end
-
     def visit_ref(node)
       @str << node.name
       false
     end
 
     def visit_call(node)
-      @str << node.name
-      @str << "("
-      node.args.each_with_index do |arg, i|
-        @str << ", " if i > 0
-        arg.accept self
+      node.obj.accept self if node.obj
+      if node.obj && node.name.is_a?(Symbol) && node.args.length == 1
+        @str << " "
+        @str << node.name.to_s
+        @str << " "
+        node.args[0].accept self
+      else
+        @str << node.name.to_s
+        @str << "("
+        node.args.each_with_index do |arg, i|
+          @str << ", " if i > 0
+          arg.accept self
+        end
+        @str << ")"
       end
-      @str << ")"
       false
     end
 

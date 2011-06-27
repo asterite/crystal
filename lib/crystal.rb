@@ -2,6 +2,7 @@
   'ast',
   'ast_codegen',
   'ast_eval',
+  'ast_methods',
   'ast_resolve',
   'ast_to_s',
   'lexer',

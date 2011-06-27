@@ -20,6 +20,10 @@ module Crystal
             super "Crystal::Int##{op}", [Var.new("x"), Var.new("y")], nil
           end
 
+          def add_function_attributes(fun)
+            fun.add_attribute :always_inline
+          end
+
           def codegen_body(mod, fun)
             mod.builder.#{method} fun.params[0], fun.params[1], '#{method}tmp'
           end
@@ -39,6 +43,10 @@ module Crystal
         class #{node} < Def
           def initialize
             super "Crystal::Int##{op}", [Var.new("x"), Var.new("y")], nil
+          end
+
+          def add_function_attributes(fun)
+            fun.add_attribute :always_inline
           end
 
           def codegen_body(mod, fun)

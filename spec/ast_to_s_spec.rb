@@ -8,18 +8,18 @@ describe "ast nodes" do
   end
 
   [
-    [Add, "+"],
-    [Sub, "-"],
-    [Mul, "*"],
-    [Div, "/"],
-    [LT, "<"],
-    [LET, "<="],
-    [EQ, "=="],
-    [GT, ">"],
-    [GET, ">="],
-  ].each do |node, op|
-    it "should to_s #{node}" do
-      node.new(5.int, 6.int).to_s.should eq("5 #{op} 6")
+    "+",
+    "-",
+    "*",
+    "/",
+    "<",
+    "<=",
+    "==",
+    ">",
+    ">=",
+  ].each do |op|
+    it "should to_s Call #{op}" do
+      Call.new(5.int, op.to_sym, 6.int).to_s.should eq("5 #{op} 6")
     end
   end
 
@@ -40,11 +40,11 @@ describe "ast nodes" do
   end
 
   it "should to_s Call with no args" do
-    Call.new("foo").to_s.should eq("foo()")
+    Call.new(nil, "foo").to_s.should eq("foo()")
   end
 
   it "should to_s Call with args" do
-    Call.new("foo", 1.int, 2.int).to_s.should eq("foo(1, 2)")
+    Call.new(nil, "foo", 1.int, 2.int).to_s.should eq("foo(1, 2)")
   end
 
   it "should to_s If" do

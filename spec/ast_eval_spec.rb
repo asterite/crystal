@@ -32,6 +32,7 @@ describe "ast eval" do
   it_evals "def foo; 1; end; def foo; 2; end; foo", 2
   it_evals "def foo(var); 1; end; foo(2)", 1
   it_evals "def foo(var); var + 1; end; foo(2)", 3
+  it_evals "def foo; bar baz; end; def bar(x); x; end; def baz; 10; end; foo", 10
   it_evals "if 1; 2; end", 2
   it_evals "if 0; 3; end", 0
   it_evals "if 0; 1; else; 3; end", 3

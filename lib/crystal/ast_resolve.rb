@@ -2,18 +2,13 @@ require(File.expand_path("../visitor",  __FILE__))
 
 module Crystal
   class ASTNode
+    attr_accessor :resolved
+    attr_accessor :resolved_type
+
     def resolve(mod)
       visitor = ResolveVisitor.new mod
       self.accept visitor
     end
-  end
-
-  class Ref
-    attr_accessor :resolved
-  end
-
-  class Call
-    attr_accessor :resolved
   end
 
   class ResolveVisitor < Visitor
@@ -24,26 +19,8 @@ module Crystal
     end
 
     def visit_int(node)
-    end
-
-    [
-      'add',
-      'sub',
-      'mul',
-      'div',
-      'lt',
-      'let',
-      'eq',
-      'gt',
-      'get',
-    ].each do |node|
-      class_eval %Q(
-        def visit_#{node}(node)
-          node.left.accept self
-          node.right.accept self
-          false
-        end
-      )
+      node.resolved = self
+      node.resolved_type = Int
     end
 
     def visit_def(node)
@@ -70,25 +47,43 @@ module Crystal
     def visit_call(node)
       return if node.resolved
 
-      exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
-      if exp.is_a? Var
-        # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
-        if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
-          node.resolved = exp
-          return false
-        else
-          raise "Error: undefined method #{node.name}"
+      if node.obj
+        node.obj.accept self
+
+        resolved_type = Int # node.obj.resolved_type
+
+        exp = @scope.find_expression "#{resolved_type}##{node.name}"
+        if !exp
+          exp = resolved_type.find_method(node.name) or raise "Error: undefined method '#{node.name}' for #{resolved_type}"
+          @scope.add_expression exp
         end
-      end
 
-      if node.args.length != exp.args.length
-        raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
-      end
+        node.args = [node.obj] + node.args
+        node.name = exp.name
+        node.obj = nil
+        node.accept self
+        false
+      else
+        exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
+        if exp.is_a? Var
+          # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
+          if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
+            node.resolved = exp
+            return false
+          else
+            raise "Error: undefined method #{node.name}"
+          end
+        end
 
-      node.resolved = exp
-      exp.accept self
-      node.args.each { |arg| arg.accept self }
-      false
+        if node.args.length != exp.args.length
+          raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
+        end
+
+        node.args.each { |arg| arg.accept self }
+        node.resolved = exp
+        exp.accept self
+        false
+      end
     end
 
     def with_new_scope(scope)

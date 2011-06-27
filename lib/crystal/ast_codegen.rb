@@ -1,5 +1,4 @@
 ['core', 'core/builder', 'execution_engine', 'transforms/scalar'].each do |filename|
-  #require(File.expand_path("../../../../ruby-llvm/lib/llvm/#{filename}",  __FILE__))
   require "llvm/#{filename}"
 end
 
@@ -76,38 +75,6 @@ module Crystal
     end
   end
 
-  [
-    [Add, "add"],
-    [Sub, "sub"],
-    [Mul, "mul"],
-    [Div, "sdiv"]
-  ].each do |node, method|
-    eval %Q(
-      class #{node}
-        def codegen(mod)
-          mod.builder.#{method} left.codegen(mod), right.codegen(mod), '#{method}tmp'
-        end
-      end
-    )
-  end
-
-  [
-    [LT, "slt"],
-    [LET, "sle"],
-    [GT, "sgt"],
-    [GET, "sge"],
-    [EQ, "eq"],
-  ].each do |node, method|
-    eval %Q(
-      class #{node}
-        def codegen(mod)
-          cond = mod.builder.icmp :#{method}, left.codegen(mod), right.codegen(mod), '#{method}tmp'
-          mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
-        end
-      end
-    )
-  end
-
   class Def
     def codegen(mod)
       return @code if @code
@@ -122,12 +89,16 @@ module Crystal
         fun.params[i].name = arg.name
       end
 
+      add_function_attributes fun
+
       @code = fun
 
       entry = fun.basic_blocks.append 'entry'
 
       mod.builder.position_at_end entry
-      mod.builder.ret body.codegen(mod)
+      code = codegen_body(mod, fun)
+
+      mod.builder.ret code
 
       #fun.dump
 
@@ -135,6 +106,14 @@ module Crystal
       mod.fpm.run fun
       #fun.dump
       fun
+    end
+
+    def add_function_attributes(fun)
+      # Nothing
+    end
+
+    def codegen_body(mod, fun)
+      body.codegen(mod)
     end
   end
 
@@ -154,17 +133,17 @@ module Crystal
   class Call
     def codegen(mod)
       if resolved.is_a? Var
+        mod.builder.add resolved.code, args[0].codegen(mod), 'addtmp'
         # Case when the call is "foo -1" but foo is an arg, not a call
-        Add.new(resolved, args[0]).codegen mod
+        #Add.new(resolved, args[0]).codegen mod
       else
-        block = mod.builder.get_insert_block
+        resolved_code = mod.remember_block { resolved.codegen mod }
+        resolved_args = self.args.map do |arg|
+          mod.remember_block { arg.codegen(mod) }
+        end
+        resolved_args.push('calltmp')
 
-        resolved.codegen mod
-
-        args = self.args.map{|arg| arg.codegen(mod)}.push('calltmp')
-
-        mod.builder.position_at_end block
-        mod.builder.call resolved.code, *args
+        mod.builder.call resolved_code, *resolved_args
       end
     end
   end
