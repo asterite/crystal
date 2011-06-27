@@ -53,11 +53,7 @@ module Crystal
 
     def self.find_method(name)
       method = Methods[name]
-      if method
-        method.new
-      else
-        nil
-      end
+      method ? method.new : nil
     end
   end
 end
