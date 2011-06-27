@@ -3,14 +3,14 @@ Crystal
 
 Crystal is a programming language that compiles to native code.
 It has a syntax strongly inspired by Ruby:
-  * No need to declare types: everything is inferred.
-  * Classes and Modules can be opened: at compile time everything is mixed together
-  * String interpolation
-  * Regular expression interpolation
-  * Instance variables start with @
-  * Global variables start with $
-  * Constants start with Capital Letters
-  * Functions can be evaluated at compile time as long as they are assigned to a Constant.
+* No need to declare types: everything is inferred.
+* Classes and Modules can be opened: at compile time everything is mixed together
+* String interpolation
+* Regular expression interpolation
+* Instance variables start with @
+* Global variables start with $
+* Constants start with Capital Letters
+* Functions can be evaluated at compile time as long as they are assigned to a Constant.
 
 Examples:
 
