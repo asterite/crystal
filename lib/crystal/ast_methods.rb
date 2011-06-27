@@ -6,18 +6,15 @@ module Crystal
   end
 
   class Int
+    def self.name; "Int"; end
+
     Methods = {}
 
-    [
-      ["Add", "+", "add"],
-      ["Sub", "-", "sub"],
-      ["Mul", "*", "mul"],
-      ["Div", "/", "sdiv"]
-    ].each do |node, op, method|
+    def self.binary_method(op, class_name, code)
       class_eval %Q(
-        class #{node} < Def
+        class #{class_name} < Def
           def initialize
-            super "Crystal::Int##{op}", [Var.new("x"), Var.new("y")], nil
+            super "Int##{op}", [Var.new("x"), Var.new("y")], nil
           end
 
           def add_function_attributes(fun)
@@ -25,11 +22,20 @@ module Crystal
           end
 
           def codegen_body(mod, fun)
-            mod.builder.#{method} fun.params[0], fun.params[1], '#{method}tmp'
+            #{code}
           end
         end
-        Methods[:"#{op}"] = #{node}
+        Methods[:"#{op}"] = #{class_name}
       )
+    end
+
+    [
+      ["Add", "+", "add"],
+      ["Sub", "-", "sub"],
+      ["Mul", "*", "mul"],
+      ["Div", "/", "sdiv"]
+    ].each do |node, op, method|
+      binary_method op, node, "mod.builder.#{method} fun.params[0], fun.params[1], '#{method}tmp'"
     end
 
     [
@@ -39,22 +45,9 @@ module Crystal
       ['GET', ">=", "sge"],
       ['EQ', "==", "eq"],
     ].each do |node, op, method|
-      class_eval %Q(
-        class #{node} < Def
-          def initialize
-            super "Crystal::Int##{op}", [Var.new("x"), Var.new("y")], nil
-          end
-
-          def add_function_attributes(fun)
-            fun.add_attribute :always_inline
-          end
-
-          def codegen_body(mod, fun)
-            cond = mod.builder.icmp :#{method}, fun.params[0], fun.params[1], '#{method}tmp'
-            mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
-          end
-        end
-        Methods[:"#{op}"] = #{node}
+      binary_method op, node, %Q(
+        cond = mod.builder.icmp :#{method}, fun.params[0], fun.params[1], '#{method}tmp'
+        mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
       )
     end
 
@@ -67,5 +60,4 @@ module Crystal
       end
     end
   end
-
 end
