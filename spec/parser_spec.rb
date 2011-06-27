@@ -74,4 +74,8 @@ describe Parser do
   it_parses_single_node "if foo\n1\nend", If.new("foo".ref, 1.int)
   it_parses_single_node "if foo; 1; else; 2; end", If.new("foo".ref, 1.int, 2.int)
   it_parses_single_node "if foo\n1\nelse\n2\nend", If.new("foo".ref, 1.int, 2.int)
+
+  ['bar', :'+', :'-', :'*', :'/', :'<', :'<=', :'==', :'>', :'>='].each do |name|
+    it_parses_single_node "foo.#{name}", Call.new("foo".ref, name)
+  end
 end

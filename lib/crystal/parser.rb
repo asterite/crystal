@@ -32,7 +32,22 @@ module Crystal
         end
       end
 
-      parse_primary_expression
+      left = parse_primary_expression
+
+      while true
+        case @token.type
+        when :SPACE
+          next_token
+        when :'.'
+          next_token_skip_space_or_newline
+          check :IDENT, :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
+          name = @token.type == :IDENT ? @token.value : @token.type
+          next_token_skip_space
+          left = Call.new left, name
+        else
+          return left
+        end
+      end
     end
 
     def parse_def

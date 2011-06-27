@@ -44,5 +44,5 @@ describe Lexer do
   it_lexes_idents "ident", "something", "with_underscores", "with_1"
   it_lexes_ints "1", ["1hello", "1"], "+1", "-1"
 
-  it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", ","
+  it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", ",", '.'
 end
