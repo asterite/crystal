@@ -24,6 +24,12 @@ describe Lexer do
     end
   end
 
+  def self.it_lexes_keywords(*args)
+    args.each do |arg|
+      it_lexes arg, :IDENT, arg.to_sym
+    end
+  end
+
   def self.it_lexes_ints(*args)
     args.each do |arg|
       if arg.is_a? Array
@@ -37,10 +43,7 @@ describe Lexer do
   it_lexes " ", :SPACE
   it_lexes "\n", :NEWLINE
   it_lexes "\n\n\n", :NEWLINE
-  it_lexes "def", :IDENT, :def
-  it_lexes "if", :IDENT, :if
-  it_lexes "else", :IDENT, :else
-  it_lexes "end", :IDENT, :end
+  it_lexes_keywords "def", "if", "else", "end"
   it_lexes_idents "ident", "something", "with_underscores", "with_1"
   it_lexes_ints "1", ["1hello", "1"], "+1", "-1"
 
