@@ -38,4 +38,5 @@ describe "ast eval" do
   it_evals "if 0; 1; else; 3; end", 3
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24
+  it_evals "1.class", Crystal::Int.object_id
 end

@@ -27,7 +27,7 @@ module Crystal
       @scope.add_expression node
 
       with_new_scope DefScope.new(@scope, node) do
-        node.body.accept self
+        node.body.accept self if node.body
       end
       false
     end
