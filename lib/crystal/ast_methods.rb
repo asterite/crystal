@@ -6,9 +6,9 @@ module Crystal
   end
 
   class Intrinsic < Def
-    def initialize(name, args_length, resolved_type, &block)
+    def initialize(name, arg_types, resolved_type, &block)
       @name = name
-      @args = args_length.times.map{|i| Var.new("x#{i}")}
+      @args = arg_types.each_with_index.map { |type, i| Var.new("x#{i}", type) }
       @resolved_type = resolved_type
       @block = block
     end
@@ -16,6 +16,11 @@ module Crystal
     def codegen_body(mod, fun)
       @block.call mod, fun
     end
+  end
+
+  class True
+    def self.name; "True"; end
+    def self.to_s; name; end
   end
 
   class Int
@@ -27,8 +32,8 @@ module Crystal
       Methods[name] = method
     end
 
-    def self.crystal_define_intrinsic(name, args_length, resolved_type, &block)
-      Methods[name] = Intrinsic.new("#{self.name}##{name}", args_length, resolved_type, &block)
+    def self.crystal_define_intrinsic(name, arg_types, resolved_type, &block)
+      Methods[name] = Intrinsic.new("#{self.name}##{name}", arg_types, resolved_type, &block)
     end
 
     crystal_define_method 'class', Def.new("Int#class", [Var.new("self")], Int.new(object_id))
@@ -42,7 +47,7 @@ module Crystal
       ['/', 'sdiv'],
     ].each do |op, method|
       class_eval %Q(
-        crystal_define_intrinsic(:'#{op}', 2, Int) { |mod, fun| mod.builder.#{method} fun.params[0], fun.params[1], '#{method}tmp' }
+        crystal_define_intrinsic(:'#{op}', [Int, Int], Int) { |mod, fun| mod.builder.#{method} fun.params[0], fun.params[1], '#{method}tmp' }
       )
     end
 
@@ -54,9 +59,9 @@ module Crystal
       ["==", "eq"],
     ].each do |op, method|
       class_eval %Q(
-        crystal_define_intrinsic(:'#{op}', 2, Int) do |mod, fun|
+        crystal_define_intrinsic(:'#{op}', [Int, Int], Int) do |mod, fun|
           cond = mod.builder.icmp :#{method}, fun.params[0], fun.params[1], '#{method}tmp'
-          mod.builder.zext(cond, Crystal::DefaultType, 'booltmp')
+          mod.builder.zext(cond, LLVM::Int, 'booltmp')
         end
       )
     end

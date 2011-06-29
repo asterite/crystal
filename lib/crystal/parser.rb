@@ -203,7 +203,12 @@ module Crystal
       when :INT
         node_and_next_token Int.new(@token.value)
       when :IDENT
-        parse_ref_or_call
+        case @token.value
+        when :true
+          node_and_next_token True.new
+        else
+          parse_ref_or_call
+        end
       else
         raise "Unexpected token: #{@token.to_s}"
       end

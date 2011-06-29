@@ -9,6 +9,17 @@ module Crystal
       visitor = ResolveVisitor.new mod
       self.accept visitor
     end
+
+    def initialize_copy(other)
+      resolved = nil
+      resolved_type = nil
+    end
+  end
+
+  class Expressions
+    def initialize_copy(other)
+      self.expressions = other.expressions.map(&:dup)
+    end
   end
 
   class Def
@@ -25,7 +36,7 @@ module Crystal
       if !instance
         instance_args = args.dup
         arg_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
-        instance = Def.new instance_name, args, body
+        instance = Def.new instance_name, args, body.dup
       end
       instance
     end
@@ -68,8 +79,11 @@ module Crystal
       node.resolved_type = node.expressions.last.resolved_type
     end
 
+    def visit_true(node)
+      node.resolved_type = True
+    end
+
     def visit_int(node)
-      node.resolved = self
       node.resolved_type = Int
     end
 

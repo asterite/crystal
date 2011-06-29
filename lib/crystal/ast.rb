@@ -44,6 +44,18 @@ module Crystal
     def ==(other)
       other.is_a?(Expressions) && other.expressions == expressions
     end
+
+  end
+
+  class True < Expression
+    def accept(visitor)
+      visitor.visit_true self
+      visitor.end_visit_true self
+    end
+
+    def ==(other)
+      other.is_a?(True)
+    end
   end
 
   class Int < Expression
@@ -111,8 +123,9 @@ module Crystal
   class Var < ASTNode
     attr_accessor :name
 
-    def initialize(name)
+    def initialize(name, resolved_type = nil)
       @name = name
+      @resolved_type = resolved_type
     end
 
     def accept(visitor)
@@ -122,6 +135,10 @@ module Crystal
 
     def ==(other)
       other.is_a?(Var) && other.name == name
+    end
+
+    def initialize_copy(other)
+      other
     end
   end
 

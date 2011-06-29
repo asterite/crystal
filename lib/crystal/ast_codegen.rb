@@ -5,9 +5,6 @@ end
 LLVM.init_x86
 
 module Crystal
-  DefaultType = LLVM::Int
-  def self.DefaultType(*args); LLVM::Int(*args); end
-
   class ASTNode
     attr_accessor :code
   end
@@ -41,7 +38,7 @@ module Crystal
     end
 
     def run(fun)
-      @engine.run_function(fun).to_i Crystal::DefaultType.type
+      @engine.run_function(fun).to_i LLVM::Int.type
     end
 
     private
@@ -58,7 +55,7 @@ module Crystal
   class Expressions
     def codegen(mod)
       if expressions.empty?
-        Crystal::DefaultType 0
+        LLVM::Int 0
       else
         last = nil
         expressions.each do |exp|
@@ -69,9 +66,23 @@ module Crystal
     end
   end
 
-  class Int
+  class True
+    def self.llvm_type
+      LLVM::Int1
+    end
+
     def codegen(mod)
-      Crystal::DefaultType value.to_i
+      LLVM::Int1.from_i 1
+    end
+  end
+
+  class Int
+    def self.llvm_type
+      LLVM::Int
+    end
+
+    def codegen(mod)
+      LLVM::Int value.to_i
     end
   end
 
@@ -82,8 +93,8 @@ module Crystal
       fun = mod.module.functions.named name
       mod.module.functions.delete fun if fun
 
-      args_types = Array.new(args.length, Crystal::DefaultType)
-      fun = mod.module.functions.add name, args_types, Crystal::DefaultType
+      args_types = args.map { |arg| arg.resolved_type.llvm_type }
+      fun = mod.module.functions.add name, args_types, resolved_type.llvm_type
       args.each_with_index do |arg, i|
         arg.code = fun.params[i]
         fun.params[i].name = arg.name
@@ -151,7 +162,7 @@ module Crystal
   class If
     def codegen(mod)
       cond_code = cond.codegen mod
-      cond_code = mod.builder.icmp(:ne, cond_code, Crystal::DefaultType(0), 'ifcond')
+      cond_code = mod.builder.icmp(:ne, cond_code, LLVM::Int(0), 'ifcond')
 
       start_block = mod.builder.get_insert_block
       fun = start_block.parent

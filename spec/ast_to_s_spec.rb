@@ -7,6 +7,10 @@ describe "ast nodes" do
     5.int.to_s.should eq('5')
   end
 
+  it "should to_s True" do
+    True.new.to_s.should eq('true')
+  end
+
   [
     "+",
     "-",
