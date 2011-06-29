@@ -89,8 +89,6 @@ module Crystal
         fun.params[i].name = arg.name
       end
 
-      add_function_attributes fun
-
       @code = fun
 
       entry = fun.basic_blocks.append 'entry'
@@ -106,10 +104,6 @@ module Crystal
       mod.fpm.run fun
       #fun.dump
       fun
-    end
-
-    def add_function_attributes(fun)
-      # Nothing
     end
 
     def codegen_body(mod, fun)

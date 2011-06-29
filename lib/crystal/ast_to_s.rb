@@ -66,7 +66,7 @@ module Crystal
       end
       @str << "\n"
       @indent += 1
-      node.body.accept self
+      node.body.accept self if node.body
       @indent -= 1
       @str << "end"
       false

@@ -196,12 +196,10 @@ module Crystal
         exp
       when :"+"
         next_token_skip_space_or_newline
-        check :INT
-        node_and_next_token Int.new(@token.value)
+        Call.new parse_expression, :"+@"
       when :"-"
         next_token_skip_space_or_newline
-        check :INT
-        node_and_next_token Int.new(-@token.value)
+        Call.new parse_expression, :"-@"
       when :INT
         node_and_next_token Int.new(@token.value)
       when :IDENT

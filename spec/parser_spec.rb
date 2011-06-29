@@ -80,4 +80,7 @@ describe Parser do
     it_parses_single_node "foo.#{name} 1, 2", Call.new("foo".ref, name, 1.int, 2.int)
   end
   it_parses_single_node "foo.bar.baz", Call.new(Call.new("foo".ref, "bar"), "baz"), :focus => true
+  it_parses_single_node "-x", Call.new("x".ref, :"-@")
+  it_parses_single_node "+x", Call.new("x".ref, :"+@")
+  it_parses_single_node "+ 1", Call.new(1.int, :"+@")
 end

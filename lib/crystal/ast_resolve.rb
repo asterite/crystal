@@ -18,6 +18,11 @@ module Crystal
       @scope = scope
     end
 
+    def visit_expressions(node)
+      node.expressions.each { |exp| exp.accept self }
+      node.resolved_type = node.expressions.last.resolved_type
+    end
+
     def visit_int(node)
       node.resolved = self
       node.resolved_type = Int
@@ -26,8 +31,11 @@ module Crystal
     def visit_def(node)
       @scope.add_expression node
 
-      with_new_scope DefScope.new(@scope, node) do
-        node.body.accept self if node.body
+      if node.body
+        with_new_scope DefScope.new(@scope, node) do
+          node.body.accept self
+        end
+        node.resolved_type = node.body.resolved_type
       end
       false
     end
@@ -42,31 +50,39 @@ module Crystal
 
       node.resolved = exp
       exp.accept self
+
+      node.resolved_type = exp.resolved_type
     end
 
     def visit_call(node)
       return if node.resolved
 
-      if node.obj
-        node.obj.accept self
+      resolve_method_call node if node.obj
+      resolve_function_call node
 
-        resolved_type = Int # node.obj.resolved_type
+      false
+    end
 
-        exp = @scope.find_expression "#{resolved_type}##{node.name}"
-        if !exp
-          exp = resolved_type.find_method(node.name) or raise "Error: undefined method '#{node.name}' for #{resolved_type}"
-          @scope.add_expression exp
-        end
+    def resolve_method_call(node)
+      node.obj.accept self
+      resolved_type = node.obj.resolved_type
 
-        if node.args.length != exp.args.length - 1 # Without self
-          raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
-        end
-
-        node.args = [node.obj] + node.args
-        node.name = exp.name
-        node.obj = nil
+      exp = @scope.find_expression "#{resolved_type}##{node.name}"
+      if !exp
+        exp = resolved_type.find_method(node.name) or raise "Error: undefined method '#{node.name}' for #{resolved_type}"
+        @scope.add_expression exp
       end
 
+      if node.args.length != exp.args.length - 1 # Without self
+        raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
+      end
+
+      node.args = [node.obj] + node.args
+      node.name = exp.name
+      node.obj = nil
+    end
+
+    def resolve_function_call(node)
       exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
       if exp.is_a? Var
         # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
@@ -83,9 +99,11 @@ module Crystal
       end
 
       node.args.each { |arg| arg.accept self }
+
       node.resolved = exp
       exp.accept self
-      false
+
+      node.resolved_type = exp.resolved_type
     end
 
     def with_new_scope(scope)
