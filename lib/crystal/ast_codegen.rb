@@ -67,7 +67,7 @@ module Crystal
     end
   end
 
-  class False
+  class Bool
     def self.llvm_type
       LLVM::Int1
     end
@@ -77,21 +77,7 @@ module Crystal
     end
 
     def codegen(mod)
-      LLVM::Int1.from_i 0
-    end
-  end
-
-  class True
-    def self.llvm_type
-      LLVM::Int1
-    end
-
-    def self.llvm_cast(value)
-      value.to_b
-    end
-
-    def codegen(mod)
-      LLVM::Int1.from_i 1
+      LLVM::Int1.from_i(value ? 1 : 0)
     end
   end
 

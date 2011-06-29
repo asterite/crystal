@@ -3,8 +3,7 @@ module Crystal
     [
       'module',
       'expressions',
-      'false',
-      'true',
+      'bool',
       'int',
       'add',
       'sub',

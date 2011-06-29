@@ -79,12 +79,8 @@ module Crystal
       node.resolved_type = node.expressions.last.resolved_type
     end
 
-    def visit_false(node)
-      node.resolved_type = False
-    end
-
-    def visit_true(node)
-      node.resolved_type = True
+    def visit_bool(node)
+      node.resolved_type = Bool
     end
 
     def visit_int(node)

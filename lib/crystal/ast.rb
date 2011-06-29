@@ -47,25 +47,20 @@ module Crystal
 
   end
 
-  class False < Expression
+  class Bool < Expression
+    attr_accessor :value
+
+    def initialize(value)
+      @value = value
+    end
+
     def accept(visitor)
-      visitor.visit_false self
-      visitor.end_visit_false self
+      visitor.visit_bool self
+      visitor.end_visit_bool self
     end
 
     def ==(other)
-      other.is_a?(False)
-    end
-  end
-
-  class True < Expression
-    def accept(visitor)
-      visitor.visit_true self
-      visitor.end_visit_true self
-    end
-
-    def ==(other)
-      other.is_a?(True)
+      other.is_a?(Bool) && other.value == value
     end
   end
 

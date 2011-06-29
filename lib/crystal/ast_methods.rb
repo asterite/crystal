@@ -18,13 +18,8 @@ module Crystal
     end
   end
 
-  class False
-    def self.name; "False"; end
-    def self.to_s; name; end
-  end
-
-  class True
-    def self.name; "True"; end
+  class Bool
+    def self.name; "Bool"; end
     def self.to_s; name; end
   end
 

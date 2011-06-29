@@ -205,9 +205,9 @@ module Crystal
       when :IDENT
         case @token.value
         when :false
-          node_and_next_token False.new
+          node_and_next_token Bool.new(false)
         when :true
-          node_and_next_token True.new
+          node_and_next_token Bool.new(true)
         else
           parse_ref_or_call
         end

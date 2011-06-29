@@ -24,13 +24,8 @@ module Crystal
     def visit_module(node)
     end
 
-    def visit_false(node)
-      @str << 'false'
-      append_resolved_type node
-    end
-
-    def visit_true(node)
-      @str << 'true'
+    def visit_bool(node)
+      @str << (node.value ? 'true' : 'false')
       append_resolved_type node
     end
 
