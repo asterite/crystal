@@ -190,11 +190,10 @@ module Crystal
     end
 
     def merge_types(type1, type2)
-      if type1 == UnknownType
-        type2
-      else
-        type1
-      end
+      return type2 if type1.nil? || type1 == UnknownType
+      return type1 if type2.nil? || type2 == UnknownType
+      return type1 if type1 == type2
+      raise "If branches have different types: #{type1} and #{type2}"
     end
 
     def with_new_scope(scope)

@@ -20,6 +20,7 @@ describe "ast resolve" do
   it_resolves "1 * 2", Int
   it_resolves "1 / 2", Int
   it_resolves "1 + (2 * 3)", Int
+  it_resolves "1 < 2", Bool
   it_resolves "def foo; 1; end", nil
   it_resolves "def foo; 1; end; foo", Int
   it_resolves "def foo; 1; end; foo()", Int

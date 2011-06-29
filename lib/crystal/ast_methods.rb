@@ -59,10 +59,7 @@ module Crystal
       ["==", "eq"],
     ].each do |op, method|
       class_eval %Q(
-        crystal_define_intrinsic(:'#{op}', [Int, Int], Int) do |mod, fun|
-          cond = mod.builder.icmp :#{method}, fun.params[0], fun.params[1], '#{method}tmp'
-          mod.builder.zext(cond, LLVM::Int, 'booltmp')
-        end
+        crystal_define_intrinsic(:'#{op}', [Int, Int], Bool) { |mod, fun| mod.builder.icmp :#{method}, fun.params[0], fun.params[1], '#{method}tmp' }
       )
     end
 

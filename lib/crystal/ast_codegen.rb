@@ -171,7 +171,7 @@ module Crystal
   class If
     def codegen(mod)
       cond_code = cond.codegen mod
-      cond_code = mod.builder.icmp(:ne, cond_code, LLVM::Int(0), 'ifcond')
+      cond_code = mod.builder.icmp(:ne, cond_code, LLVM::Int1.from_i(0), 'ifcond')
 
       start_block = mod.builder.get_insert_block
       fun = start_block.parent
