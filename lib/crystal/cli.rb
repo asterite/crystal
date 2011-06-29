@@ -38,7 +38,7 @@ loop do
   if openings == 0
     begin
       result = mod.eval buffer
-      puts " => #{result ? result : 'nil'}"
+      puts " => #{result}"
     rescue => ex
       puts ex
     end
