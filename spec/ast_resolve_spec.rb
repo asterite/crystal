@@ -21,4 +21,5 @@ describe "ast resolve" do
   it_resolves "def foo; 1; end", nil
   it_resolves "def foo; 1; end; foo", Int
   it_resolves "def foo; 1; end; foo()", Int
+  it_resolves "def foo(x); 1; end; foo(1)", Int
 end
