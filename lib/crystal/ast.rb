@@ -44,10 +44,12 @@ module Crystal
     def ==(other)
       other.is_a?(Expressions) && other.expressions == expressions
     end
-
   end
 
-  class Bool < Expression
+  class Class < Expression
+  end
+
+  class Bool < Class
     attr_accessor :value
 
     def initialize(value)
@@ -64,7 +66,7 @@ module Crystal
     end
   end
 
-  class Int < Expression
+  class Int < Class
     attr_accessor :value
 
     def initialize(value)
