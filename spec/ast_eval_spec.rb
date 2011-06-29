@@ -26,6 +26,8 @@ describe "ast eval" do
   it_evals "8 >= 8", true
   it_evals "8 == 8", true
   it_evals "8 == 9", false
+  it_evals "true == false", false
+  it_evals "true == true", true
   it_evals "def foo; end", nil
   it_evals "def foo; 1; end", nil
   it_evals "def foo; 1; end; foo", 1

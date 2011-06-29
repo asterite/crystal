@@ -44,6 +44,7 @@ module Crystal
   class Bool
     @methods = {}
     crystal_define_method 'class', Def.new("Bool#class", [Var.new("self")], Int.new(object_id))
+    crystal_define_intrinsic(:'==', [Bool, Bool], Bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
   end
 
   class Int
