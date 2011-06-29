@@ -9,6 +9,7 @@ describe "ast eval" do
     end
   end
 
+  it_evals "true", true
   it_evals "5", 5
   it_evals "1 + 2", 3
   it_evals "1 - 2", -1

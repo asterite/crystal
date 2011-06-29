@@ -85,4 +85,5 @@ describe Parser do
   it_parses_single_node "+ 1", Call.new(1.int, :"+@")
 
   it_parses_single_node "true", True.new
+  it_parses_single_node "false", False.new
 end

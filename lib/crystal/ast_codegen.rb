@@ -38,7 +38,8 @@ module Crystal
     end
 
     def run(fun)
-      @engine.run_function(fun).to_i LLVM::Int.type
+      result = @engine.run_function(fun.code)
+      fun.resolved_type.llvm_cast result
     end
 
     private
@@ -66,9 +67,27 @@ module Crystal
     end
   end
 
+  class False
+    def self.llvm_type
+      LLVM::Int1
+    end
+
+    def self.llvm_cast(value)
+      value.to_b
+    end
+
+    def codegen(mod)
+      LLVM::Int1.from_i 0
+    end
+  end
+
   class True
     def self.llvm_type
       LLVM::Int1
+    end
+
+    def self.llvm_cast(value)
+      value.to_b
     end
 
     def codegen(mod)
@@ -83,6 +102,10 @@ module Crystal
 
     def codegen(mod)
       LLVM::Int value.to_i
+    end
+
+    def self.llvm_cast(value)
+      value.to_i LLVM::Int.type
     end
   end
 

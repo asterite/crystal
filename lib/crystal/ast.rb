@@ -47,6 +47,17 @@ module Crystal
 
   end
 
+  class False < Expression
+    def accept(visitor)
+      visitor.visit_false self
+      visitor.end_visit_false self
+    end
+
+    def ==(other)
+      other.is_a?(False)
+    end
+  end
+
   class True < Expression
     def accept(visitor)
       visitor.visit_true self

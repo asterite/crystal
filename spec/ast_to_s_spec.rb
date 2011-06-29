@@ -11,6 +11,10 @@ describe "ast nodes" do
     True.new.to_s.should eq('true')
   end
 
+  it "should to_s False" do
+    False.new.to_s.should eq('false')
+  end
+
   [
     "+",
     "-",

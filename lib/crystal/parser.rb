@@ -204,6 +204,8 @@ module Crystal
         node_and_next_token Int.new(@token.value)
       when :IDENT
         case @token.value
+        when :false
+          node_and_next_token False.new
         when :true
           node_and_next_token True.new
         else

@@ -5,7 +5,7 @@ module Crystal
       anon_def.resolve mod
       anon_def.codegen mod
       #mod.module.dump
-      mod.run anon_def.code
+      mod.run anon_def
     end
   end
 

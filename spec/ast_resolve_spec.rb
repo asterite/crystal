@@ -13,6 +13,7 @@ describe "ast resolve" do
   end
 
   it_resolves "true", True
+  it_resolves "false", False
   it_resolves "1", Int
   it_resolves "1 + 2", Int
   it_resolves "1 - 2", Int
