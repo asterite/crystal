@@ -20,6 +20,7 @@ module Crystal
 
   class Int
     def self.name; "Int"; end
+    def self.to_s; name; end
 
     Methods = {}
     def self.crystal_define_method(name, method)

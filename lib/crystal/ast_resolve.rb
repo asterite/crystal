@@ -11,6 +11,49 @@ module Crystal
     end
   end
 
+  class Def
+    def args_length_is(length)
+      args.length == length
+    end
+
+    def instantiate(scope, arg_types)
+      return self if resolved_type
+
+      instance_name = "#{name}$#{arg_types.join '$'}$"
+
+      instance = scope.find_expression instance_name
+      if !instance
+        instance_args = args.dup
+        arg_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
+        instance = Def.new instance_name, args, body
+      end
+      instance
+    end
+  end
+
+  class UnknownType
+    def self.find_method(name)
+      UnknownMethod
+    end
+  end
+
+  class UnknownMethod
+    def self.args_length_is(length)
+      true
+    end
+
+    def self.instantiate(scope, arg_types)
+      self
+    end
+
+    def self.resolved_type
+      UnknownType
+    end
+
+    def self.accept(visitor)
+    end
+  end
+
   class ResolveVisitor < Visitor
     attr_accessor :resolved
 
@@ -19,6 +62,8 @@ module Crystal
     end
 
     def visit_expressions(node)
+      return if node.expressions.empty?
+
       node.expressions.each { |exp| exp.accept self }
       node.resolved_type = node.expressions.last.resolved_type
     end
@@ -41,10 +86,10 @@ module Crystal
     end
 
     def visit_ref(node)
-      return if node.resolved
+      return if node.resolved_type
 
       exp = @scope.find_expression(node.name) or raise "Error: undefined local variable or method '#{node.name}'"
-      if exp.is_a?(Def) && exp.args.length > 0
+      if exp.is_a?(Def) && !exp.args_length_is(0)
         raise "Error: wrong number of arguments (0 for #{exp.args.length})"
       end
 
@@ -55,7 +100,7 @@ module Crystal
     end
 
     def visit_call(node)
-      return if node.resolved
+      return if node.resolved_type
 
       resolve_method_call node if node.obj
       resolve_function_call node
@@ -73,7 +118,7 @@ module Crystal
         @scope.add_expression exp
       end
 
-      if node.args.length != exp.args.length - 1 # Without self
+      if !exp.args_length_is(node.args.length + 1) # With self
         raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
       end
 
@@ -83,27 +128,59 @@ module Crystal
     end
 
     def resolve_function_call(node)
+      # This is to prevent recursive resolutions
+      node.resolved_type = UnknownType
+
+      node.args.each { |arg| arg.accept self }
+
       exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
       if exp.is_a? Var
         # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
         if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
           node.resolved = exp
+          node.resolved_type = exp.resolved_type
           return false
         else
           raise "Error: undefined method #{node.name}"
         end
       end
 
-      if node.args.length != exp.args.length
+      if !exp.args_length_is(node.args.length)
         raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
       end
 
-      node.args.each { |arg| arg.accept self }
+      # If it's already resolved that means it's an intrinsic function
+      instance = exp.instantiate @scope, node.args.map(&:resolved_type)
 
-      node.resolved = exp
-      exp.accept self
+      node.resolved = instance
+      instance.accept self
 
-      node.resolved_type = exp.resolved_type
+      node.resolved_type = instance.resolved_type
+
+      if node.resolved_type != UnknownType
+        # Resolve any expressions with unknown types
+        node.args.each do |arg|
+          if arg.resolved_type == UnknownType
+            arg.resolved_type = nil
+            arg.resolved = nil
+            arg.accept self
+          end
+        end
+      end
+    end
+
+    def visit_if(node)
+      node.then.accept self
+      node.else.accept self
+      node.resolved_type = merge_types(node.then.resolved_type, node.else.resolved_type)
+    end
+
+    def merge_types(type1, type2)
+      if type1 == UnknownType
+        type2
+      else
+        type1
+      end
     end
 
     def with_new_scope(scope)
