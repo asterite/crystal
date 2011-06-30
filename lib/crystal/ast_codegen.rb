@@ -3,6 +3,7 @@
 end
 
 LLVM.init_x86
+LLVM::load_library(File.expand_path('../../../ext/libcrystal.dylib', __FILE__))
 
 module Crystal
   class ASTNode
@@ -16,14 +17,15 @@ module Crystal
 
     def initialize
       @expressions = {}
-      @module = LLVM::Module.create ''
-      @builder = LLVM::Builder.create
-      @engine = LLVM::ExecutionEngine.create_jit_compiler @module
+      @module = LLVM::Module.new ''
+      @builder = LLVM::Builder.new
+      @engine = LLVM::JITCompiler.new @module
       create_function_pass_manager
+      define_exteranl_functions
     end
 
     def remember_block
-      block = builder.get_insert_block
+      block = builder.insert_block
       code = yield
       builder.position_at_end block
       code
@@ -50,6 +52,11 @@ module Crystal
       @fpm << :reassociate
       @fpm << :gvn
       @fpm << :simplifycfg
+    end
+
+    def define_exteranl_functions
+      add_expression Prototype.new("putb", [Bool], Bool)
+      add_expression Prototype.new("puti", [Int], Int)
     end
   end
 
@@ -92,6 +99,12 @@ module Crystal
 
     def self.llvm_cast(value)
       value.to_i LLVM::Int.type
+    end
+  end
+
+  class Prototype
+    def codegen(mod)
+      @code ||= mod.module.functions.add(name, @arg_types.map(&:llvm_type), resolved_type.llvm_type)
     end
   end
 
@@ -173,22 +186,22 @@ module Crystal
       cond_code = cond.codegen mod
       cond_code = mod.builder.icmp(:ne, cond_code, LLVM::Int1.from_i(0), 'ifcond')
 
-      start_block = mod.builder.get_insert_block
+      start_block = mod.builder.insert_block
       fun = start_block.parent
 
       then_block = fun.basic_blocks.append 'then'
       mod.builder.position_at_end then_block
       then_code = self.then.codegen mod
-      new_then_block = mod.builder.get_insert_block
+      new_then_block = mod.builder.insert_block
 
       else_block = fun.basic_blocks.append 'else'
       mod.builder.position_at_end else_block
       else_code = self.else.codegen mod
-      new_else_block = mod.builder.get_insert_block
+      new_else_block = mod.builder.insert_block
 
       merge_block = fun.basic_blocks.append 'merge'
       mod.builder.position_at_end merge_block
-      phi = mod.builder.phi LLVM::Int.type, then_code, new_then_block, else_code, new_else_block, 'iftmp'
+      phi = mod.builder.phi LLVM::Int.type, {new_then_block => then_code, new_else_block => else_code}, 'iftmp'
 
       mod.builder.position_at_end start_block
       mod.builder.cond cond_code, then_block, else_block

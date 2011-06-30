@@ -41,6 +41,7 @@ loop do
       puts " => #{result}"
     rescue => ex
       puts ex
+      # puts ex.backtrace
     end
 
     buffer = ""

@@ -22,9 +22,23 @@ module Crystal
     end
   end
 
+  class Prototype
+    def args_length_is(length)
+      @arg_types.length == length
+    end
+
+    def args_length
+      @arg_types.length
+    end
+  end
+
   class Def
     def args_length_is(length)
       args.length == length
+    end
+
+    def args_length
+      args.length
     end
 
     def instantiate(scope, arg_types)
@@ -39,6 +53,12 @@ module Crystal
         instance = Def.new instance_name, args, body.dup
       end
       instance
+    end
+  end
+
+  class Call
+    def args_length
+      args.length
     end
   end
 
@@ -103,13 +123,15 @@ module Crystal
       return if node.resolved_type
 
       exp = @scope.find_expression(node.name) or raise "Error: undefined local variable or method '#{node.name}'"
-      if exp.is_a?(Def) && !exp.args_length_is(0)
-        raise "Error: wrong number of arguments (0 for #{exp.args.length})"
+      if exp.is_a?(Def) || exp.is_a?(Prototype)
+        call = Call.new(nil, exp.name)
+        call.accept self
+        exp = call.resolved
+      else
+        exp.accept self
       end
 
       node.resolved = exp
-      exp.accept self
-
       node.resolved_type = exp.resolved_type
     end
 
@@ -132,8 +154,8 @@ module Crystal
         @scope.add_expression exp
       end
 
-      if !exp.args_length_is(node.args.length + 1) # With self
-        raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
+      if !exp.args_length_is(node.args_length + 1) # With self
+        raise "Error: wrong number of arguments (#{node.args_length} for #{exp.args_length})"
       end
 
       node.args = [node.obj] + node.args
@@ -148,19 +170,28 @@ module Crystal
       node.args.each { |arg| arg.accept self }
 
       exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
+
+      if exp.is_a?(Prototype) || exp.is_a?(Def)
+        if !exp.args_length_is(node.args_length)
+          raise "Error: wrong number of arguments (#{node.args_length} for #{exp.args_length})"
+        end
+      end
+
+      if exp.is_a? Prototype
+        node.resolved = exp
+        node.resolved_type = exp.resolved_type
+        return false
+      end
+
       if exp.is_a? Var
         # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
-        if node.args.length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
+        if node.args_length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
           node.resolved = exp
           node.resolved_type = exp.resolved_type
           return false
         else
           raise "Error: undefined method #{node.name}"
         end
-      end
-
-      if !exp.args_length_is(node.args.length)
-        raise "Error: wrong number of arguments (#{node.args.length} for #{exp.args.length})"
       end
 
       # If it's already resolved that means it's an intrinsic function

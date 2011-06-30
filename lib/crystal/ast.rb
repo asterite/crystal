@@ -87,6 +87,17 @@ module Crystal
     end
   end
 
+  class Prototype < Expression
+    attr_accessor :name
+    attr_accessor :arg_types
+
+    def initialize(name, arg_types, resolved_type)
+      @name = name
+      @arg_types = arg_types
+      @resolved_type = resolved_type
+    end
+  end
+
   class Def < Expression
     attr_accessor :name
     attr_accessor :args
