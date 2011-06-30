@@ -1,32 +1,38 @@
 module Crystal
   class ASTNode
-    def eval(mod)
-      anon_def = Def.new "", [], [self]
-      anon_def.resolve mod
-      anon_def.codegen mod
-      #mod.module.dump
-      mod.run anon_def
+    def compile(mod)
+      mod.define_at_top_level self
     end
   end
 
   class Def
-    def eval(mod)
+    def compile(mod)
       mod.add_expression self
       nil
     end
   end
 
+  class TopLevelDef < Def
+    def optimize(fun)
+      fun.linkage = :private
+    end
+  end
+
   class Module
-    def define(*nodes)
-      value = nil
-      nodes.each { |node| value = node.eval self }
-      value
+    def compile(string)
+      exps = Parser.parse string
+      last = nil
+      exps.expressions.each { |exp| last = exp.compile self }
+      last
     end
 
     def eval(string)
-      exps = Parser.parse string
-
-      define *exps.expressions
+      anon_def = compile string
+      if anon_def
+        run anon_def
+      else
+        nil
+      end
     end
   end
 end

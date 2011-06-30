@@ -24,6 +24,16 @@ module Crystal
       define_exteranl_functions
     end
 
+    def define_at_top_level(exp)
+      @top_level_expressions_count ||= 0
+      @top_level_expressions_count += 1
+
+      anon_def = TopLevelDef.new "$main#{@top_level_expressions_count}", [], [exp]
+      anon_def.resolve self
+      anon_def.codegen self
+      anon_def
+    end
+
     def remember_block
       block = builder.insert_block
       code = yield
@@ -42,6 +52,22 @@ module Crystal
     def run(fun)
       result = @engine.run_function(fun.code)
       fun.resolved_type.llvm_cast result
+    end
+
+    def create_main
+      funcs = @module.functions.select { |f| f.name.start_with? '$main' }
+
+      main = @module.functions.add 'main', [], LLVM::Int
+
+      entry = main.basic_blocks.append 'entry'
+      @builder.position_at_end entry
+
+      funcs.each { |fun| @builder.call fun }
+      @builder.ret LLVM::Int(0)
+    end
+
+    def dump
+      @module.dump
     end
 
     private
@@ -124,11 +150,12 @@ module Crystal
 
       @code = fun
 
+      optimize fun
+
       entry = fun.basic_blocks.append 'entry'
-
       mod.builder.position_at_end entry
-      code = codegen_body(mod, fun)
 
+      code = codegen_body(mod, fun)
       mod.builder.ret code
 
       #fun.dump
@@ -137,6 +164,9 @@ module Crystal
       mod.fpm.run fun
       #fun.dump
       fun
+    end
+
+    def optimize(fun)
     end
 
     def codegen_body(mod, fun)

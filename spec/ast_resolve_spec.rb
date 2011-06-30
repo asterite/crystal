@@ -6,9 +6,12 @@ describe "ast resolve" do
   def self.it_resolves(string, expected_type, options = {})
     it "resolves #{string}", options do
       mod = Crystal::Module.new
-      exps = Parser.parse string
-      mod.define *exps.expressions
-      exps.expressions.last.resolved_type.should eq(expected_type)
+      last = mod.compile string
+      if expected_type.nil?
+        last.should be_nil
+      else
+        last.resolved_type.should eq(expected_type)
+      end
     end
   end
 

@@ -16,6 +16,10 @@ module Crystal
     def codegen_body(mod, fun)
       @block.call mod, fun
     end
+
+    def optimize(fun)
+      fun.linkage = :private
+    end
   end
 
   class Class
