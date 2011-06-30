@@ -22,17 +22,22 @@ module Crystal
     def compile(string)
       exps = Parser.parse string
       last = nil
-      exps.expressions.each { |exp| last = exp.compile self }
+      exps.expressions.each do|exp|
+        last = exp.compile self
+      end
       last
     end
 
     def eval(string)
-      anon_def = compile string
-      if anon_def
-        run anon_def
-      else
-        nil
+      exps = Parser.parse string
+      last = nil
+      exps.expressions.each do |exp|
+        last = exp.compile self
+        if last
+          last = run last
+        end
       end
+      last
     end
   end
 end

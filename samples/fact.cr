@@ -7,3 +7,8 @@ def fact n
 end
 
 puti fact(4)
+puti fact(6)
+puti fact(6)
+puti fact(6)
+puti fact(6)
+puti fact(6)
