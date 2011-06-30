@@ -3,7 +3,7 @@
 end
 
 LLVM.init_x86
-LLVM::load_library(File.expand_path('../../../ext/libcrystal.dylib', __FILE__))
+LLVM::load_library(File.expand_path('../../../ext/libcrystal.bundle', __FILE__))
 
 module Crystal
   class ASTNode
