@@ -107,6 +107,10 @@ module Crystal
       node.resolved_type = Int
     end
 
+    def visit_class_reference(node)
+      node.resolved_type = ClassReference
+    end
+
     def visit_def(node)
       @scope.add_expression node
 

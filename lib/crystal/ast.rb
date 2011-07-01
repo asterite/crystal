@@ -208,4 +208,25 @@ module Crystal
       other.is_a?(If) && other.cond == cond && other.then == self.then && other.else == self.else
     end
   end
+
+  class ClassReference < Expression
+    attr_accessor :klass
+
+    def initialize(klass)
+      @klass = klass
+    end
+
+    def name
+      @klass.name
+    end
+
+    def accept(visitor)
+      visitor.visit_class_reference self
+      visitor.end_visit_class_reference self
+    end
+
+    def ==(other)
+      other.is_a?(ClassReference) && other.klass = klass
+    end
+  end
 end

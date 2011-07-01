@@ -34,6 +34,10 @@ module Crystal
       append_resolved_type node
     end
 
+    def visit_class_reference(node)
+      @str << node.klass
+    end
+
     def visit_ref(node)
       @str << node.name
       append_resolved_type node

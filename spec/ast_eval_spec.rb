@@ -41,4 +41,11 @@ describe "ast eval" do
   it_evals "if 0; 1; else; 3; end", 3
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24
+  it_evals "Class", Crystal::Class
+  ["false.class", "true.class", "Bool"].each do |string|
+    it_evals string, Crystal::Bool
+  end
+  ["1.class", "Int"].each do |string|
+  end
+  it_evals "Int", Crystal::Int
 end

@@ -47,11 +47,13 @@ module Crystal
 
   class Bool
     @methods = {}
+    crystal_define_method 'class', Def.new("Bool#class", [Var.new("self")], ClassReference.new(self))
     crystal_define_intrinsic(:'==', [Bool, Bool], Bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
   end
 
   class Int
     @methods = {}
+    crystal_define_method 'class', Def.new("Int#class", [Var.new("self")], ClassReference.new(self))
     crystal_define_method :'+@', Def.new("Int#+@", [Var.new("self")], Ref.new("self"))
     crystal_define_method :'-@', Def.new("Int#-@", [Var.new("self")], Call.new(Int.new(0), :'-', Ref.new("self")))
     crystal_define_intrinsic(:'+', [Int, Int], Int) { |mod, fun| mod.builder.add fun.params[0], fun.params[1], 'addtmp' }

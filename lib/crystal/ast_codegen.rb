@@ -21,7 +21,8 @@ module Crystal
       @builder = LLVM::Builder.new
       @engine = LLVM::JITCompiler.new @module
       create_function_pass_manager
-      define_exteranl_functions
+      define_builtin_classes
+      define_external_functions
     end
 
     def define_at_top_level(exp)
@@ -42,11 +43,15 @@ module Crystal
     end
 
     def add_expression(node)
-      @expressions[node.name] = node
+      @expressions["##{node.name}"] = node
+    end
+
+    def add_c_expression(node)
+      @expressions["#{node.name}"] = node
     end
 
     def find_expression(name)
-      @expressions[name]
+      @expressions["##{name}"]
     end
 
     def run(fun)
@@ -80,9 +85,15 @@ module Crystal
       @fpm << :simplifycfg
     end
 
-    def define_exteranl_functions
-      add_expression Prototype.new("putb", [Bool], Bool)
-      add_expression Prototype.new("puti", [Int], Int)
+    def define_external_functions
+      add_c_expression Prototype.new("putb", [Bool], Bool)
+      add_c_expression Prototype.new("puti", [Int], Int)
+    end
+
+    def define_builtin_classes
+      add_expression ClassReference.new Class
+      add_expression ClassReference.new Bool
+      add_expression ClassReference.new Int
     end
   end
 
@@ -125,6 +136,21 @@ module Crystal
 
     def self.llvm_cast(value)
       value.to_i LLVM::Int.type
+    end
+  end
+
+  class ClassReference
+    def self.llvm_type
+      LLVM::Int64
+    end
+
+    def codegen(mod)
+      LLVM::Int klass.object_id
+    end
+
+    def self.llvm_cast(value)
+      object_id = value.to_i LLVM::Int.type
+      ObjectSpace._id2ref object_id
     end
   end
 
@@ -179,10 +205,10 @@ module Crystal
       code = mod.remember_block { resolved.codegen mod }
 
       case resolved
-      when Var
-        code
       when Def
         mod.builder.call code
+      else
+        code
       end
     end
   end

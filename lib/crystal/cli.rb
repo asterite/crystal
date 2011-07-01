@@ -30,7 +30,7 @@ loop do
   next if line.strip.empty?
 
   break if line.strip == "exit" || line.strip == "quit"
-  next mod.module.dump if line.strip == "dump"
+  next mod.dump if line.strip == "dump"
 
   buffer << line
   openings = count_openings buffer
