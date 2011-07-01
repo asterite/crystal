@@ -3,6 +3,7 @@ module Crystal
     [
       'module',
       'expressions',
+      'class',
       'bool',
       'int',
       'add',
@@ -19,7 +20,6 @@ module Crystal
       'gt',
       'get',
       'if',
-      'class_reference',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

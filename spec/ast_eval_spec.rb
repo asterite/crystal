@@ -9,6 +9,15 @@ describe "ast eval" do
     end
   end
 
+  def self.it_evals_class(string, expected_value, options = {})
+    it "evals class #{string}", options do
+      mod = Crystal::Module.new
+      value = mod.eval string
+      expected_value = mod.find_expression expected_value
+      value.should eq(expected_value)
+    end
+  end
+
   it_evals "true", true
   it_evals "5", 5
   it_evals "1 + 2", 3
@@ -41,11 +50,11 @@ describe "ast eval" do
   it_evals "if 0; 1; else; 3; end", 3
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24
-  it_evals "Class", Crystal::Class
+  it_evals_class "Class", "Class"
   ["false.class", "true.class", "Bool"].each do |string|
-    it_evals string, Crystal::Bool
+    it_evals_class string, "Bool"
   end
   ["1.class", "Int"].each do |string|
+    it_evals_class string, "Int"
   end
-  it_evals "Int", Crystal::Int
 end

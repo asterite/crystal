@@ -47,9 +47,41 @@ module Crystal
   end
 
   class Class < Expression
+    attr_accessor :name
+
+    def initialize(name)
+      @name = name
+      @methods = {}
+    end
+
+    def find_method(name)
+      method = @methods[name]
+      method ? method.dup : nil
+    end
+
+    def define_intrinsic(name, arg_types, resolved_type, &block)
+      @methods[name] = Intrinsic.new("#{self.name}##{name}", arg_types, resolved_type, &block)
+    end
+
+    def define_method(name, method)
+      @methods[name] = method
+    end
+
+    def accept(visitor)
+      visitor.visit_class self
+      visitor.end_visit_class self
+    end
+
+    def ==(other)
+      other.is_a?(Class) && other.name == name
+    end
+
+    def to_s
+      @name
+    end
   end
 
-  class Bool < Class
+  class Bool < Expression
     attr_accessor :value
 
     def initialize(value)
@@ -66,7 +98,7 @@ module Crystal
     end
   end
 
-  class Int < Class
+  class Int < Expression
     attr_accessor :value
 
     def initialize(value)
@@ -206,27 +238,6 @@ module Crystal
 
     def ==(other)
       other.is_a?(If) && other.cond == cond && other.then == self.then && other.else == self.else
-    end
-  end
-
-  class ClassReference < Expression
-    attr_accessor :klass
-
-    def initialize(klass)
-      @klass = klass
-    end
-
-    def name
-      @klass.name
-    end
-
-    def accept(visitor)
-      visitor.visit_class_reference self
-      visitor.end_visit_class_reference self
-    end
-
-    def ==(other)
-      other.is_a?(ClassReference) && other.klass = klass
     end
   end
 end

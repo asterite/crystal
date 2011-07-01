@@ -58,4 +58,8 @@ describe "ast nodes" do
   it "should to_s If" do
     If.new("foo".ref, 1.int).to_s.should eq("if foo\n  1\nend")
   end
+
+  it "should to_s Class" do
+    Crystal::Class.new("Foo").to_s.should eq("Foo")
+  end
 end

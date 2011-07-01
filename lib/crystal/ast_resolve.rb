@@ -99,16 +99,16 @@ module Crystal
       node.resolved_type = node.expressions.last.resolved_type
     end
 
+    def visit_class(node)
+      node.resolved_type = @scope.find_expression "Class"
+    end
+
     def visit_bool(node)
-      node.resolved_type = Bool
+      node.resolved_type = @scope.find_expression "Bool"
     end
 
     def visit_int(node)
-      node.resolved_type = Int
-    end
-
-    def visit_class_reference(node)
-      node.resolved_type = ClassReference
+      node.resolved_type = @scope.find_expression "Int"
     end
 
     def visit_def(node)

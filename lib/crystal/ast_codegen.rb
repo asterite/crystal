@@ -85,15 +85,44 @@ module Crystal
       @fpm << :simplifycfg
     end
 
+    def define_builtin_classes
+      define_class_class
+      define_bool_class
+      define_int_class
+    end
+
+    def define_class_class
+      klass = add_expression Class.new("Class")
+      klass.define_method 'class', Def.new("Bool#class", [Var.new("self")], Ref.new("Class"))
+    end
+
+    def define_bool_class
+      bool = add_expression BoolClass.new("Bool")
+      bool.define_method 'class', Def.new("Bool#class", [Var.new("self")], Ref.new("Bool"))
+      bool.define_intrinsic(:'==', [bool, bool], bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
+    end
+
+    def define_int_class
+      bool = find_expression "Bool"
+      int = add_expression IntClass.new("Int")
+      int.define_method 'class', Def.new("Int#class", [Var.new("self")], Ref.new("Int"))
+      int.define_method :'+@', Def.new("Int#+@", [Var.new("self")], Ref.new("self"))
+      int.define_method :'-@', Def.new("Int#-@", [Var.new("self")], Call.new(Int.new(0), :'-', Ref.new("self")))
+      int.define_intrinsic(:'+', [int, int], int) { |mod, fun| mod.builder.add fun.params[0], fun.params[1], 'addtmp' }
+      int.define_intrinsic(:'+', [int, int], int) { |mod, fun| mod.builder.add fun.params[0], fun.params[1], 'addtmp' }
+      int.define_intrinsic(:'-', [int, int], int) { |mod, fun| mod.builder.sub fun.params[0], fun.params[1], 'subtmp' }
+      int.define_intrinsic(:'*', [int, int], int) { |mod, fun| mod.builder.mul fun.params[0], fun.params[1], 'multmp' }
+      int.define_intrinsic(:'/', [int, int], int) { |mod, fun| mod.builder.sdiv fun.params[0], fun.params[1], 'sdivtmp' }
+      int.define_intrinsic(:'<', [int, int], bool) { |mod, fun| mod.builder.icmp :slt, fun.params[0], fun.params[1], 'slttmp' }
+      int.define_intrinsic(:'<=', [int, int], bool) { |mod, fun| mod.builder.icmp :sle, fun.params[0], fun.params[1], 'sletmp' }
+      int.define_intrinsic(:'>', [int, int], bool) { |mod, fun| mod.builder.icmp :sgt, fun.params[0], fun.params[1], 'sgttmp' }
+      int.define_intrinsic(:'>=', [int, int], bool) { |mod, fun| mod.builder.icmp :sge, fun.params[0], fun.params[1], 'sgetmp' }
+      int.define_intrinsic(:'==', [int, int], bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
+    end
+
     def define_external_functions
       add_c_expression Prototype.new("putb", [Bool], Bool)
       add_c_expression Prototype.new("puti", [Int], Int)
-    end
-
-    def define_builtin_classes
-      add_expression ClassReference.new Class
-      add_expression ClassReference.new Bool
-      add_expression ClassReference.new Int
     end
   end
 
@@ -111,46 +140,67 @@ module Crystal
     end
   end
 
-  class Bool
-    def self.llvm_type
+  class Intrinsic < Def
+    def initialize(name, arg_types, resolved_type, &block)
+      @name = name
+      @args = arg_types.each_with_index.map { |type, i| Var.new("x#{i}", type) }
+      @resolved_type = resolved_type
+      @block = block
+    end
+
+    def codegen_body(mod, fun)
+      @block.call mod, fun
+    end
+
+    def optimize(fun)
+      fun.linkage = :private
+    end
+  end
+
+  class Class
+    def llvm_type
+      LLVM::Int64
+    end
+
+    def codegen(mod)
+      LLVM::Int64.from_i object_id
+    end
+
+    def llvm_cast(value)
+      object_id = value.to_i LLVM::Int64.type
+      ObjectSpace._id2ref object_id
+    end
+  end
+
+  class BoolClass < Class
+    def llvm_type
       LLVM::Int1
     end
 
-    def self.llvm_cast(value)
+    def llvm_cast(value)
       value.to_b
     end
+  end
 
+  class IntClass < Class
+    def llvm_type
+      LLVM::Int
+    end
+
+    def llvm_cast(value)
+      value.to_i LLVM::Int.type
+    end
+  end
+
+  class Bool
     def codegen(mod)
       LLVM::Int1.from_i(value ? 1 : 0)
     end
   end
 
   class Int
-    def self.llvm_type
-      LLVM::Int
-    end
-
     def codegen(mod)
       LLVM::Int value.to_i
-    end
-
-    def self.llvm_cast(value)
-      value.to_i LLVM::Int.type
-    end
-  end
-
-  class ClassReference
-    def self.llvm_type
-      LLVM::Int64
-    end
-
-    def codegen(mod)
-      LLVM::Int klass.object_id
-    end
-
-    def self.llvm_cast(value)
-      object_id = value.to_i LLVM::Int.type
-      ObjectSpace._id2ref object_id
     end
   end
 
