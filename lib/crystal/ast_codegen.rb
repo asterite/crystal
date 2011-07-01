@@ -17,7 +17,6 @@ module Crystal
 
     def initialize
       @expressions = {}
-      @metaclasses = {}
       @module = LLVM::Module.new ''
       @builder = LLVM::Builder.new
       @engine = LLVM::JITCompiler.new @module
@@ -57,10 +56,6 @@ module Crystal
 
     def find_c_expression(name)
       @expressions[name]
-    end
-
-    def find_metaclass(name)
-      @metaclasses[name]
     end
 
     def run(fun)
@@ -107,9 +102,8 @@ module Crystal
 
     def define_c_class
       klass = add_expression Class.new("C")
-      metaclass = CMetaclass.new self
-      @metaclasses[klass.name] = metaclass
-      klass.define_method 'class', Def.new("#{klass.name}#class", [Var.new("self")], metaclass)
+      klass.metaclass = CMetaclass.new self
+      klass.define_method 'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
     end
 
@@ -137,9 +131,7 @@ module Crystal
 
     def define_class(klass)
       klass = add_expression klass
-      metaclass = Class.new(klass.name)
-      @metaclasses[klass.name] = metaclass
-      klass.define_method 'class', Def.new("#{klass.name}#class", [Var.new("self")], metaclass)
+      klass.define_method 'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
     end
 
@@ -195,6 +187,14 @@ module Crystal
     def llvm_cast(value)
       object_id = value.to_i LLVM::Int64.type
       ObjectSpace._id2ref object_id
+    end
+
+    def metaclass
+      @metaclass ||= Class.new(name)
+    end
+
+    def metaclass=(klass)
+      @metaclass = klass
     end
   end
 

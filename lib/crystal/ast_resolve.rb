@@ -100,7 +100,7 @@ module Crystal
     end
 
     def visit_class(node)
-      node.resolved_type = @scope.find_metaclass node.name
+      node.resolved_type = @scope.find_expression(node.name).metaclass
     end
 
     def visit_bool(node)
@@ -255,10 +255,6 @@ module Crystal
       return arg if arg
 
       @scope.find_expression name
-    end
-
-    def find_metaclass(name)
-      @scope.find_metaclass name
     end
 
     def module
