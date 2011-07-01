@@ -24,7 +24,7 @@ module Crystal
 
   class Prototype
     def args_length_is(length)
-      @arg_types.length == length
+      @arg_types.length == length - 1
     end
 
     def args_length
@@ -100,7 +100,7 @@ module Crystal
     end
 
     def visit_class(node)
-      node.resolved_type = @scope.find_expression "Class"
+      node.resolved_type = @scope.find_metaclass node.name
     end
 
     def visit_bool(node)
@@ -182,6 +182,7 @@ module Crystal
       end
 
       if exp.is_a? Prototype
+        node.args.shift
         node.resolved = exp
         node.resolved_type = exp.resolved_type
         return false
@@ -254,6 +255,10 @@ module Crystal
       return arg if arg
 
       @scope.find_expression name
+    end
+
+    def find_metaclass(name)
+      @scope.find_metaclass name
     end
 
     def module

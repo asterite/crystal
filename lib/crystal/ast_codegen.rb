@@ -17,6 +17,7 @@ module Crystal
 
     def initialize
       @expressions = {}
+      @metaclasses = {}
       @module = LLVM::Module.new ''
       @builder = LLVM::Builder.new
       @engine = LLVM::JITCompiler.new @module
@@ -54,6 +55,14 @@ module Crystal
       @expressions["##{name}"]
     end
 
+    def find_c_expression(name)
+      @expressions[name]
+    end
+
+    def find_metaclass(name)
+      @metaclasses[name]
+    end
+
     def run(fun)
       result = @engine.run_function(fun.code)
       fun.resolved_type.llvm_cast result
@@ -87,25 +96,31 @@ module Crystal
 
     def define_builtin_classes
       define_class_class
+      define_c_class
       define_bool_class
       define_int_class
     end
 
     def define_class_class
-      klass = add_expression Class.new("Class")
-      klass.define_method 'class', Def.new("Bool#class", [Var.new("self")], Ref.new("Class"))
+      klass = define_class Class.new("Class")
+    end
+
+    def define_c_class
+      klass = add_expression Class.new("C")
+      metaclass = CMetaclass.new self
+      @metaclasses[klass.name] = metaclass
+      klass.define_method 'class', Def.new("#{klass.name}#class", [Var.new("self")], metaclass)
+      klass
     end
 
     def define_bool_class
-      bool = add_expression BoolClass.new("Bool")
-      bool.define_method 'class', Def.new("Bool#class", [Var.new("self")], Ref.new("Bool"))
+      bool = define_class BoolClass.new("Bool")
       bool.define_intrinsic(:'==', [bool, bool], bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
     end
 
     def define_int_class
       bool = find_expression "Bool"
-      int = add_expression IntClass.new("Int")
-      int.define_method 'class', Def.new("Int#class", [Var.new("self")], Ref.new("Int"))
+      int = define_class IntClass.new("Int")
       int.define_method :'+@', Def.new("Int#+@", [Var.new("self")], Ref.new("self"))
       int.define_method :'-@', Def.new("Int#-@", [Var.new("self")], Call.new(Int.new(0), :'-', Ref.new("self")))
       int.define_intrinsic(:'+', [int, int], int) { |mod, fun| mod.builder.add fun.params[0], fun.params[1], 'addtmp' }
@@ -120,9 +135,20 @@ module Crystal
       int.define_intrinsic(:'==', [int, int], bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
     end
 
+    def define_class(klass)
+      klass = add_expression klass
+      metaclass = Class.new(klass.name)
+      @metaclasses[klass.name] = metaclass
+      klass.define_method 'class', Def.new("#{klass.name}#class", [Var.new("self")], metaclass)
+      klass
+    end
+
     def define_external_functions
-      add_c_expression Prototype.new("putb", [Bool], Bool)
-      add_c_expression Prototype.new("puti", [Int], Int)
+      bool = find_expression "Bool"
+      int = find_expression "Int"
+
+      add_c_expression Prototype.new("putb", [bool], bool)
+      add_c_expression Prototype.new("puti", [int], int)
     end
   end
 
@@ -169,6 +195,17 @@ module Crystal
     def llvm_cast(value)
       object_id = value.to_i LLVM::Int64.type
       ObjectSpace._id2ref object_id
+    end
+  end
+
+  class CMetaclass < Class
+    def initialize(mod)
+      @mod = mod
+      @name = "C"
+    end
+
+    def find_method(name)
+      @mod.find_c_expression name
     end
   end
 
