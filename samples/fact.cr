@@ -6,9 +6,5 @@ def fact n
   end
 end
 
-puti fact(4)
-puti fact(6)
-puti fact(6)
-puti fact(6)
-puti fact(6)
-puti fact(6)
+C.puti fact(4)
+C.puti fact(6)
