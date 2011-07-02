@@ -71,7 +71,7 @@ module Crystal
 
     def visit_def(node)
       @str << "def "
-      @str << node.name
+      @str << node.name.to_s
       unless node.args.empty?
         @str << "("
         node.args.each_with_index do |arg, i|
