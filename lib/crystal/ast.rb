@@ -130,7 +130,10 @@ module Crystal
     end
 
     def accept(visitor)
-      visitor.visit_prototype self
+      if visitor.visit_prototype self
+        arg_types.each { |type| type.accept visitor }
+        resolved_type.accept visitor
+      end
       visitor.end_visit_prototype self
     end
 

@@ -57,4 +57,5 @@ describe "ast eval" do
   ["1.class", "Int"].each do |string|
     it_evals_class string, "Int"
   end
+  it_evals "extern puti Int #=> Int; C.puti 1", 1
 end

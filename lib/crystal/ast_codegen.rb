@@ -22,7 +22,7 @@ module Crystal
       @engine = LLVM::JITCompiler.new @module
       create_function_pass_manager
       define_builtin_classes
-      define_external_functions
+      load_prelude
     end
 
     def define_at_top_level(exp)
@@ -109,12 +109,14 @@ module Crystal
 
     def define_bool_class
       bool = define_class BoolClass.new("Bool")
+      bool.metaclass.primitive = bool
       bool.define_intrinsic(:'==', [bool, bool], bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
     end
 
     def define_int_class
       bool = find_expression "Bool"
       int = define_class IntClass.new("Int")
+      int.metaclass.primitive = int
       int.define_method :'+@', Def.new("Int#+@", [Var.new("self")], Ref.new("self"))
       int.define_method :'-@', Def.new("Int#-@", [Var.new("self")], Call.new(Int.new(0), :'-', Ref.new("self")))
       int.define_intrinsic(:'+', [int, int], int) { |mod, fun| mod.builder.add fun.params[0], fun.params[1], 'addtmp' }
@@ -135,12 +137,9 @@ module Crystal
       klass
     end
 
-    def define_external_functions
-      bool = find_expression "Bool"
-      int = find_expression "Int"
-
-      add_c_expression Prototype.new("putb", [bool], bool)
-      add_c_expression Prototype.new("puti", [int], int)
+    def load_prelude
+      prelude_file = File.expand_path('../../../lib/crystal/prelude.cr', __FILE__)
+      self.eval File.read(prelude_file)
     end
   end
 
@@ -196,6 +195,14 @@ module Crystal
     def metaclass=(klass)
       @metaclass = klass
     end
+
+    def primitive=(primitive)
+      @primitive = primitive
+    end
+
+    def primitive
+      @primitive or raise "Can't map #{self} to a C type"
+    end
   end
 
   class CMetaclass < Class
@@ -243,7 +250,12 @@ module Crystal
 
   class Prototype
     def codegen(mod)
-      @code ||= mod.module.functions.add(name, @arg_types.map(&:llvm_type), resolved_type.llvm_type)
+      @code ||= begin
+                  fun = mod.module.functions.named name
+                  mod.module.functions.delete fun if fun
+
+                  mod.module.functions.add(name, @arg_types.map(&:llvm_type), resolved_type.llvm_type)
+                end
     end
   end
 

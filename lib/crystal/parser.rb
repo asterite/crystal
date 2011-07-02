@@ -29,6 +29,8 @@ module Crystal
           return parse_def
         when :if
           return parse_if
+        when :extern
+          return parse_extern
         end
       end
 
@@ -102,6 +104,18 @@ module Crystal
       next_token_skip_statement_end
 
       If.new cond, a_then, a_else
+    end
+
+    def parse_extern
+      next_token_skip_space_or_newline
+      check :IDENT
+      name = @token.value
+      next_token
+      args_types = parse_args
+      check :'#=>'
+      next_token_skip_space
+      return_type = parse_expression
+      Prototype.new name, (args_types || []), return_type
     end
 
     def parse_primary_expression
@@ -241,18 +255,18 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>'
           nil
         else
           args = []
-          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')'
+          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :'#=>'
             args << parse_expression
             skip_space
             if @token.type == :","
               next_token_skip_space_or_newline
             end
           end
-          next_token_skip_space unless @token.type == :')'
+          next_token_skip_space unless @token.type == :')' || @token.type == :'#=>'
           args
         end
       else

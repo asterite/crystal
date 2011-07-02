@@ -12,6 +12,15 @@ module Crystal
     end
   end
 
+  class Prototype
+    def compile(mod)
+      resolve mod
+      codegen mod
+      mod.add_c_expression self
+      nil
+    end
+  end
+
   class TopLevelDef < Def
     def optimize(fun)
       fun.linkage = :private
@@ -33,9 +42,7 @@ module Crystal
       last = nil
       exps.expressions.each do |exp|
         last = exp.compile self
-        if last
-          last = run last
-        end
+        last = run last if last
       end
       last
     end

@@ -118,7 +118,6 @@ module Crystal
 
     def visit_prototype(node)
       @str << "extern "
-      node.resolved_type.accept self
       @str << " "
       @str << node.name
       @str << " "
@@ -126,6 +125,9 @@ module Crystal
         @str << ", " if i > 0
         type.accept self
       end
+      @str << " #=> "
+      node.resolved_type.accept self
+      false
     end
 
     def append_resolved_type(node)

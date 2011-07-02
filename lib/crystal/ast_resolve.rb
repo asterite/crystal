@@ -111,6 +111,11 @@ module Crystal
       node.resolved_type = @scope.find_expression "Int"
     end
 
+    def end_visit_prototype(node)
+      node.resolved_type = node.resolved_type.resolved_type.primitive
+      node.arg_types.map! { |type| type.resolved_type.primitive }
+    end
+
     def visit_def(node)
       @scope.add_expression node
 

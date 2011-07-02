@@ -21,9 +21,9 @@ module Crystal
       elsif match = scan(/(\+|-)?\d+/)
         @token.type = :INT
         @token.value = match
-      elsif match = scan(%r(==|=|<=|<|>=|>|\+|-|\*|/|\(|\)|,|\.))
+      elsif match = scan(%r(==|=|<=|<|>=|>|\+|-|\*|/|\(|\)|,|\.|#=>))
         @token.type = match.to_sym
-      elsif match = scan(/def|else|end|if|true|false/)
+      elsif match = scan(/def|else|end|if|true|false|extern/)
         @token.type = :IDENT
         @token.value = match.to_sym
       elsif match = scan(/[a-zA-Z_][a-zA-Z_0-9]*/)
