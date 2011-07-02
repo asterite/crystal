@@ -1,5 +1,6 @@
 module Crystal
   class ASTNode
+    attr_accessor :line_number
   end
 
   class Module < ASTNode

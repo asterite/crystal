@@ -40,6 +40,8 @@ module Crystal
     end
 
     def parse_class
+      line_number = @token.line_number
+
       next_token_skip_space_or_newline
       check :IDENT
 
@@ -51,7 +53,9 @@ module Crystal
       check_ident :end
       next_token_skip_statement_end
 
-      ClassDef.new name, body
+      class_def = ClassDef.new name, body
+      class_def.line_number = line_number
+      class_def
     end
 
     def parse_def
@@ -243,16 +247,20 @@ module Crystal
           parse_ref_or_call
         end
       else
-        raise "Unexpected token: #{@token.to_s}"
+        raise_error "unexpected token: #{@token.to_s}"
       end
     end
 
     def parse_ref_or_call
+      line_number = @token.line_number
+
       name = @token.value
       next_token
 
       args = parse_args
-      args ? Call.new(nil, name, *args) : Ref.new(name)
+      call_or_ref = args ? Call.new(nil, name, *args) : Ref.new(name)
+      call_or_ref.line_number = line_number
+      call_or_ref
     end
 
     def parse_args
@@ -299,14 +307,14 @@ module Crystal
     private
 
     def check(*token_types)
-      raise "Expecting token #{token_types}" unless token_types.any?{|type| @token.type == type}
+      raise_error "expecting token #{token_types}" unless token_types.any?{|type| @token.type == type}
     end
 
     def check_ident(value = nil)
       if value
-        raise "Expecting token: #{value}" unless @token.type == :IDENT && @token.value == value
+        raise_error "expecting token: #{value}" unless @token.type == :IDENT && @token.value == value
       else
-        raise "Unexpected token: #{@token.to_s}" unless @token.type == :IDENT && @token.value.is_a?(String)
+        raise_error "unexpected token: #{@token.to_s}" unless @token.type == :IDENT && @token.value.is_a?(String)
       end
     end
   end

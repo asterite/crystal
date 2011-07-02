@@ -120,7 +120,6 @@ module Crystal
       int.define_method :'+@', Def.new("Int#+@", [Var.new("self")], Ref.new("self"))
       int.define_method :'-@', Def.new("Int#-@", [Var.new("self")], Call.new(Int.new(0), :'-', Ref.new("self")))
       int.define_intrinsic(:'+', [int, int], int) { |mod, fun| mod.builder.add fun.params[0], fun.params[1], 'addtmp' }
-      int.define_intrinsic(:'+', [int, int], int) { |mod, fun| mod.builder.add fun.params[0], fun.params[1], 'addtmp' }
       int.define_intrinsic(:'-', [int, int], int) { |mod, fun| mod.builder.sub fun.params[0], fun.params[1], 'subtmp' }
       int.define_intrinsic(:'*', [int, int], int) { |mod, fun| mod.builder.mul fun.params[0], fun.params[1], 'multmp' }
       int.define_intrinsic(:'/', [int, int], int) { |mod, fun| mod.builder.sdiv fun.params[0], fun.params[1], 'sdivtmp' }

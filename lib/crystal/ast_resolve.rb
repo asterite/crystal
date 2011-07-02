@@ -137,8 +137,8 @@ module Crystal
 
     def visit_class_def(node)
       exp = @scope.find_expression node.name
-      raise "Uninitialized constant #{node.name}" unless exp
-      raise "Can only extend from Class type" unless exp.class < Crystal::Class
+      raise_error node, "uninitialized constant #{node.name}" unless exp
+      raise_error node, "can only extend from Class type" unless exp.class < Crystal::Class
 
       with_new_scope ClassDefScope.new(@scope, exp) do
         node.body.accept self
@@ -149,7 +149,7 @@ module Crystal
     def visit_ref(node)
       return if node.resolved_type
 
-      exp = @scope.find_expression(node.name) or raise "Error: undefined local variable or method '#{node.name}'"
+      exp = @scope.find_expression(node.name) or raise_error node, "undefined local variable or method '#{node.name}'"
       if exp.is_a?(Def) || exp.is_a?(Prototype)
         call = Call.new(nil, exp.name)
         call.accept self
@@ -178,12 +178,12 @@ module Crystal
 
       exp = @scope.find_expression "#{resolved_type}##{node.name}"
       if !exp
-        exp = resolved_type.find_method(node.name) or raise "Error: undefined method '#{node.name}' for #{resolved_type}"
+        exp = resolved_type.find_method(node.name) or raise_error node, "undefined method '#{node.name}' for #{resolved_type}"
         @scope.add_expression exp
       end
 
       if !exp.args_length_is(node.args_length + 1) # With self
-        raise "Error: wrong number of arguments (#{node.args_length} for #{exp.args_length})"
+        raise_error node, "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
       end
 
       node.args = [node.obj] + node.args
@@ -197,11 +197,11 @@ module Crystal
 
       node.args.each { |arg| arg.accept self }
 
-      exp = @scope.find_expression(node.name) or raise "Error: undefined method '#{node.name}'"
+      exp = @scope.find_expression(node.name) or raise_error node, "undefined method '#{node.name}'"
 
       if exp.is_a?(Prototype) || exp.is_a?(Def)
         if !exp.args_length_is(node.args_length)
-          raise "Error: wrong number of arguments (#{node.args_length} for #{exp.args_length})"
+          raise_error node, "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
         end
       end
 
@@ -211,7 +211,7 @@ module Crystal
         exp.arg_types.each_with_index do |expected_type, i|
           actual_type = node.args[i].resolved_type
           if actual_type != expected_type
-            raise "Error: argument number #{i + 1} of C.#{exp.name} must be an #{expected_type}, not #{actual_type}"
+            raise_error node, "argument number #{i + 1} of C.#{exp.name} must be an #{expected_type}, not #{actual_type}"
           end
         end
 
@@ -227,7 +227,7 @@ module Crystal
           node.resolved_type = exp.resolved_type
           return false
         else
-          raise "Error: undefined method #{node.name}"
+          raise_error node, "undefined method #{node.name}"
         end
       end
 
@@ -255,15 +255,15 @@ module Crystal
       node.cond.accept self
       node.then.accept self
       node.else.accept self
-      node.resolved_type = merge_types(node.then.resolved_type, node.else.resolved_type)
+      node.resolved_type = merge_types(node, node.then.resolved_type, node.else.resolved_type)
       false
     end
 
-    def merge_types(type1, type2)
+    def merge_types(node, type1, type2)
       return type2 if type1.nil? || type1 == UnknownType
       return type1 if type2.nil? || type2 == UnknownType
       return type1 if type1 == type2
-      raise "If branches have different types: #{type1} and #{type2}"
+      raise_error node, "if branches have different types: #{type1} and #{type2}"
     end
 
     def with_new_scope(scope)
@@ -271,6 +271,10 @@ module Crystal
       @scope = scope
       yield
       @scope = old_scope
+    end
+
+    def raise_error(node, message)
+      raise "Error on line #{node.line_number}: #{message}"
     end
   end
 

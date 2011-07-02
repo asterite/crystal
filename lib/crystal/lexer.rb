@@ -5,15 +5,18 @@ module Crystal
     def initialize(str)
       super
       @token = Token.new
+      @line_number = 1
     end
 
     def next_token
       @token.value = nil
+      @token.line_number = @line_number
 
       if eos?
         @token.type = :EOF
       elsif scan /\n/
         @token.type = :NEWLINE
+        @line_number += 1
       elsif scan /\s+/
         @token.type = :SPACE
       elsif scan /;+/
@@ -30,7 +33,7 @@ module Crystal
         @token.type = :IDENT
         @token.value = match
       else
-        raise "Can't lex anymore: #{rest}"
+        raise_error "can't lex anymore: #{rest}"
       end
 
       @token
@@ -65,6 +68,10 @@ module Crystal
 
     def next_token_if(*types)
       next_token while types.include? @token.type
+    end
+
+    def raise_error(message)
+      raise "Syntax error on line #{@line_number}: #{message}"
     end
   end
 end
