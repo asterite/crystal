@@ -60,7 +60,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :"<", :"<=", :">", :">=", :"+", :"-", :"*", :"/"
+      check :IDENT, :"=", :"<", :"<=", :"==", :">", :">=", :"+", :"-", :"*", :"/", :"+@", :"-@"
 
       name = @token.type == :IDENT ? @token.value : @token.type
       args = []

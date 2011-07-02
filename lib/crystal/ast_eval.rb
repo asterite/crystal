@@ -3,11 +3,21 @@ module Crystal
     def compile(mod)
       mod.define_at_top_level self
     end
+
+    def eval(mod)
+      fun = compile mod
+      mod.run fun
+    end
   end
 
   class Def
     def compile(mod)
       mod.add_expression self
+      nil
+    end
+
+    def eval(mod)
+      compile mod
       nil
     end
   end
@@ -25,6 +35,10 @@ module Crystal
       codegen mod
       mod.add_c_expression self
       nil
+    end
+
+    def eval(mod)
+      compile mod
     end
   end
 

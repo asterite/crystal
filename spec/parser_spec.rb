@@ -52,7 +52,7 @@ describe Parser do
   it_parses_single_node "def foo; 1; 2; end", Def.new("foo", [], [1.int, 2.int])
   it_parses_single_node "def foo(n); foo(n -1); end", Def.new("foo", ["n".var], Call.new(nil, "foo", Call.new(nil, "n", -1.int)))
 
-  ["=", "<", "<=", ">", ">=", "+", "-", "*", "/"].each do |op|
+  ["=", "<", "<=", "==", ">", ">=", "+", "-", "*", "/", "+@", "-@"].each do |op|
     it_parses_single_node "def #{op}; end;", Def.new(op.to_sym, [], nil)
   end
 
