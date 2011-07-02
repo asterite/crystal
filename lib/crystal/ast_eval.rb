@@ -12,6 +12,13 @@ module Crystal
     end
   end
 
+  class ClassDef
+    def compile(mod)
+      resolve mod
+      nil
+    end
+  end
+
   class Prototype
     def compile(mod)
       resolve mod

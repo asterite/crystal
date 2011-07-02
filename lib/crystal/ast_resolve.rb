@@ -38,7 +38,11 @@ module Crystal
     end
 
     def args_length
-      args.length
+      @args_length || args.length
+    end
+
+    def args_length=(value)
+      @args_length = value
     end
 
     def instantiate(scope, arg_types)
@@ -93,10 +97,11 @@ module Crystal
     end
 
     def visit_expressions(node)
-      return if node.expressions.empty?
+      return false if node.expressions.empty?
 
       node.expressions.each { |exp| exp.accept self }
       node.resolved_type = node.expressions.last.resolved_type
+      false
     end
 
     def visit_class(node)
@@ -119,11 +124,24 @@ module Crystal
     def visit_def(node)
       @scope.add_expression node
 
+      return false if @scope.is_a?(ClassDefScope)
+
       if node.body
         with_new_scope DefScope.new(@scope, node) do
           node.body.accept self
         end
         node.resolved_type = node.body.resolved_type
+      end
+      false
+    end
+
+    def visit_class_def(node)
+      exp = @scope.find_expression node.name
+      raise "Uninitialized constant #{node.name}" unless exp
+      raise "Can only extend from Class type" unless exp.class < Crystal::Class
+
+      with_new_scope ClassDefScope.new(@scope, exp) do
+        node.body.accept self
       end
       false
     end
@@ -142,6 +160,7 @@ module Crystal
 
       node.resolved = exp
       node.resolved_type = exp.resolved_type
+      false
     end
 
     def visit_call(node)
@@ -233,9 +252,11 @@ module Crystal
     end
 
     def visit_if(node)
+      node.cond.accept self
       node.then.accept self
       node.else.accept self
       node.resolved_type = merge_types(node.then.resolved_type, node.else.resolved_type)
+      false
     end
 
     def merge_types(type1, type2)
@@ -267,6 +288,33 @@ module Crystal
       arg = @def.args.select{|arg| arg.name == name}.first
       return arg if arg
 
+      @scope.find_expression name
+    end
+
+    def module
+      @scope.module
+    end
+
+    def builder
+      @scope.builder
+    end
+  end
+
+  class ClassDefScope
+    def initialize(scope, a_class)
+      @scope = scope
+      @class = a_class
+    end
+
+    def add_expression(node)
+      name = node.name
+      node.name = "#{@class.name}##{name}"
+      node.args.insert 0, Var.new("self", @class)
+      node.args_length = node.args.length - 1
+      @class.define_method name, node
+    end
+
+    def find_expression(name)
       @scope.find_expression name
     end
 

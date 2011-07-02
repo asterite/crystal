@@ -89,4 +89,8 @@ describe Parser do
 
   it_parses_single_node "extern foo(Int, Int) #=> Bool", Prototype.new("foo", ["Int".ref, "Int".ref], "Bool".ref)
   it_parses_single_node "extern foo Int, Int #=> Bool", Prototype.new("foo", ["Int".ref, "Int".ref], "Bool".ref)
+
+  it_parses_single_node "class Foo; end", ClassDef.new("Foo")
+  it_parses_single_node "class Foo\nend", ClassDef.new("Foo")
+  it_parses_single_node "class Foo\ndef foo; end; end", ClassDef.new("Foo", [Def.new("foo", [], nil)])
 end

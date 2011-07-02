@@ -46,6 +46,25 @@ module Crystal
     end
   end
 
+  class ClassDef < Expression
+    attr_accessor :name
+    attr_accessor :body
+
+    def initialize(name, body = nil)
+      @name = name
+      @body = Expressions.from body
+    end
+
+    def accept(visitor)
+      visitor.visit_class_def self
+      visitor.end_visit_class_def self
+    end
+
+    def ==(other)
+      other.is_a?(ClassDef) && other.name == name && other.body == body
+    end
+  end
+
   class Class < Expression
     attr_accessor :name
 

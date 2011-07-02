@@ -25,6 +25,8 @@ module Crystal
     def parse_expression
       if @token.type == :IDENT
         case @token.value
+        when :class
+          return parse_class
         when :def
           return parse_def
         when :if
@@ -35,6 +37,21 @@ module Crystal
       end
 
       parse_primary_expression
+    end
+
+    def parse_class
+      next_token_skip_space_or_newline
+      check :IDENT
+
+      name = @token.value
+      next_token_skip_statement_end
+
+      body = parse_expressions
+
+      check_ident :end
+      next_token_skip_statement_end
+
+      ClassDef.new name, body
     end
 
     def parse_def

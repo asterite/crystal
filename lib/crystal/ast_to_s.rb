@@ -56,6 +56,7 @@ module Crystal
         @str << " "
         node.args[0].accept self
       else
+        @str << "." if node.obj
         @str << node.name.to_s
         @str << "("
         node.args.each_with_index do |arg, i|
@@ -127,6 +128,17 @@ module Crystal
       end
       @str << " #=> "
       node.resolved_type.accept self
+      false
+    end
+
+    def visit_class_def(node)
+      @str << "class "
+      @str << node.name
+      @str << "\n"
+      @indent += 1
+      node.body.accept self
+      @indent -= 1
+      @str << "end"
       false
     end
 

@@ -58,4 +58,8 @@ describe "ast eval" do
     it_evals_class string, "Int"
   end
   it_evals "extern puti Int #=> Int; C.puti 1", 1
+  it_evals "class Int; end", nil
+  it_evals "class Int; def foo; 2; end; end; 1.foo", 2
+  it_evals "class Int; def foo(bar); bar; end; end; 1.foo 2", 2
+  it_evals "class Int; def foo(bar, baz); bar + baz; end; end; 1.foo 2, 3", 5, :focus => true
 end

@@ -21,6 +21,7 @@ module Crystal
       'get',
       'if',
       'prototype',
+      'class_def',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)
