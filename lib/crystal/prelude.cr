@@ -1,5 +1,9 @@
-extern putb Bool #=> Bool
-extern puti Int  #=> Int
+class Bool
+  extern crystal_eq_bool Bool, Bool #=> Bool
+  def ==(other)
+    C.crystal_eq_bool self, other
+  end
+end
 
 class Int
   extern crystal_add_int_int Int, Int #=> Int
@@ -55,3 +59,6 @@ class Int
     0 - self
   end
 end
+
+extern putb Bool #=> Bool
+extern puti Int  #=> Int

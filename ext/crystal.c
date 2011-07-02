@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+int crystal_eq_bool(int x, int y) { return x == y; }
+
 int crystal_add_int_int(int x, int y) { return x + y; }
 int crystal_sub_int_int(int x, int y) { return x - y; }
 int crystal_mul_int_int(int x, int y) { return x * y; }

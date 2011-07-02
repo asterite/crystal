@@ -110,11 +110,9 @@ module Crystal
     def define_bool_class
       bool = define_class BoolClass.new("Bool")
       bool.metaclass.primitive = bool
-      bool.define_intrinsic(:'==', [bool, bool], bool) { |mod, fun| mod.builder.icmp :eq, fun.params[0], fun.params[1], 'eqtmp' }
     end
 
     def define_int_class
-      bool = find_expression "Bool"
       int = define_class IntClass.new("Int")
       int.metaclass.primitive = int
     end
