@@ -183,6 +183,14 @@ module Crystal
 
       if exp.is_a? Prototype
         node.args.shift
+
+        exp.arg_types.each_with_index do |expected_type, i|
+          actual_type = node.args[i].resolved_type
+          if actual_type != expected_type
+            raise "Error: argument number #{i + 1} of C.#{exp.name} must be an #{expected_type}, not #{actual_type}"
+          end
+        end
+
         node.resolved = exp
         node.resolved_type = exp.resolved_type
         return false

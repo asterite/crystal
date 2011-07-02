@@ -20,6 +20,7 @@ module Crystal
       'gt',
       'get',
       'if',
+      'prototype',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

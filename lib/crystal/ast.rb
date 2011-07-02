@@ -128,6 +128,15 @@ module Crystal
       @arg_types = arg_types
       @resolved_type = resolved_type
     end
+
+    def accept(visitor)
+      visitor.visit_prototype self
+      visitor.end_visit_prototype self
+    end
+
+    def ==(other)
+      other.is_a?(Prototype) && other.name == name && other.arg_types == arg_types && other.resolved_type == resolved_type
+    end
   end
 
   class Def < Expression

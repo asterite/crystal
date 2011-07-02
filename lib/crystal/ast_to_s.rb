@@ -116,6 +116,18 @@ module Crystal
       false
     end
 
+    def visit_prototype(node)
+      @str << "extern "
+      node.resolved_type.accept self
+      @str << " "
+      @str << node.name
+      @str << " "
+      node.arg_types.each_with_index do |type, i|
+        @str << ", " if i > 0
+        type.accept self
+      end
+    end
+
     def append_resolved_type(node)
       @str << "{#{node.resolved_type}}" if node.resolved_type
     end
