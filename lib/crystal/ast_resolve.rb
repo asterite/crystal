@@ -141,7 +141,7 @@ module Crystal
       raise_error node, "can only extend from Class type" unless exp.class < Crystal::Class
 
       with_new_scope ClassDefScope.new(@scope, exp) do
-        node.body.expressions.each { |exp| exp.eval @scope }
+        node.body.eval @scope
       end
       false
     end

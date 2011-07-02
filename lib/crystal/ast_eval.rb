@@ -10,6 +10,21 @@ module Crystal
     end
   end
 
+  class Expressions
+    def compile(mod)
+      last = nil
+      expressions.each do |exp|
+        last = exp.compile mod
+        yield last if block_given? && last
+      end
+      last
+    end
+
+    def eval(mod)
+      expressions.each { |exp| exp.eval mod }
+    end
+  end
+
   class Def
     def compile(mod)
       mod.add_expression self
@@ -51,19 +66,14 @@ module Crystal
   class Module
     def compile(string)
       exps = Parser.parse string
-      last = nil
-      exps.expressions.each do|exp|
-        last = exp.compile self
-      end
-      last
+      exps.compile self
     end
 
     def eval(string)
       exps = Parser.parse string
       last = nil
-      exps.expressions.each do |exp|
-        last = exp.compile self
-        last = run last if last
+      exps.compile self do |exp|
+        last = run exp
       end
       last
     end
