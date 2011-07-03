@@ -165,12 +165,19 @@ module Crystal
 
     def visit_assign(node)
       node.value.accept self
-      node.target.resolved = @scope.find_expression(node.target.name) or raise_error node, "undefined local variable '#{node.name}'"
-      unless node.target.resolved.is_a?(Var)
-        raise_error node, "can't assign to #{node.target}, it is not a variable"
-      end
-      unless node.target.resolved.resolved_type == node.value.resolved_type
-        raise_error node, "Can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
+      node.target.resolved = @scope.find_expression(node.target.name)
+
+      if node.target.resolved
+        unless node.target.resolved.is_a?(Var)
+          raise_error node, "can't assign to #{node.target}, it is not a variable"
+        end
+        unless node.target.resolved.resolved_type == node.value.resolved_type
+          raise_error node, "Can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
+        end
+      else
+        var = Var.new(node.target.name, node.value.resolved_type)
+        @scope.add_local_variable var
+        node.target.resolved = var
       end
 
       node.resolved_type = node.value.resolved_type
@@ -299,15 +306,23 @@ module Crystal
     def initialize(scope, a_def)
       @scope = scope
       @def = a_def
+      @local_variables = {}
     end
 
     def add_expression(node)
       @scope.add_expression node
     end
 
+    def add_local_variable(node)
+      @local_variables[node.name] = node
+    end
+
     def find_expression(name)
       arg = @def.args.select{|arg| arg.name == name}.first
       return arg if arg
+
+      var = @local_variables[name]
+      return var if var
 
       @scope.find_expression name
     end

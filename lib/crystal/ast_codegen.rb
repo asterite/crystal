@@ -367,7 +367,12 @@ module Crystal
 
   class Assign
     def codegen(mod)
-      mod.builder.store value.codegen(mod), target.resolved.code
+      alloca = target.resolved.code
+      unless alloca
+        alloca = target.resolved.code = mod.builder.alloca(resolved_type.llvm_type, target.name)
+      end
+
+      mod.builder.store value.codegen(mod), alloca
       mod.builder.load target.resolved.code
     end
   end

@@ -66,4 +66,6 @@ describe "ast eval" do
   it_evals "class Int; def foo(bar, baz); bar + baz; end; end; 1.foo 2, 3", 5
   it_evals "def foo x; x = 3; x; end; foo 2", 3
   it_evals "def foo x; x = 3; end; foo 2", 3
+  it_evals "def foo; x = 3; x; end; foo", 3
+  it_evals "def foo; x = 3; x = 4; end; foo", 4
 end
