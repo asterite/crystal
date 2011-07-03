@@ -272,4 +272,26 @@ module Crystal
       other.is_a?(If) && other.cond == cond && other.then == self.then && other.else == self.else
     end
   end
+
+  class Assign < Expression
+    attr_accessor :target
+    attr_accessor :value
+
+    def initialize(target, value)
+      @target = target
+      @value = value
+    end
+
+    def accept(visitor)
+      if visitor.visit_assign self
+        target.accept visitor
+        value.accept visitor
+      end
+      visitor.end_visit_assign self
+    end
+
+    def ==(other)
+      other.is_a?(Assign) && other.target == target && other.value == value
+    end
+  end
 end

@@ -30,12 +30,10 @@ module Crystal
 
     def visit_bool(node)
       @str << (node.value ? 'true' : 'false')
-      append_resolved_type node
     end
 
     def visit_int(node)
       @str << node.value.to_s
-      append_resolved_type node
     end
 
     def visit_class_reference(node)
@@ -44,7 +42,6 @@ module Crystal
 
     def visit_ref(node)
       @str << node.name
-      append_resolved_type node
       false
     end
 
@@ -65,7 +62,6 @@ module Crystal
         end
         @str << ")"
       end
-      append_resolved_type node
       false
     end
 
@@ -86,13 +82,11 @@ module Crystal
       node.body.accept self if node.body
       @indent -= 1
       @str << "end"
-      append_resolved_type node
       false
     end
 
     def visit_var(node)
       @str << node.name
-      append_resolved_type node
     end
 
     def visit_expressions(node)
@@ -101,7 +95,6 @@ module Crystal
         exp.accept self
         @str << "\n"
       end
-      append_resolved_type node
       false
     end
 
@@ -113,7 +106,6 @@ module Crystal
       node.then.accept self
       @indent -= 1
       @str << "end"
-      append_resolved_type node
       false
     end
 
@@ -127,7 +119,6 @@ module Crystal
         type.accept self
       end
       @str << " #=> "
-      node.resolved_type.accept self
       false
     end
 
@@ -142,8 +133,10 @@ module Crystal
       false
     end
 
-    def append_resolved_type(node)
-      @str << "{#{node.resolved_type}}" if node.resolved_type
+    def visit_assign(node)
+      node.target.accept self
+      @str << " = "
+      node.value.accept self
     end
 
     def to_s

@@ -163,6 +163,21 @@ module Crystal
       false
     end
 
+    def visit_assign(node)
+      node.value.accept self
+      node.target.resolved = @scope.find_expression(node.target.name) or raise_error node, "undefined local variable '#{node.name}'"
+      unless node.target.resolved.is_a?(Var)
+        raise_error node, "can't assign to #{node.target}, it is not a variable"
+      end
+      unless node.target.resolved.resolved_type == node.value.resolved_type
+        raise_error node, "Can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
+      end
+
+      node.resolved_type = node.value.resolved_type
+
+      false
+    end
+
     def visit_call(node)
       return if node.resolved_type
 
@@ -239,14 +254,16 @@ module Crystal
 
       node.resolved_type = instance.resolved_type
 
-      if node.resolved_type != UnknownType
-        # Resolve any expressions with unknown types
-        node.args.each do |arg|
-          if arg.resolved_type == UnknownType
-            arg.resolved_type = nil
-            arg.resolved = nil
-            arg.accept self
-          end
+      if node.resolved_type == UnknownType
+        raise_error node, "Can't deduce the type of #{instance.name}"
+      end
+
+      # Resolve any expressions with unknown types
+      node.args.each do |arg|
+        if arg.resolved_type == UnknownType
+          arg.resolved_type = nil
+          arg.resolved = nil
+          arg.accept self
         end
       end
     end

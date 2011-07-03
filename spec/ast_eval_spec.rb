@@ -64,6 +64,6 @@ describe "ast eval" do
   it_evals "class Int; def foo; 2; end; end; 1.foo", 2
   it_evals "class Int; def foo(bar); bar; end; end; 1.foo 2", 2
   it_evals "class Int; def foo(bar, baz); bar + baz; end; end; 1.foo 2, 3", 5
-
-  #it_evals "def foo; 1; end; foo; def foo; 2; end; foo", 2, :focus => true
+  it_evals "def foo x; x = 3; x; end; foo 2", 3
+  it_evals "def foo x; x = 3; end; foo 2", 3
 end

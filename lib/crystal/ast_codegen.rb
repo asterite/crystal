@@ -273,7 +273,7 @@ module Crystal
       code = codegen_body(mod, fun)
       mod.builder.ret code
 
-      #fun.dump
+      # fun.dump
 
       fun.verify
       mod.fpm.run fun
@@ -362,6 +362,13 @@ module Crystal
       mod.builder.position_at_end merge_block
 
       phi
+    end
+  end
+
+  class Assign
+    def codegen(mod)
+      mod.builder.store value.codegen(mod), target.resolved.code
+      mod.builder.load target.resolved.code
     end
   end
 end

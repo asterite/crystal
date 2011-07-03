@@ -140,8 +140,12 @@ module Crystal
     end
 
     def parse_primary_expression
+      line_number = @token.line_number
+
       left = parse_add_or_sub
       while true
+        left.line_number = line_number
+
         case @token.type
         when :SPACE
           next_token
@@ -158,8 +162,11 @@ module Crystal
     end
 
     def parse_add_or_sub
+      line_number = @token.line_number
+
       left = parse_mul_or_div
       while true
+        left.line_number = line_number
         case @token.type
         when :SPACE
           next_token
@@ -184,8 +191,11 @@ module Crystal
     end
 
     def parse_mul_or_div
+      line_number = @token.line_number
+
       left = parse_atomic_with_method
       while true
+        left.line_number = line_number
         case @token.type
         when :SPACE
           next_token
@@ -201,9 +211,13 @@ module Crystal
     end
 
     def parse_atomic_with_method
+      line_number = @token.line_number
+
       atomic = parse_atomic
 
       while true
+        atomic.line_number = line_number
+
         case @token.type
         when :SPACE
           next_token
@@ -215,10 +229,19 @@ module Crystal
 
           args = parse_args
           atomic = args ? (Call.new atomic, name, *args) : (Call.new atomic, name)
+        when :'='
+          break unless atomic.is_a?(Ref)
+
+          next_token_skip_space_or_newline
+
+          value = parse_expression
+          atomic = Assign.new(atomic, value)
         else
-          return atomic
+          break
         end
       end
+
+      atomic
     end
 
     def parse_atomic
@@ -252,15 +275,11 @@ module Crystal
     end
 
     def parse_ref_or_call
-      line_number = @token.line_number
-
       name = @token.value
       next_token
 
       args = parse_args
-      call_or_ref = args ? Call.new(nil, name, *args) : Ref.new(name)
-      call_or_ref.line_number = line_number
-      call_or_ref
+      args ? Call.new(nil, name, *args) : Ref.new(name)
     end
 
     def parse_args
@@ -280,7 +299,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>'
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>', :"="
           nil
         else
           args = []
