@@ -86,6 +86,7 @@ module Crystal
       @fpm << :instcombine
       @fpm << :reassociate
       @fpm << :gvn
+      @fpm << :mem2reg
       @fpm << :simplifycfg
     end
 
@@ -254,17 +255,20 @@ module Crystal
 
       args_types = args.map { |arg| arg.resolved_type.llvm_type }
       fun = mod.module.functions.add name, args_types, resolved_type.llvm_type
+
+      entry = fun.basic_blocks.append 'entry'
+      mod.builder.position_at_end entry
+
       args.each_with_index do |arg, i|
-        arg.code = fun.params[i]
-        fun.params[i].name = arg.name
+        param = fun.params[i]
+        param.name = arg.name
+        arg.code = mod.builder.alloca args_types[i], param.name
+        mod.builder.store param, arg.code
       end
 
       @code = fun
 
       optimize fun
-
-      entry = fun.basic_blocks.append 'entry'
-      mod.builder.position_at_end entry
 
       code = codegen_body(mod, fun)
       mod.builder.ret code
@@ -273,7 +277,8 @@ module Crystal
 
       fun.verify
       mod.fpm.run fun
-      #fun.dump
+
+      # fun.dump
       fun
     end
 
@@ -301,9 +306,10 @@ module Crystal
   class Call
     def codegen(mod)
       if resolved.is_a? Var
-        mod.builder.add resolved.code, args[0].codegen(mod), 'addtmp'
         # Case when the call is "foo -1" but foo is an arg, not a call
-        #Add.new(resolved, args[0]).codegen mod
+        call = Call.new(resolved, :'+', args[0])
+        call.resolve mod
+        call.codegen mod
       else
         resolved_code = mod.remember_block { resolved.codegen mod }
         resolved_args = self.args.map do |arg|
@@ -318,7 +324,7 @@ module Crystal
 
   class Var
     def codegen(mod)
-      code
+      mod.builder.load code, name
     end
   end
 
