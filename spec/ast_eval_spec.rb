@@ -68,4 +68,5 @@ describe "ast eval" do
   it_evals "def foo x; x = 3; end; foo 2", 3
   it_evals "def foo; x = 3; x; end; foo", 3
   it_evals "def foo; x = 3; x = 4; end; foo", 4
+  it_evals "def fact(n); if n <= 1; n = 1; else; n = n * fact(n -1); end; end; fact(1)", 1
 end

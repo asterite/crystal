@@ -171,7 +171,7 @@ module Crystal
         unless node.target.resolved.is_a?(Var)
           raise_error node, "can't assign to #{node.target}, it is not a variable"
         end
-        unless node.target.resolved.resolved_type == node.value.resolved_type
+        if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type
           raise_error node, "Can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
         end
       else
