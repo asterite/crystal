@@ -12,5 +12,4 @@ lib_filename = File.expand_path("../../../ext/crystal.o",  __FILE__)
 dump_exec = File.expand_path("../../../lib/crystal/dump.rb",  __FILE__)
 
 `ruby #{dump_exec} #{file} 2> #{filename}.ll`
-`opt -O3 -S #{filename}.ll > #{filename}.opt.ll`
-`llvmc -O3 #{lib_filename} #{filename}.ll -o #{filename}`
+`llvmc -v -O3 #{lib_filename} #{filename}.ll -o #{filename}`

@@ -33,6 +33,8 @@ module Crystal
           return parse_if
         when :extern
           return parse_extern
+        when :while
+          return parse_while
         end
       end
 
@@ -125,6 +127,21 @@ module Crystal
       next_token_skip_statement_end
 
       If.new cond, a_then, a_else
+    end
+
+    def parse_while
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      body = parse_expressions
+      skip_statement_end
+
+      check_ident :end
+      next_token_skip_statement_end
+
+      While.new cond, body
     end
 
     def parse_extern

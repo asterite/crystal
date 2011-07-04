@@ -23,6 +23,7 @@ module Crystal
       'prototype',
       'class_def',
       'assign',
+      'while',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

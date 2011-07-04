@@ -294,4 +294,26 @@ module Crystal
       other.is_a?(Assign) && other.target == target && other.value == value
     end
   end
+
+  class While < Expression
+    attr_accessor :cond
+    attr_accessor :body
+
+    def initialize(cond, body = nil)
+      @cond = cond
+      @body = Expressions.from body
+    end
+
+    def accept(visitor)
+      if visitor.visit_while self
+        cond.accept visitor
+        body.accept visitor
+      end
+      visitor.end_visit_while self
+    end
+
+    def ==(other)
+      other.is_a?(While) && other.cond == cond && other.body == body
+    end
+  end
 end

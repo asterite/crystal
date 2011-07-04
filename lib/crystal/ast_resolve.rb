@@ -283,6 +283,13 @@ module Crystal
       false
     end
 
+    def visit_while(node)
+      node.cond.accept self
+      node.body.accept self
+      node.resolved_type = node.body.resolved_type
+      false
+    end
+
     def merge_types(node, type1, type2)
       return type2 if type1.nil? || type1 == UnknownType
       return type1 if type2.nil? || type2 == UnknownType

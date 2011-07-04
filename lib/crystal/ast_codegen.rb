@@ -365,6 +365,45 @@ module Crystal
     end
   end
 
+  class While
+    def codegen(mod)
+
+      # while:
+      #   testear condicion
+      #   si, while_body, no, while_exit
+      #   si no es cero, ir al cuerpo
+      #
+      # while_body:
+      #   el cuerpo
+      #   br while
+      #
+      # while_exit:
+      #   el booleano false
+
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      while_block = fun.basic_blocks.append 'while'
+      while_body_block = fun.basic_blocks.append 'while_body'
+      while_exit_block = fun.basic_blocks.append 'while_exit'
+
+      mod.builder.position_at_end while_block
+      cond_code = cond.codegen mod
+      cond_code = mod.builder.icmp(:ne, cond_code, LLVM::Int1.from_i(0), 'whilecond')
+      mod.builder.cond cond_code, while_body_block, while_exit_block
+
+      mod.builder.position_at_end while_body_block
+      body.codegen mod
+      mod.builder.position_at_end while_body_block
+      mod.builder.br while_block
+
+      mod.builder.position_at_end start_block
+      mod.builder.br while_block
+
+      mod.builder.position_at_end while_exit_block
+    end
+  end
+
   class Assign
     def codegen(mod)
       alloca = target.resolved.code

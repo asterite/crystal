@@ -78,9 +78,7 @@ module Crystal
         @str << ")"
       end
       @str << "\n"
-      @indent += 1
-      node.body.accept self if node.body
-      @indent -= 1
+      with_indent { node.body.accept self } if node.body
       @str << "end"
       false
     end
@@ -102,9 +100,11 @@ module Crystal
       @str << "if "
       node.cond.accept self
       @str << "\n"
-      @indent += 1
-      node.then.accept self
-      @indent -= 1
+      with_indent { node.then.accept self }
+      unless node.else.expressions.empty?
+        @str << "else\n"
+        with_indent { node.else.accept self }
+      end
       @str << "end"
       false
     end
@@ -126,9 +126,7 @@ module Crystal
       @str << "class "
       @str << node.name
       @str << "\n"
-      @indent += 1
-      node.body.accept self
-      @indent -= 1
+      with_indent { node.body.accept self }
       @str << "end"
       false
     end
@@ -137,6 +135,22 @@ module Crystal
       node.target.accept self
       @str << " = "
       node.value.accept self
+      false
+    end
+
+    def visit_while(node)
+      @str << "while "
+      node.cond.accept self
+      @str << "\n"
+      with_indent { node.body.accept self }
+      @str << "end"
+      false
+    end
+
+    def with_indent
+      @indent += 1
+      yield
+      @indent -= 1
     end
 
     def to_s
