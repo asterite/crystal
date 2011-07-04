@@ -79,10 +79,6 @@ module Crystal
       method ? method.dup : nil
     end
 
-    def define_intrinsic(name, arg_types, resolved_type, &block)
-      @methods[name] = Intrinsic.new("#{self.name}##{name}", arg_types, resolved_type, &block)
-    end
-
     def define_method(name, method)
       @methods[name] = method
     end

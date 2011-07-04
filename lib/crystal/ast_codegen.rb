@@ -166,23 +166,6 @@ module Crystal
     end
   end
 
-  class Intrinsic < Def
-    def initialize(name, arg_types, resolved_type, &block)
-      @name = name
-      @args = arg_types.each_with_index.map { |type, i| Var.new("x#{i}", type) }
-      @resolved_type = resolved_type
-      @block = block
-    end
-
-    def codegen_body(mod, fun)
-      @block.call mod, fun
-    end
-
-    def optimize(fun)
-      fun.linkage = :private
-    end
-  end
-
   class Class
     def llvm_type
       LLVM::Int64
