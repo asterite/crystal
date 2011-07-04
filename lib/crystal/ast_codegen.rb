@@ -420,7 +420,13 @@ module Crystal
     def codegen(mod)
       alloca = target.resolved.code
       unless alloca
-        alloca = target.resolved.code = mod.builder.alloca(resolved_type.llvm_type, target.name)
+        if global
+          alloca = target.resolved.code = mod.module.globals.add(resolved_type.llvm_type, target.name)
+          alloca.linkage = :internal
+          alloca.initializer = LLVM::Constant.undef resolved_type.llvm_type
+        else
+          alloca = target.resolved.code = mod.builder.alloca(resolved_type.llvm_type, target.name)
+        end
       end
 
       mod.builder.store value.codegen(mod), alloca

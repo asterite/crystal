@@ -22,6 +22,10 @@ module Crystal
     end
   end
 
+  class Assign
+    attr_accessor :global
+  end
+
   class Prototype
     def args_length_is(length)
       @arg_types.length == length - 1
@@ -182,11 +186,12 @@ module Crystal
         end
       else
         var = Var.new(node.target.name, node.value.resolved_type)
-        @scope.define_variable var
+        @scope.add_expression var
         node.target.resolved = var
       end
 
       node.resolved_type = node.value.resolved_type
+      node.global = @scope.global?
 
       false
     end
@@ -328,8 +333,16 @@ module Crystal
       @local_variables = {}
     end
 
-    def define_variable(node)
-      @local_variables[node.name] = node
+    def global?
+      @def.is_a? TopLevelDef
+    end
+
+    def add_expression(node)
+      if @def.is_a? TopLevelDef
+        @scope.add_expression node
+      else
+        @local_variables[node.name] = node
+      end
     end
 
     def find_expression(name)
@@ -347,6 +360,10 @@ module Crystal
     def initialize(scope, a_class)
       @scope = scope
       @class = a_class
+    end
+
+    def global?
+      true
     end
 
     def add_expression(node)
