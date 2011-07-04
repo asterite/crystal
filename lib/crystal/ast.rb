@@ -101,6 +101,17 @@ module Crystal
     end
   end
 
+  class Nil < Expression
+    def accept(visitor)
+      visitor.visit_nil self
+      visitor.end_visit_nil self
+    end
+
+    def ==(other)
+      other.is_a?(Nil)
+    end
+  end
+
   class Bool < Expression
     attr_accessor :value
 

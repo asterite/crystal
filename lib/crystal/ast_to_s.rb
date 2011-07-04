@@ -28,6 +28,10 @@ module Crystal
       @str << node.name
     end
 
+    def visit_nil(node)
+      @str << 'nil'
+    end
+
     def visit_bool(node)
       @str << (node.value ? 'true' : 'false')
     end

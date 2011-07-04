@@ -101,4 +101,6 @@ describe Parser do
   it_parses_single_node "a = 1", Assign.new("a".ref, 1.int)
 
   it_parses_single_node "while true; 1; end;", While.new(true.bool, 1.int)
+
+  it_parses_single_node "nil", Nil.new
 end

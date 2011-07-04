@@ -97,15 +97,21 @@ module Crystal
     end
 
     def visit_expressions(node)
-      return false if node.expressions.empty?
-
-      node.expressions.each { |exp| exp.accept self }
-      node.resolved_type = node.expressions.last.resolved_type
+      if node.expressions.empty?
+        node.resolved_type = @scope.find_expression "Nil"
+      else
+        node.expressions.each { |exp| exp.accept self }
+        node.resolved_type = node.expressions.last.resolved_type
+      end
       false
     end
 
     def visit_class(node)
       node.resolved_type = @scope.find_expression(node.name).metaclass
+    end
+
+    def visit_nil(node)
+      node.resolved_type = @scope.find_expression "Nil"
     end
 
     def visit_bool(node)
@@ -286,13 +292,13 @@ module Crystal
     def visit_while(node)
       node.cond.accept self
       node.body.accept self
-      node.resolved_type = node.body.resolved_type
+      node.resolved_type = @scope.find_expression "Nil"
       false
     end
 
     def merge_types(node, type1, type2)
-      return type2 if type1.nil? || type1 == UnknownType
-      return type1 if type2.nil? || type2 == UnknownType
+      return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.find_expression("Nil")
+      return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.find_expression("Nil")
       return type1 if type1 == type2
       raise_error node, "if branches have different types: #{type1} and #{type2}"
     end

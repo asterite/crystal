@@ -40,6 +40,7 @@ describe "ast eval" do
   it_evals "+ 1", 1
   it_evals "- 1", -1
   it_evals "def foo; end", nil
+  it_evals "def foo; end; foo", nil
   it_evals "def foo; 1; end", nil
   it_evals "def foo; 1; end; foo", 1
   it_evals "def foo; 1; 2; end; foo", 2

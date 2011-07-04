@@ -16,6 +16,7 @@ describe "ast resolve" do
     end
   end
 
+  it_resolves "nil", "Nil"
   it_resolves "true", "Bool"
   it_resolves "false", "Bool"
   it_resolves "1", "Int"
@@ -26,6 +27,7 @@ describe "ast resolve" do
   it_resolves "1 + (2 * 3)", "Int"
   it_resolves "1 < 2", "Bool"
   it_resolves "def foo; 1; end", nil
+  it_resolves "while true; end", "Nil"
   it_resolves "def foo; 1; end; foo", "Int"
   it_resolves "def foo; 1; end; foo()", "Int"
   it_resolves "def foo(x); 1; end; foo 1", "Int"

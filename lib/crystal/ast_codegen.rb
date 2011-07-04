@@ -58,6 +58,22 @@ module Crystal
       @expressions[name]
     end
 
+    def class_class
+      find_expression "Class"
+    end
+
+    def nil_class
+      find_expression "Nil"
+    end
+
+    def bool_class
+      find_expression "Bool"
+    end
+
+    def int_class
+      find_expression "Bool"
+    end
+
     def run(fun)
       result = @engine.run_function(fun.code)
       fun.resolved_type.llvm_cast result
@@ -93,6 +109,7 @@ module Crystal
     def define_builtin_classes
       define_class_class
       define_c_class
+      define_nil_class
       define_bool_class
       define_int_class
     end
@@ -106,6 +123,11 @@ module Crystal
       klass.metaclass = CMetaclass.new self
       klass.define_method :'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
+    end
+
+    def define_nil_class
+      nil_class = define_class NilClass.new("Nil")
+      nil_class.metaclass.primitive = nil_class
     end
 
     def define_bool_class
@@ -203,6 +225,16 @@ module Crystal
     end
   end
 
+  class NilClass < Class
+    def llvm_type
+      LLVM::Type.void
+    end
+
+    def llvm_cast(value)
+      nil
+    end
+  end
+
   class BoolClass < Class
     def llvm_type
       LLVM::Int1
@@ -220,6 +252,12 @@ module Crystal
 
     def llvm_cast(value)
       value.to_i LLVM::Int.type
+    end
+  end
+
+  class Nil
+    def codegen(mod)
+      nil
     end
   end
 
@@ -271,7 +309,11 @@ module Crystal
       optimize fun
 
       code = codegen_body(mod, fun)
-      mod.builder.ret code
+      if body.resolved_type == mod.nil_class
+        mod.builder.ret_void
+      else
+        mod.builder.ret code
+      end
 
       # fun.dump
 
@@ -367,19 +409,6 @@ module Crystal
 
   class While
     def codegen(mod)
-
-      # while:
-      #   testear condicion
-      #   si, while_body, no, while_exit
-      #   si no es cero, ir al cuerpo
-      #
-      # while_body:
-      #   el cuerpo
-      #   br while
-      #
-      # while_exit:
-      #   el booleano false
-
       start_block = mod.builder.insert_block
       fun = start_block.parent
 

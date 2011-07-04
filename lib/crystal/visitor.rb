@@ -24,6 +24,7 @@ module Crystal
       'class_def',
       'assign',
       'while',
+      'nil',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)
