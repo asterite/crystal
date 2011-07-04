@@ -71,7 +71,7 @@ module Crystal
     end
 
     def int_class
-      find_expression "Bool"
+      find_expression "Int"
     end
 
     def run(fun)

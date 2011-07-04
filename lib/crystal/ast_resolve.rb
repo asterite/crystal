@@ -98,7 +98,7 @@ module Crystal
 
     def visit_expressions(node)
       if node.expressions.empty?
-        node.resolved_type = @scope.find_expression "Nil"
+        node.resolved_type = @scope.nil_class
       else
         node.expressions.each { |exp| exp.accept self }
         node.resolved_type = node.expressions.last.resolved_type
@@ -111,15 +111,15 @@ module Crystal
     end
 
     def visit_nil(node)
-      node.resolved_type = @scope.find_expression "Nil"
+      node.resolved_type = @scope.nil_class
     end
 
     def visit_bool(node)
-      node.resolved_type = @scope.find_expression "Bool"
+      node.resolved_type = @scope.bool_class
     end
 
     def visit_int(node)
-      node.resolved_type = @scope.find_expression "Int"
+      node.resolved_type = @scope.int_class
     end
 
     def end_visit_prototype(node)
@@ -182,7 +182,7 @@ module Crystal
         end
       else
         var = Var.new(node.target.name, node.value.resolved_type)
-        @scope.add_local_variable var
+        @scope.define_variable var
         node.target.resolved = var
       end
 
@@ -297,8 +297,8 @@ module Crystal
     end
 
     def merge_types(node, type1, type2)
-      return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.find_expression("Nil")
-      return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.find_expression("Nil")
+      return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.nil_class
+      return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.nil_class
       return type1 if type1 == type2
       raise_error node, "if branches have different types: #{type1} and #{type2}"
     end
@@ -315,18 +315,20 @@ module Crystal
     end
   end
 
-  class DefScope
+  class Scope
+    def method_missing(name, *args)
+      @scope.send name, *args
+    end
+  end
+
+  class DefScope < Scope
     def initialize(scope, a_def)
       @scope = scope
       @def = a_def
       @local_variables = {}
     end
 
-    def add_expression(node)
-      @scope.add_expression node
-    end
-
-    def add_local_variable(node)
+    def define_variable(node)
       @local_variables[node.name] = node
     end
 
@@ -339,17 +341,9 @@ module Crystal
 
       @scope.find_expression name
     end
-
-    def module
-      @scope.module
-    end
-
-    def builder
-      @scope.builder
-    end
   end
 
-  class ClassDefScope
+  class ClassDefScope < Scope
     def initialize(scope, a_class)
       @scope = scope
       @class = a_class
@@ -361,30 +355,6 @@ module Crystal
       node.args.insert 0, Var.new("self", @class)
       node.args_length = node.args.length - 1
       @class.define_method name, node
-    end
-
-    def define_at_top_level(exp)
-      @scope.define_at_top_level exp
-    end
-
-    def find_expression(name)
-      @scope.find_expression name
-    end
-
-    def add_c_expression(node)
-      @scope.add_c_expression node
-    end
-
-    def run(fun)
-      @scope.run fun
-    end
-
-    def module
-      @scope.module
-    end
-
-    def builder
-      @scope.builder
     end
   end
 end
