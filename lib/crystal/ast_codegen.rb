@@ -250,11 +250,11 @@ module Crystal
 
   class FloatClass < Class
     def llvm_type
-      LLVM::Double
+      LLVM::Float
     end
 
     def llvm_cast(value)
-      value.to_f LLVM::Double.type
+      value.to_f LLVM::Float.type
     end
   end
 
@@ -278,7 +278,7 @@ module Crystal
 
   class Float
     def codegen(mod)
-      LLVM::Double value.to_f
+      LLVM::Float value.to_f
     end
   end
 

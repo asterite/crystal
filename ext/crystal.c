@@ -12,6 +12,16 @@ int crystal_eq_int_int(int x, int y) { return x == y; }
 int crystal_gt_int_int(int x, int y) { return x > y; }
 int crystal_get_int_int(int x, int y) { return x >= y; }
 
+float crystal_add_float_float(float x, float y) { return x + y; }
+float crystal_sub_float_float(float x, float y) { return x - y; }
+float crystal_mul_float_float(float x, float y) { return x * y; }
+float crystal_div_float_float(float x, float y) { return x / y; }
+int crystal_lt_float_float(float x, float y) { return x < y; }
+int crystal_let_float_float(float x, float y) { return x <= y; }
+int crystal_eq_float_float(float x, float y) { return x == y; }
+int crystal_gt_float_float(float x, float y) { return x > y; }
+int crystal_get_float_float(float x, float y) { return x >= y; }
+
 void putb(int x) {
   if (x == 0) {
     printf("true\n");
