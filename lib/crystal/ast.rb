@@ -323,4 +323,48 @@ module Crystal
       other.is_a?(While) && other.cond == cond && other.body == body
     end
   end
+
+  class And < Expression
+    attr_accessor :left
+    attr_accessor :right
+
+    def initialize(left, right)
+      @left = left
+      @right = right
+    end
+
+    def accept(visitor)
+      if visitor.visit_and self
+        left.accept visitor
+        right.accept visitor
+      end
+      visitor.end_visit_and self
+    end
+
+    def ==(other)
+      other.is_a?(And) && other.left == left && other.right == right
+    end
+  end
+
+  class Or < Expression
+    attr_accessor :left
+    attr_accessor :right
+
+    def initialize(left, right)
+      @left = left
+      @right = right
+    end
+
+    def accept(visitor)
+      if visitor.visit_and self
+        left.accept visitor
+        right.accept visitor
+      end
+      visitor.end_visit_and self
+    end
+
+    def ==(other)
+      other.is_a?(Or) && other.left == left && other.right == right
+    end
+  end
 end

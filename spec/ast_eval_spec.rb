@@ -39,6 +39,10 @@ describe "ast eval" do
   it_evals "true == true", true
   it_evals "+ 1", 1
   it_evals "- 1", -1
+  it_evals "false && true", false
+  it_evals "true && true", true
+  it_evals "false || false", false
+  it_evals "false || true", true
   it_evals "def foo; end", nil
   it_evals "def foo; end; foo", nil
   it_evals "def foo; 1; end", nil

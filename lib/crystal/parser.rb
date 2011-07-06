@@ -210,7 +210,7 @@ module Crystal
     def parse_mul_or_div
       line_number = @token.line_number
 
-      left = parse_atomic_with_method
+      left = parse_and
       while true
         left.line_number = line_number
         case @token.type
@@ -219,8 +219,48 @@ module Crystal
         when :"*", :"/"
           method = @token.type
           next_token_skip_space_or_newline
-          right = parse_atomic_with_method
+          right = parse_and
           left = Call.new left, method, right
+        else
+          return left
+        end
+      end
+    end
+
+    def parse_and
+      line_number = @token.line_number
+
+      left = parse_or
+      while true
+        left.line_number = line_number
+        case @token.type
+        when :SPACE
+          next_token
+        when :"&&"
+          method = @token.type
+          next_token_skip_space_or_newline
+          right = parse_or
+          left = And.new left, right
+        else
+          return left
+        end
+      end
+    end
+
+    def parse_or
+      line_number = @token.line_number
+
+      left = parse_atomic_with_method
+      while true
+        left.line_number = line_number
+        case @token.type
+        when :SPACE
+          next_token
+        when :"||"
+          method = @token.type
+          next_token_skip_space_or_newline
+          right = parse_atomic_with_method
+          left = Or.new left, right
         else
           return left
         end

@@ -433,4 +433,20 @@ module Crystal
       mod.builder.load target.resolved.code
     end
   end
+
+  class And
+    def codegen(mod)
+      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'
+      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'rightandtmp'
+      mod.builder.and left_code, right_code, 'andtmp'
+    end
+  end
+
+  class Or
+    def codegen(mod)
+      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'
+      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'rightandtmp'
+      mod.builder.or left_code, right_code, 'andtmp'
+    end
+  end
 end

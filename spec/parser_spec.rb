@@ -103,4 +103,7 @@ describe Parser do
   it_parses_single_node "while true; 1; end;", While.new(true.bool, 1.int)
 
   it_parses_single_node "nil", Nil.new
+
+  it_parses_single_node "1 && 2", And.new(1.int, 2.int)
+  it_parses_single_node "1 || 2", Or.new(1.int, 2.int)
 end

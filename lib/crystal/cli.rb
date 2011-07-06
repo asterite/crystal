@@ -7,15 +7,17 @@ def count_openings(string)
   openings = 0
 
   lexer = Crystal::Lexer.new string
+  last_token = nil
   while (token = lexer.next_token).type != :EOF
     if token.type == :IDENT
       case token.value
       when :def, :if, :class, :while
-        openings += 1
+        openings += 1 if last_token.nil? || last_token != :'.'
       when :end
         openings -= 1
       end
     end
+    last_token = token.type
   end
   openings
 end
@@ -38,7 +40,7 @@ loop do
   if openings == 0
     begin
       result = mod.eval buffer
-      puts " => #{result ? result : 'nil'}"
+      puts " => #{result.nil? ? 'nil' : result}"
     rescue => ex
       puts ex
       # puts ex.backtrace

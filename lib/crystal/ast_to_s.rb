@@ -151,6 +151,18 @@ module Crystal
       false
     end
 
+    def visit_and(node)
+      node.left.accept self
+      @str << " && "
+      node.right.accept self
+    end
+
+    def visit_or(node)
+      node.left.accept self
+      @str << " || "
+      node.right.accept self
+    end
+
     def with_indent
       @indent += 1
       yield
