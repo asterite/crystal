@@ -75,6 +75,9 @@ module Crystal
     end
 
     def run(fun)
+      p "==="
+      dump
+      p "==="
       result = @engine.run_function(fun.code)
       fun.resolved_type.llvm_cast result
     end
@@ -340,7 +343,7 @@ module Crystal
         resolved_args = self.args.map do |arg|
           mod.remember_block { arg.codegen(mod) }
         end
-        resolved_args.push('calltmp')
+        resolved_args.push('calltmp') if resolved.resolved_type != mod.nil_class
 
         mod.builder.call resolved_code, *resolved_args
       end

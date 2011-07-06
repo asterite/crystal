@@ -15,7 +15,7 @@ module Crystal
 
     def parse_expressions
       exps = []
-      while @token.type != :EOF && !(@token.type == :IDENT && (@token.value == :end || @token.value == :else))
+      while @token.type != :EOF && !(@token.type == :IDENT && (@token.value == :end || @token.value == :else || @token.value == :elsif))
         exps << parse_expression
         skip_statement_end
       end
@@ -107,7 +107,7 @@ module Crystal
       Def.new name, args, body
     end
 
-    def parse_if
+    def parse_if(check_end = true)
       next_token_skip_space_or_newline
 
       cond = parse_expression
@@ -116,15 +116,21 @@ module Crystal
       a_then = parse_expressions
       skip_statement_end
 
-      a_else = if @token.type == :IDENT && @token.value == :else
-                 next_token_skip_statement_end
-                 parse_expressions
-               else
-                 nil
-               end
+      a_else = nil
+      if @token.type == :IDENT
+        case @token.value
+        when :else
+          next_token_skip_statement_end
+          a_else = parse_expressions
+        when :elsif
+          a_else = parse_if false
+        end
+      end
 
-      check_ident :end
-      next_token_skip_statement_end
+      if check_end
+        check_ident :end
+        next_token_skip_statement_end
+      end
 
       If.new cond, a_then, a_else
     end
