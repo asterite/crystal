@@ -41,3 +41,7 @@ void putf(float x) {
 void putchari(int x) {
   printf("%c", x);
 }
+
+void putcharf(float x) {
+  putchar((char) x);
+}

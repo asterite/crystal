@@ -119,3 +119,4 @@ extern putb Bool #=> Nil
 extern puti Int #=> Nil
 extern putf Float #=> Nil
 extern putchari Int #=> Nil
+extern putcharf Float #=> Nil

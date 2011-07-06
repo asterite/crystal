@@ -399,7 +399,7 @@ module Crystal
 
       merge_block = fun.basic_blocks.append 'merge'
       mod.builder.position_at_end merge_block
-      phi = mod.builder.phi LLVM::Int.type, {new_then_block => then_code, new_else_block => else_code}, 'iftmp'
+      phi = mod.builder.phi resolved_type.llvm_type, {new_then_block => then_code, new_else_block => else_code}, 'iftmp'
 
       mod.builder.position_at_end start_block
       mod.builder.cond cond_code, then_block, else_block
