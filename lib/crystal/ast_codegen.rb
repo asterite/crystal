@@ -406,7 +406,6 @@ module Crystal
 
       mod.builder.position_at_end while_body_block
       body.codegen mod
-      mod.builder.position_at_end while_body_block
       mod.builder.br while_block
 
       mod.builder.position_at_end start_block

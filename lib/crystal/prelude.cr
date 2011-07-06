@@ -60,5 +60,6 @@ class Int
   end
 end
 
-extern putb Bool #=> Bool
-extern puti Int  #=> Int
+extern putb Bool #=> Nil
+extern puti Int  #=> Nil
+extern putchari Int  #=> Nil
