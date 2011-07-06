@@ -34,6 +34,10 @@ void puti(int x) {
   printf("%d\n", x);
 }
 
+void putf(float x) {
+  printf("%f\n", x);
+}
+
 void putchari(int x) {
   printf("%c", x);
 }
