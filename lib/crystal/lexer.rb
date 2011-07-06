@@ -21,6 +21,9 @@ module Crystal
         @token.type = :SPACE
       elsif scan /;+/
         @token.type = :";"
+      elsif match = scan(/(\+|-)?\d+\.\d+/)
+        @token.type = :FLOAT
+        @token.value = match
       elsif match = scan(/(\+|-)?\d+/)
         @token.type = :INT
         @token.value = match

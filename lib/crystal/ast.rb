@@ -146,6 +146,27 @@ module Crystal
     end
   end
 
+  class Float < Expression
+    attr_accessor :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def has_sign?
+      @value[0] == '+' || @value[0] == '-'
+    end
+
+    def accept(visitor)
+      visitor.visit_float self
+      visitor.end_visit_float self
+    end
+
+    def ==(other)
+      other.is_a?(Float) && other.value.to_f == value.to_f
+    end
+  end
+
   class Prototype < Expression
     attr_accessor :name
     attr_accessor :arg_types

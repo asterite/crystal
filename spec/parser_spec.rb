@@ -17,6 +17,9 @@ describe Parser do
   it_parses_single_node "1", 1.int
   it_parses_single_node "+1", 1.int
   it_parses_single_node "-1", -1.int
+  it_parses_single_node "1.0", 1.0.float
+  it_parses_single_node "+1.0", 1.0.float
+  it_parses_single_node "-1.0", -1.0.float
   it_parses_single_node "1 + 2", Call.new(1.int, :"+", 2.int)
   it_parses_single_node "1 +\n2", Call.new(1.int, :"+", 2.int)
   it_parses_single_node "1 +2", Call.new(1.int, :"+", 2.int)

@@ -322,6 +322,8 @@ module Crystal
         Call.new parse_expression, :"-@"
       when :INT
         node_and_next_token Int.new(@token.value)
+      when :FLOAT
+        node_and_next_token Float.new(@token.value)
       when :IDENT
         case @token.value
         when :nil

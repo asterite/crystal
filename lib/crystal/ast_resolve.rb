@@ -126,6 +126,10 @@ module Crystal
       node.resolved_type = @scope.int_class
     end
 
+    def visit_float(node)
+      node.resolved_type = @scope.float_class
+    end
+
     def end_visit_prototype(node)
       node.resolved_type = node.resolved_type.resolved_type.primitive
       node.arg_types.map! { |type| type.resolved_type.primitive }

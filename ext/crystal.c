@@ -25,6 +25,5 @@ void puti(int x) {
 }
 
 void putchari(int x) {
-  printf("%c\n", x);
+  printf("%c", x);
 }
-

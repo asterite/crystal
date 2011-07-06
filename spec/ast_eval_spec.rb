@@ -43,6 +43,7 @@ describe "ast eval" do
   it_evals "true && true", true
   it_evals "false || false", false
   it_evals "false || true", true
+  it_evals "1.0", 1.0
   it_evals "def foo; end", nil
   it_evals "def foo; end; foo", nil
   it_evals "def foo; 1; end", nil
@@ -77,4 +78,5 @@ describe "ast eval" do
   it_evals "def foo; x = 10; while x > 3; x = x - 1; end; x; end; foo", 3
   it_evals "a = 10; a = a + 20; a", 30
   it_evals "a = 10; b = 5; while a > 5; while b > 2; b = b - 1; end; a = a - 1; end; a + b", 7
+  it_evals "def bar x; if 1 > 2; 2; else; 1; end; end; bar 8; def foo; if 1 > 2; 1; else; 2; end; end; foo", 2
 end

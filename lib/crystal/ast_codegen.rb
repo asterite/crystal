@@ -74,10 +74,11 @@ module Crystal
       find_expression "Int"
     end
 
+    def float_class
+      find_expression "Float"
+    end
+
     def run(fun)
-      p "==="
-      dump
-      p "==="
       result = @engine.run_function(fun.code)
       fun.resolved_type.llvm_cast result
     end
@@ -115,6 +116,7 @@ module Crystal
       define_nil_class
       define_bool_class
       define_int_class
+      define_float_class
     end
 
     def define_class_class
@@ -141,6 +143,11 @@ module Crystal
     def define_int_class
       int = define_class IntClass.new("Int")
       int.metaclass.primitive = int
+    end
+
+    def define_float_class
+      float = define_class FloatClass.new("Float")
+      float.metaclass.primitive = float
     end
 
     def define_class(klass)
@@ -241,6 +248,16 @@ module Crystal
     end
   end
 
+  class FloatClass < Class
+    def llvm_type
+      LLVM::Double
+    end
+
+    def llvm_cast(value)
+      value.to_f LLVM::Double.type
+    end
+  end
+
   class Nil
     def codegen(mod)
       nil
@@ -256,6 +273,12 @@ module Crystal
   class Int
     def codegen(mod)
       LLVM::Int value.to_i
+    end
+  end
+
+  class Float
+    def codegen(mod)
+      LLVM::Double value.to_f
     end
   end
 

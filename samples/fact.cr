@@ -7,4 +7,3 @@ def fact n
 end
 
 C.puti fact(4)
-C.puti fact(6)
