@@ -3,7 +3,11 @@
 end
 
 LLVM.init_x86
-LLVM::load_library(File.expand_path('../../../ext/libcrystal.bundle', __FILE__))
+if RUBY_PLATFORM =~ /darwin/
+  LLVM::load_library(File.expand_path('../../../ext/libcrystal.bundle', __FILE__))
+else
+  LLVM::load_library(File.expand_path('../../../ext/libcrystal.so', __FILE__))
+end
 
 module Crystal
   class ASTNode
