@@ -1,8 +1,3 @@
-PATH
-  remote: vendor/gems
-  specs:
-    rltk (1.0.0)
-
 GEM
   remote: http://rubygems.org/
   specs:
@@ -23,6 +18,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  rltk (= 1.0.0)!
   rspec
   ruby-llvm

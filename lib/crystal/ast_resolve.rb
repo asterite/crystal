@@ -203,6 +203,9 @@ module Crystal
     def visit_call(node)
       return if node.resolved_type
 
+      # This is to prevent recursive resolutions
+      node.resolved_type = UnknownType
+
       resolve_method_call node if node.obj
       resolve_function_call node
 
@@ -229,9 +232,6 @@ module Crystal
     end
 
     def resolve_function_call(node)
-      # This is to prevent recursive resolutions
-      node.resolved_type = UnknownType
-
       node.args.each { |arg| arg.accept self }
 
       exp = @scope.find_expression(node.name) or raise_error node, "undefined method '#{node.name}'"
