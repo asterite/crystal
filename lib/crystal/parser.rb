@@ -15,7 +15,7 @@ module Crystal
 
     def parse_expressions
       exps = []
-      while @token.type != :EOF && !(@token.type == :IDENT && (@token.value == :end || @token.value == :else))
+      while @token.type != :EOF && !(@token.type == :IDENT && (@token.value == :end || @token.value == :else || @token.value == :elsif))
         exps << parse_expression
         skip_statement_end
       end
@@ -38,7 +38,7 @@ module Crystal
         end
       end
 
-      parse_primary_expression
+      parse_and
     end
 
     def parse_class
@@ -107,7 +107,7 @@ module Crystal
       Def.new name, args, body
     end
 
-    def parse_if
+    def parse_if(check_end = true)
       next_token_skip_space_or_newline
 
       cond = parse_expression
@@ -116,15 +116,21 @@ module Crystal
       a_then = parse_expressions
       skip_statement_end
 
-      a_else = if @token.type == :IDENT && @token.value == :else
-                 next_token_skip_statement_end
-                 parse_expressions
-               else
-                 nil
-               end
+      a_else = nil
+      if @token.type == :IDENT
+        case @token.value
+        when :else
+          next_token_skip_statement_end
+          a_else = parse_expressions
+        when :elsif
+          a_else = parse_if false
+        end
+      end
 
-      check_ident :end
-      next_token_skip_statement_end
+      if check_end
+        check_ident :end
+        next_token_skip_statement_end
+      end
 
       If.new cond, a_then, a_else
     end
@@ -156,7 +162,47 @@ module Crystal
       Prototype.new name, (args_types || []), return_type
     end
 
-    def parse_primary_expression
+    def parse_and
+      line_number = @token.line_number
+
+      left = parse_or
+      while true
+        left.line_number = line_number
+        case @token.type
+        when :SPACE
+          next_token
+        when :"&&"
+          method = @token.type
+          next_token_skip_space_or_newline
+          right = parse_or
+          left = And.new left, right
+        else
+          return left
+        end
+      end
+    end
+
+    def parse_or
+      line_number = @token.line_number
+
+      left = parse_cmp
+      while true
+        left.line_number = line_number
+        case @token.type
+        when :SPACE
+          next_token
+        when :"||"
+          method = @token.type
+          next_token_skip_space_or_newline
+          right = parse_cmp
+          left = Or.new left, right
+        else
+          return left
+        end
+      end
+    end
+
+    def parse_cmp
       line_number = @token.line_number
 
       left = parse_add_or_sub
@@ -204,7 +250,6 @@ module Crystal
           return left
         end
       end
-
     end
 
     def parse_mul_or_div
@@ -277,6 +322,8 @@ module Crystal
         Call.new parse_expression, :"-@"
       when :INT
         node_and_next_token Int.new(@token.value)
+      when :FLOAT
+        node_and_next_token Float.new(@token.value)
       when :IDENT
         case @token.value
         when :nil

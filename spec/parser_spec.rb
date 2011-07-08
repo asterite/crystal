@@ -17,6 +17,9 @@ describe Parser do
   it_parses_single_node "1", 1.int
   it_parses_single_node "+1", 1.int
   it_parses_single_node "-1", -1.int
+  it_parses_single_node "1.0", 1.0.float
+  it_parses_single_node "+1.0", 1.0.float
+  it_parses_single_node "-1.0", -1.0.float
   it_parses_single_node "1 + 2", Call.new(1.int, :"+", 2.int)
   it_parses_single_node "1 +\n2", Call.new(1.int, :"+", 2.int)
   it_parses_single_node "1 +2", Call.new(1.int, :"+", 2.int)
@@ -78,6 +81,7 @@ describe Parser do
   it_parses_single_node "if foo\n1\nend", If.new("foo".ref, 1.int)
   it_parses_single_node "if foo; 1; else; 2; end", If.new("foo".ref, 1.int, 2.int)
   it_parses_single_node "if foo\n1\nelse\n2\nend", If.new("foo".ref, 1.int, 2.int)
+  it_parses_single_node "if foo; 1; elsif bar; 2; else 3; end", If.new("foo".ref, 1.int, If.new("bar".ref, 2.int, 3.int))
 
   ['bar', :'+', :'-', :'*', :'/', :'<', :'<=', :'==', :'>', :'>='].each do |name|
     it_parses_single_node "foo.#{name}", Call.new("foo".ref, name)
@@ -103,4 +107,7 @@ describe Parser do
   it_parses_single_node "while true; 1; end;", While.new(true.bool, 1.int)
 
   it_parses_single_node "nil", Nil.new
+
+  it_parses_single_node "1 && 2", And.new(1.int, 2.int)
+  it_parses_single_node "1 || 2", Or.new(1.int, 2.int)
 end

@@ -78,6 +78,10 @@ module Crystal
       find_expression "Int"
     end
 
+    def float_class
+      find_expression "Float"
+    end
+
     def run(fun)
       result = @engine.run_function(fun.code)
       fun.resolved_type.llvm_cast result
@@ -116,6 +120,7 @@ module Crystal
       define_nil_class
       define_bool_class
       define_int_class
+      define_float_class
     end
 
     def define_class_class
@@ -142,6 +147,11 @@ module Crystal
     def define_int_class
       int = define_class IntClass.new("Int")
       int.metaclass.primitive = int
+    end
+
+    def define_float_class
+      float = define_class FloatClass.new("Float")
+      float.metaclass.primitive = float
     end
 
     def define_class(klass)
@@ -242,6 +252,16 @@ module Crystal
     end
   end
 
+  class FloatClass < Class
+    def llvm_type
+      LLVM::Float
+    end
+
+    def llvm_cast(value)
+      value.to_f LLVM::Float.type
+    end
+  end
+
   class Nil
     def codegen(mod)
       nil
@@ -257,6 +277,12 @@ module Crystal
   class Int
     def codegen(mod)
       LLVM::Int value.to_i
+    end
+  end
+
+  class Float
+    def codegen(mod)
+      LLVM::Float value.to_f
     end
   end
 
@@ -344,7 +370,7 @@ module Crystal
         resolved_args = self.args.map do |arg|
           mod.remember_block { arg.codegen(mod) }
         end
-        resolved_args.push('calltmp')
+        resolved_args.push('calltmp') if resolved.resolved_type != mod.nil_class
 
         mod.builder.call resolved_code, *resolved_args
       end
@@ -377,7 +403,7 @@ module Crystal
 
       merge_block = fun.basic_blocks.append 'merge'
       mod.builder.position_at_end merge_block
-      phi = mod.builder.phi LLVM::Int.type, {new_then_block => then_code, new_else_block => else_code}, 'iftmp'
+      phi = mod.builder.phi resolved_type.llvm_type, {new_then_block => then_code, new_else_block => else_code}, 'iftmp'
 
       mod.builder.position_at_end start_block
       mod.builder.cond cond_code, then_block, else_block
@@ -410,7 +436,6 @@ module Crystal
 
       mod.builder.position_at_end while_body_block
       body.codegen mod
-      mod.builder.position_at_end while_body_block
       mod.builder.br while_block
 
       mod.builder.position_at_end start_block
@@ -435,6 +460,22 @@ module Crystal
 
       mod.builder.store value.codegen(mod), alloca
       mod.builder.load target.resolved.code
+    end
+  end
+
+  class And
+    def codegen(mod)
+      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'
+      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'rightandtmp'
+      mod.builder.and left_code, right_code, 'andtmp'
+    end
+  end
+
+  class Or
+    def codegen(mod)
+      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'
+      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'rightandtmp'
+      mod.builder.or left_code, right_code, 'andtmp'
     end
   end
 end

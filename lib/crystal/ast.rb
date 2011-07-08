@@ -146,6 +146,27 @@ module Crystal
     end
   end
 
+  class Float < Expression
+    attr_accessor :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def has_sign?
+      @value[0] == '+' || @value[0] == '-'
+    end
+
+    def accept(visitor)
+      visitor.visit_float self
+      visitor.end_visit_float self
+    end
+
+    def ==(other)
+      other.is_a?(Float) && other.value.to_f == value.to_f
+    end
+  end
+
   class Prototype < Expression
     attr_accessor :name
     attr_accessor :arg_types
@@ -321,6 +342,50 @@ module Crystal
 
     def ==(other)
       other.is_a?(While) && other.cond == cond && other.body == body
+    end
+  end
+
+  class And < Expression
+    attr_accessor :left
+    attr_accessor :right
+
+    def initialize(left, right)
+      @left = left
+      @right = right
+    end
+
+    def accept(visitor)
+      if visitor.visit_and self
+        left.accept visitor
+        right.accept visitor
+      end
+      visitor.end_visit_and self
+    end
+
+    def ==(other)
+      other.is_a?(And) && other.left == left && other.right == right
+    end
+  end
+
+  class Or < Expression
+    attr_accessor :left
+    attr_accessor :right
+
+    def initialize(left, right)
+      @left = left
+      @right = right
+    end
+
+    def accept(visitor)
+      if visitor.visit_and self
+        left.accept visitor
+        right.accept visitor
+      end
+      visitor.end_visit_and self
+    end
+
+    def ==(other)
+      other.is_a?(Or) && other.left == left && other.right == right
     end
   end
 end

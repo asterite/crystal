@@ -40,11 +40,22 @@ describe Lexer do
     end
   end
 
+  def self.it_lexes_floats(*args)
+    args.each do |arg|
+      if arg.is_a? Array
+        it_lexes arg[0], :FLOAT, arg[1]
+      else
+        it_lexes arg, :FLOAT, arg
+      end
+    end
+  end
+
   it_lexes " ", :SPACE
   it_lexes "\n", :NEWLINE
   it_lexes "\n\n\n", :NEWLINE
-  it_lexes_keywords "def", "if", "else", "end", "true", "false", "extern", "class", "while", "nil"
+  it_lexes_keywords "def", "if", "else", "elsif", "end", "true", "false", "extern", "class", "while", "nil"
   it_lexes_idents "ident", "something", "with_underscores", "with_1"
   it_lexes_ints "1", ["1hello", "1"], "+1", "-1"
-  it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", ",", '.', '#=>', "+@", "-@"
+  it_lexes_floats "1.0", ["1.0hello", "1.0"], "+1.0", "-1.0"
+  it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", ",", '.', '#=>', "+@", "-@", "&&", "||"
 end

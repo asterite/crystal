@@ -60,5 +60,63 @@ class Int
   end
 end
 
-extern putb Bool #=> Bool
-extern puti Int  #=> Int
+class Float
+  extern crystal_add_float_float Float, Float #=> Float
+  def +(other)
+    C.crystal_add_float_float self, other
+  end
+
+  extern crystal_sub_float_float Float, Float #=> Float
+  def -(other)
+    C.crystal_sub_float_float self, other
+  end
+
+  extern crystal_mul_float_float Float, Float #=> Float
+  def *(other)
+    C.crystal_mul_float_float self, other
+  end
+
+  extern crystal_div_float_float Float, Float #=> Float
+  def /(other)
+    C.crystal_div_float_float self, other
+  end
+
+  extern crystal_lt_float_float Float, Float #=> Bool
+  def <(other)
+    C.crystal_lt_float_float self, other
+  end
+
+  extern crystal_let_float_float Float, Float #=> Bool
+  def <=(other)
+    C.crystal_let_float_float self, other
+  end
+
+  extern crystal_eq_float_float Float, Float #=> Bool
+  def ==(other)
+    C.crystal_eq_float_float self, other
+  end
+
+  extern crystal_gt_float_float Float, Float #=> Bool
+  def >(other)
+    C.crystal_gt_float_float self, other
+  end
+
+  extern crystal_get_float_float Float, Float #=> Bool
+  def >=(other)
+    C.crystal_get_float_float self, other
+  end
+
+  def +@
+    self
+  end
+
+  def -@
+    0.0 - self
+  end
+end
+
+extern putb Bool #=> Nil
+extern puti Int #=> Nil
+extern putf Float #=> Nil
+extern putchari Int #=> Nil
+extern putcharf Float #=> Nil

@@ -83,6 +83,7 @@ module Crystal
       end
       @str << "\n"
       with_indent { node.body.accept self } if node.body
+      append_indent
       @str << "end"
       false
     end
@@ -93,7 +94,7 @@ module Crystal
 
     def visit_expressions(node)
       node.expressions.each do |exp|
-        @str << ('  ' * @indent)
+        append_indent
         exp.accept self
         @str << "\n"
       end
@@ -106,9 +107,11 @@ module Crystal
       @str << "\n"
       with_indent { node.then.accept self }
       unless node.else.expressions.empty?
+        append_indent
         @str << "else\n"
         with_indent { node.else.accept self }
       end
+      append_indent
       @str << "end"
       false
     end
@@ -151,10 +154,26 @@ module Crystal
       false
     end
 
+    def visit_and(node)
+      node.left.accept self
+      @str << " && "
+      node.right.accept self
+    end
+
+    def visit_or(node)
+      node.left.accept self
+      @str << " || "
+      node.right.accept self
+    end
+
     def with_indent
       @indent += 1
       yield
       @indent -= 1
+    end
+
+    def append_indent
+      @str << ('  ' * @indent)
     end
 
     def to_s

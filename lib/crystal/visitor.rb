@@ -6,6 +6,7 @@ module Crystal
       'class',
       'bool',
       'int',
+      'float',
       'add',
       'sub',
       'mul',
@@ -25,6 +26,8 @@ module Crystal
       'assign',
       'while',
       'nil',
+      'and',
+      'or',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

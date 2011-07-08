@@ -21,12 +21,15 @@ module Crystal
         @token.type = :SPACE
       elsif scan /;+/
         @token.type = :";"
+      elsif match = scan(/(\+|-)?\d+\.\d+/)
+        @token.type = :FLOAT
+        @token.value = match
       elsif match = scan(/(\+|-)?\d+/)
         @token.type = :INT
         @token.value = match
-      elsif match = scan(%r(==|=|<=|<|>=|>|\+@|\+|-@|-|\*|/|\(|\)|,|\.|#=>))
+      elsif match = scan(%r(==|=|<=|<|>=|>|\+@|\+|-@|-|\*|/|\(|\)|,|\.|#=>|&&|\|\|))
         @token.type = match.to_sym
-      elsif match = scan(/def|else|end|if|true|false|extern|class|while|nil/)
+      elsif match = scan(/def|elsif|else|end|if|true|false|extern|class|while|nil/)
         @token.type = :IDENT
         @token.value = match.to_sym
       elsif match = scan(/[a-zA-Z_][a-zA-Z_0-9]*/)

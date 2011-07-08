@@ -126,6 +126,10 @@ module Crystal
       node.resolved_type = @scope.int_class
     end
 
+    def visit_float(node)
+      node.resolved_type = @scope.float_class
+    end
+
     def end_visit_prototype(node)
       node.resolved_type = node.resolved_type.resolved_type.primitive
       node.arg_types.map! { |type| type.resolved_type.primitive }
@@ -299,6 +303,14 @@ module Crystal
       node.body.accept self
       node.resolved_type = @scope.find_expression "Nil"
       false
+    end
+
+    def end_visit_and(node)
+      node.resolved_type = @scope.bool_class
+    end
+
+    def end_visit_or(node)
+      node.resolved_type = @scope.bool_class
     end
 
     def merge_types(node, type1, type2)
