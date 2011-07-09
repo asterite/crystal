@@ -45,6 +45,10 @@ module Crystal
     def ==(other)
       other.is_a?(Expressions) && other.expressions == expressions
     end
+
+    def clone
+      Expressions.new expressions.map(&:clone)
+    end
   end
 
   class ClassDef < Expression
@@ -63,6 +67,10 @@ module Crystal
 
     def ==(other)
       other.is_a?(ClassDef) && other.name == name && other.body == body
+    end
+
+    def clone
+      ClassDef.new name, body.clone
     end
   end
 
@@ -212,6 +220,10 @@ module Crystal
     def ==(other)
       other.is_a?(Def) && other.name == name && other.args == args && other.body == body
     end
+
+    def clone
+      Def.new name, args.clone, body.clone
+    end
   end
 
   class Ref < Expression
@@ -228,6 +240,10 @@ module Crystal
 
     def ==(other)
       other.is_a?(Ref) && other.name == name
+    end
+
+    def clone
+      Ref.new name
     end
   end
 
@@ -248,8 +264,8 @@ module Crystal
       other.is_a?(Var) && other.name == name
     end
 
-    def initialize_copy(other)
-      other
+    def clone
+      Var.new name, resolved_type
     end
   end
 
@@ -273,6 +289,10 @@ module Crystal
 
     def ==(other)
       other.is_a?(Call) && other.obj == obj && other.name == name && other.args == args
+    end
+
+    def clone
+      Call.new obj ? obj.clone : nil, name, *args.clone
     end
   end
 
@@ -299,6 +319,10 @@ module Crystal
     def ==(other)
       other.is_a?(If) && other.cond == cond && other.then == self.then && other.else == self.else
     end
+
+    def clone
+      If.new cond.clone, self.then.clone, self.else.clone
+    end
   end
 
   class Assign < Expression
@@ -320,6 +344,10 @@ module Crystal
 
     def ==(other)
       other.is_a?(Assign) && other.target == target && other.value == value
+    end
+
+    def clone
+      Assign.new target.clone, value.clone
     end
   end
 
@@ -343,6 +371,10 @@ module Crystal
     def ==(other)
       other.is_a?(While) && other.cond == cond && other.body == body
     end
+
+    def clone
+      While.new cond.clone, body.clone
+    end
   end
 
   class And < Expression
@@ -365,6 +397,10 @@ module Crystal
     def ==(other)
       other.is_a?(And) && other.left == left && other.right == right
     end
+
+    def clone
+      And.new left.clone, right.clone
+    end
   end
 
   class Or < Expression
@@ -386,6 +422,10 @@ module Crystal
 
     def ==(other)
       other.is_a?(Or) && other.left == left && other.right == right
+    end
+
+    def clone
+      Or.new left.clone, right.clone
     end
   end
 end

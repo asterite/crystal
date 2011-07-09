@@ -9,17 +9,6 @@ module Crystal
       visitor = ResolveVisitor.new mod
       self.accept visitor
     end
-
-    def initialize_copy(other)
-      resolved = nil
-      resolved_type = nil
-    end
-  end
-
-  class Expressions
-    def initialize_copy(other)
-      self.expressions = other.expressions.map(&:dup)
-    end
   end
 
   class Assign
@@ -56,9 +45,9 @@ module Crystal
 
       instance = scope.find_expression instance_name
       if !instance
-        instance_args = args.dup
+        instance_args = args.clone
         arg_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
-        instance = Def.new instance_name, args, body.dup
+        instance = Def.new instance_name, instance_args, body.clone
       end
       instance
     end
