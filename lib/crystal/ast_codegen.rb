@@ -126,6 +126,7 @@ module Crystal
     def define_c_class
       klass = add_expression Class.new("C")
       klass.metaclass = CMetaclass.new self
+      klass.define_method :'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
     end
 
@@ -151,6 +152,7 @@ module Crystal
 
     def define_class(klass)
       klass = add_expression klass
+      klass.define_method :'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
     end
 
@@ -189,7 +191,7 @@ module Crystal
     end
 
     def metaclass
-      @metaclass ||= Class.new("Class")
+      @metaclass ||= Class.new(name)
     end
 
     def metaclass=(klass)
