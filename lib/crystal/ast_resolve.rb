@@ -100,7 +100,7 @@ module Crystal
     end
 
     def visit_class(node)
-      node.resolved_type = @scope.find_expression(node.name).metaclass
+      node.resolved_type = @scope.find_expression(node.name)
     end
 
     def visit_nil(node)
@@ -141,7 +141,7 @@ module Crystal
     def visit_class_def(node)
       exp = @scope.find_expression node.name
       raise_error node, "uninitialized constant #{node.name}" unless exp
-      raise_error node, "can only extend from Class type" unless exp.class < Crystal::Class
+      raise_error node, "can only extend from Class type" unless exp.class <= Crystal::Class
 
       with_new_scope ClassDefScope.new(@scope, exp) do
         node.body.eval @scope

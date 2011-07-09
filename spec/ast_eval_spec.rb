@@ -20,7 +20,7 @@ describe "ast eval" do
 
   it_evals "true", true
   it_evals "5", 5
-  it_evals "1 + 2", 3
+  it_evals "1 + 2", 3, :focus => true
   it_evals "1 - 2", -1
   it_evals "4 / 2", 2
   it_evals "4 * 2", 8

@@ -42,8 +42,8 @@ module Crystal
       code
     end
 
-    def add_expression(node)
-      @expressions["##{node.name}"] = node
+    def add_expression(node, name = node.name)
+      @expressions["##{name}"] = node
     end
 
     def add_c_expression(node)
@@ -59,23 +59,23 @@ module Crystal
     end
 
     def class_class
-      find_expression "Class"
+      @class_class
     end
 
     def nil_class
-      find_expression "Nil"
+      @nil_class
     end
 
     def bool_class
-      find_expression "Bool"
+      @bool_class
     end
 
     def int_class
-      find_expression "Int"
+      @int_class
     end
 
     def float_class
-      find_expression "Float"
+      @float_class
     end
 
     def run(fun)
@@ -120,39 +120,39 @@ module Crystal
     end
 
     def define_class_class
-      klass = define_class Class.new("Class")
+      @class_class = define_class Class.new("Class")
     end
 
     def define_c_class
       klass = add_expression Class.new("C")
       klass.metaclass = CMetaclass.new self
-      klass.define_method :'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
+      klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
     end
 
     def define_nil_class
-      nil_class = define_class NilClass.new("Nil")
-      nil_class.metaclass.primitive = nil_class
+      @nil_class = define_class NilClass.new("Nil")
+      @nil_class.metaclass.primitive = @nil_class
     end
 
     def define_bool_class
-      bool = define_class BoolClass.new("Bool")
-      bool.metaclass.primitive = bool
+      @bool_class = define_class BoolClass.new("Bool")
+      @bool_class.metaclass.primitive = @bool_class
     end
 
     def define_int_class
-      int = define_class IntClass.new("Int")
-      int.metaclass.primitive = int
+      @int_class = define_class IntClass.new("Int")
+      @int_class.metaclass.primitive = @int_class
     end
 
     def define_float_class
-      float = define_class FloatClass.new("Float")
-      float.metaclass.primitive = float
+      @float_class = define_class FloatClass.new("Float")
+      @float_class.metaclass.primitive = @float_class
     end
 
     def define_class(klass)
-      klass = add_expression klass
-      klass.define_method :'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
+      klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
+      add_expression klass.metaclass, klass.name
       klass
     end
 
@@ -190,13 +190,6 @@ module Crystal
       ObjectSpace._id2ref object_id
     end
 
-    def metaclass
-      @metaclass ||= Class.new(name)
-    end
-
-    def metaclass=(klass)
-      @metaclass = klass
-    end
 
     def primitive=(primitive)
       @primitive = primitive

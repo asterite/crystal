@@ -82,9 +82,21 @@ module Crystal
       @methods = {}
     end
 
+    def metaclass
+      @metaclass ||= Class.new(name)
+    end
+
+    def metaclass=(klass)
+      @metaclass = klass
+    end
+
     def find_method(name)
       method = @methods[name]
-      method ? method.dup : nil
+      if method
+        method.dup
+      else
+        @metaclass ? @metaclass.find_method(name) : nil
+      end
     end
 
     def define_method(name, method)
