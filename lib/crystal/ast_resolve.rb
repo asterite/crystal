@@ -195,7 +195,13 @@ module Crystal
       # This is to prevent recursive resolutions
       node.resolved_type = UnknownType
 
-      resolve_method_call node if node.obj
+      if node.obj
+        # Special case: when requesting a class evaluate it directly
+        if node.name == :class && node.args.length == 0
+          return resolve_class node
+        end
+        resolve_method_call node
+      end
       resolve_function_call node
 
       false
@@ -277,6 +283,13 @@ module Crystal
           arg.accept self
         end
       end
+    end
+
+    def resolve_class(node)
+      node.obj.accept self
+      node.resolved = node.obj.resolved_type
+      node.resolved_type = node.resolved.metaclass
+      false
     end
 
     def visit_if(node)

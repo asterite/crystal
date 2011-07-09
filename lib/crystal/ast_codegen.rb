@@ -126,7 +126,6 @@ module Crystal
     def define_c_class
       klass = add_expression Class.new("C")
       klass.metaclass = CMetaclass.new self
-      klass.define_method :'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
     end
 
@@ -152,7 +151,6 @@ module Crystal
 
     def define_class(klass)
       klass = add_expression klass
-      klass.define_method :'class', Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
       klass
     end
 
@@ -191,7 +189,7 @@ module Crystal
     end
 
     def metaclass
-      @metaclass ||= Class.new(name)
+      @metaclass ||= Class.new("Class")
     end
 
     def metaclass=(klass)
@@ -356,7 +354,10 @@ module Crystal
 
   class Call
     def codegen(mod)
-      if resolved.is_a? Var
+      case resolved
+      when Class
+        LLVM::Int64.from_i resolved.object_id
+      when Var
         # Case when the call is "foo -1" but foo is an arg, not a call
         call = Call.new(resolved, :'+', args[0])
         call.resolve mod
