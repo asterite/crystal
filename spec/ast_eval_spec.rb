@@ -79,7 +79,8 @@ describe "ast eval" do
   it_evals "a = 10; a = a + 20; a", 30
   it_evals "a = 10; b = 5; while a > 5; while b > 2; b = b - 1; end; a = a - 1; end; a + b", 7
   it_evals "def bar x; if 1 > 2; 2; else; 1; end; end; bar 8; def foo; if 1 > 2; 1; else; 2; end; end; foo", 2
-  it_evals "If true; 1; Else; false; End", 1, :focus => true
-  it_evals "If false; 1; Else; false; End", false
   it_evals "def fib n; if n <= 2; 1; else; fib(n - 1) + fib(n - 2); end; end; fib 10", 55
+  it_evals "If true; 1; Else; false; End", 1
+  it_evals "If false; 1; Else; false; End", false
+  it_evals "def foo; If true; 1; Else; false; End; end; foo", 1, :focus => true
 end

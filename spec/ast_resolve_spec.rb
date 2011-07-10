@@ -34,6 +34,6 @@ describe "ast resolve" do
   it_resolves "def foo(x); x; end; foo 1", "Int"
   it_resolves "def foo(x); x; end; foo true", "Bool"
   it_resolves "def foo(x); x; end; foo 1; foo true", "Bool"
-  it_resolves "def foo(x); if 1; x; else; foo(x); end; end; foo(1)", "Int"
-  it_resolves "def foo(x); if 0; foo(x); else; 1; end; end; foo(1)", "Int"
+  it_resolves "def foo(x); if true; x; else; foo(x); end; end; foo(1)", "Int"
+  it_resolves "def foo(x); if false; foo(x); else; 1; end; end; foo(1)", "Int"
 end
