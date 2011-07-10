@@ -45,7 +45,7 @@ module Crystal
 
       instance = scope.find_expression instance_name
       if !instance
-        instance_args = args.clone
+        instance_args = args.map(&:clone)
         arg_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
         instance = Def.new instance_name, instance_args, body.clone
       end
@@ -386,7 +386,7 @@ module Crystal
     def add_expression(node)
       name = node.name
       node.name = "#{@class.name}##{name}"
-      node.args.insert 0, Var.new("self", @class)
+      node.args.insert 0, Var.new("self")
       node.args_length = node.args.length - 1
       @class.define_method name, node
     end

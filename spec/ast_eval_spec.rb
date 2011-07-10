@@ -84,5 +84,6 @@ describe "ast eval" do
   it_evals "def fib n; if n <= 2; 1; else; fib(n - 1) + fib(n - 2); end; end; fib 10", 55
   it_evals "If true; 1; Else; false; End", 1
   it_evals "If false; 1; Else; false; End", false
-  it_evals "def foo; If true; 1; Else; false; End; end; foo", 1, :focus => true
+  it_evals "def foo; If true; 1; Else; false; End; end; foo", 1
+  it_evals "class Object; def foo(other); self + other; end; end; 1.foo(1); 1.0.foo(1.0)", 2.0
 end

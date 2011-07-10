@@ -317,7 +317,7 @@ module Crystal
     end
 
     def clone
-      Call.new obj ? obj.clone : nil, name, *args.clone
+      Call.new obj ? obj.clone : nil, name, *args.map(&:clone)
     end
   end
 
