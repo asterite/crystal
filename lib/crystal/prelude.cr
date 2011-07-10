@@ -1,3 +1,6 @@
+class Object
+end
+
 class Bool
   extern crystal_eq_bool Bool, Bool #=> Bool
   def ==(other)

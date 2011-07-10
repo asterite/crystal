@@ -89,8 +89,9 @@ module Crystal
     attr_accessor :name
     attr_accessor :type
 
-    def initialize(name, type = nil)
+    def initialize(name, superclass = nil, type = nil)
       @name = name
+      @superclass = superclass
       @type = type
       @methods = {}
     end
@@ -100,7 +101,7 @@ module Crystal
       if method
         method.dup
       else
-        nil
+        @superclass ? @superclass.find_method(name) : nil
       end
     end
 

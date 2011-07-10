@@ -69,6 +69,10 @@ module Crystal
       @expressions[name]
     end
 
+    def object_class
+      @object_class
+    end
+
     def class_class
       @class_class
     end
@@ -122,6 +126,7 @@ module Crystal
     end
 
     def define_builtin_classes
+      define_object_class
       define_class_class
       define_c_class
       define_nil_class
@@ -130,30 +135,34 @@ module Crystal
       define_float_class
     end
 
+    def define_object_class
+      @object_class = define_class Class.new("Object")
+    end
+
     def define_class_class
-      @class_class = Class.new "Class"
+      @class_class = Class.new "Class", @object_class
       @class_class.define_static_method :class, Def.new("Class#class", [Var.new("self")], @class_class)
       define_class @class_class
     end
 
     def define_c_class
-      klass = add_expression Class.new("C", CMetaclass.new(self))
+      klass = add_expression Class.new("C", @object_class, CMetaclass.new(self))
     end
 
     def define_nil_class
-      @nil_class = define_class NilClass.new("Nil")
+      @nil_class = define_class NilClass.new("Nil", @object_class)
     end
 
     def define_bool_class
-      @bool_class = define_class BoolClass.new("Bool")
+      @bool_class = define_class BoolClass.new("Bool", @object_class)
     end
 
     def define_int_class
-      @int_class = define_class IntClass.new("Int")
+      @int_class = define_class IntClass.new("Int", @object_class)
     end
 
     def define_float_class
-      @float_class = define_class FloatClass.new("Float")
+      @float_class = define_class FloatClass.new("Float", @object_class)
     end
 
     def define_class(klass)
