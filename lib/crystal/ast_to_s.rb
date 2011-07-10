@@ -141,6 +141,7 @@ module Crystal
         type.accept self
       end
       @str << " #=> "
+      node.resolved_type.accept self
       false
     end
 

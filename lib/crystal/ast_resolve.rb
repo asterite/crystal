@@ -100,7 +100,7 @@ module Crystal
     end
 
     def visit_class(node)
-      node.resolved_type = @scope.find_expression(node.name)
+      node.resolved_type = node.type || @scope.class_class
     end
 
     def visit_nil(node)
@@ -120,8 +120,8 @@ module Crystal
     end
 
     def end_visit_prototype(node)
-      node.resolved_type = node.resolved_type.resolved_type.primitive
-      node.arg_types.map! { |type| type.resolved_type.primitive }
+      node.resolved_type = @scope.find_expression node.resolved_type.name
+      node.arg_types.map! { |type| @scope.find_expression type.name }
     end
 
     def visit_def(node)

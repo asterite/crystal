@@ -87,18 +87,12 @@ module Crystal
 
   class Class < Expression
     attr_accessor :name
+    attr_accessor :type
 
-    def initialize(name)
+    def initialize(name, type = nil)
       @name = name
+      @type = type
       @methods = {}
-    end
-
-    def metaclass
-      @metaclass ||= Class.new(name)
-    end
-
-    def metaclass=(klass)
-      @metaclass = klass
     end
 
     def find_method(name)
@@ -106,12 +100,19 @@ module Crystal
       if method
         method.dup
       else
-        @metaclass ? @metaclass.find_method(name) : nil
+        nil
       end
     end
 
     def define_method(name, method)
       @methods[name] = method
+    end
+
+    def define_static_method(name, method)
+      unless @type
+        @type = Class.new("Class")
+        @type.define_method name, method
+      end
     end
 
     def accept(visitor)

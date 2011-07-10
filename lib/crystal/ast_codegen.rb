@@ -131,40 +131,34 @@ module Crystal
     end
 
     def define_class_class
-      @class_class = define_class Class.new("Class")
+      @class_class = Class.new "Class"
+      @class_class.define_static_method :class, Def.new("Class#class", [Var.new("self")], @class_class)
+      define_class @class_class
     end
 
     def define_c_class
-      klass = add_expression Class.new("C")
-      klass.metaclass = CMetaclass.new self
-      klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
-      klass
+      klass = add_expression Class.new("C", CMetaclass.new(self))
     end
 
     def define_nil_class
       @nil_class = define_class NilClass.new("Nil")
-      @nil_class.metaclass.primitive = @nil_class
     end
 
     def define_bool_class
       @bool_class = define_class BoolClass.new("Bool")
-      @bool_class.metaclass.primitive = @bool_class
     end
 
     def define_int_class
       @int_class = define_class IntClass.new("Int")
-      @int_class.metaclass.primitive = @int_class
     end
 
     def define_float_class
       @float_class = define_class FloatClass.new("Float")
-      @float_class.metaclass.primitive = @float_class
     end
 
     def define_class(klass)
-      klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass.metaclass)
-      add_expression klass.metaclass, klass.name
-      klass
+      klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass)
+      add_expression klass
     end
 
     def load_prelude
@@ -199,15 +193,6 @@ module Crystal
     def llvm_cast(value)
       object_id = value.to_i LLVM::Int64.type
       ObjectSpace._id2ref object_id
-    end
-
-
-    def primitive=(primitive)
-      @primitive = primitive
-    end
-
-    def primitive
-      @primitive or raise "Can't map #{self} to a C type"
     end
   end
 
