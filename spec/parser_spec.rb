@@ -1,5 +1,4 @@
 require(File.expand_path("../../lib/crystal",  __FILE__))
-
 include Crystal
 
 describe Parser do
@@ -82,6 +81,8 @@ describe Parser do
   it_parses_single_node "if foo; 1; else; 2; end", If.new("foo".ref, 1.int, 2.int)
   it_parses_single_node "if foo\n1\nelse\n2\nend", If.new("foo".ref, 1.int, 2.int)
   it_parses_single_node "if foo; 1; elsif bar; 2; else 3; end", If.new("foo".ref, 1.int, If.new("bar".ref, 2.int, 3.int))
+
+  it_parses_single_node "If foo; 1; End", StaticIf.new("foo".ref, 1.int)
 
   ['bar', :'+', :'-', :'*', :'/', :'<', :'<=', :'==', :'>', :'>='].each do |name|
     it_parses_single_node "foo.#{name}", Call.new("foo".ref, name)

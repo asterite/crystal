@@ -15,7 +15,7 @@ module Crystal
 
     def parse_expressions
       exps = []
-      while @token.type != :EOF && !(@token.type == :IDENT && (@token.value == :end || @token.value == :else || @token.value == :elsif))
+      while @token.type != :EOF && !is_end_token
         exps << parse_expression
         skip_statement_end
       end
@@ -31,6 +31,8 @@ module Crystal
           return parse_def
         when :if
           return parse_if
+        when :If
+          return parse_static_if
         when :extern
           return parse_extern
         when :while
@@ -108,6 +110,8 @@ module Crystal
     end
 
     def parse_if(check_end = true)
+      line_number = @token.line_number
+
       next_token_skip_space_or_newline
 
       cond = parse_expression
@@ -132,7 +136,41 @@ module Crystal
         next_token_skip_statement_end
       end
 
-      If.new cond, a_then, a_else
+      node = If.new cond, a_then, a_else
+      node.line_number = line_number
+      node
+    end
+
+    def parse_static_if(check_end = true)
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      a_then = parse_expressions
+      skip_statement_end
+
+      a_else = nil
+      if @token.type == :IDENT
+        case @token.value
+        when :Else
+          next_token_skip_statement_end
+          a_else = parse_expressions
+        when :Elsif
+          a_else = parse_static_if false
+        end
+      end
+
+      if check_end
+        check_ident :End
+        next_token_skip_statement_end
+      end
+
+      node = StaticIf.new cond, a_then, a_else
+      node.line_number = line_number
+      node
     end
 
     def parse_while
@@ -400,6 +438,17 @@ module Crystal
         raise_error "expecting token: #{value}" unless @token.type == :IDENT && @token.value == value
       else
         raise_error "unexpected token: #{@token.to_s}" unless @token.type == :IDENT && @token.value.is_a?(String)
+      end
+    end
+
+    def is_end_token
+      return false unless @token.type == :IDENT
+
+      case @token.value
+      when :end, :End, :else, :Else, :elsif, :Elsif
+        true
+      else
+        false
       end
     end
   end

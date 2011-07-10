@@ -21,6 +21,7 @@ module Crystal
       'gt',
       'get',
       'if',
+      'static_if',
       'prototype',
       'class_def',
       'assign',

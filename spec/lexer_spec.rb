@@ -53,7 +53,7 @@ describe Lexer do
   it_lexes " ", :SPACE
   it_lexes "\n", :NEWLINE
   it_lexes "\n\n\n", :NEWLINE
-  it_lexes_keywords "def", "if", "else", "elsif", "end", "true", "false", "extern", "class", "while", "nil"
+  it_lexes_keywords "def", "if", "If", "else", "Else", "elsif", "Elsif", "end", "End", "true", "false", "extern", "class", "while", "nil"
   it_lexes_idents "ident", "something", "with_underscores", "with_1"
   it_lexes_ints "1", ["1hello", "1"], "+1", "-1"
   it_lexes_floats "1.0", ["1.0hello", "1.0"], "+1.0", "-1.0"

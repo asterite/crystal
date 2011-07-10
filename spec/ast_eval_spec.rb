@@ -53,9 +53,9 @@ describe "ast eval" do
   it_evals "def foo(var); 1; end; foo(2)", 1
   it_evals "def foo(var); var + 1; end; foo(2)", 3
   it_evals "def foo; bar baz; end; def bar(x); x; end; def baz; 10; end; foo", 10
-  it_evals "if 1; 2; end", 2
-  it_evals "if 0; 3; end", 0
-  it_evals "if 0; 1; else; 3; end", 3
+  it_evals "if true; 2; end", 2
+  it_evals "if false; 3; end", 0
+  it_evals "if false; 1; else; 3; end", 3
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24
   it_evals_class "Class", "Class"
@@ -79,4 +79,6 @@ describe "ast eval" do
   it_evals "a = 10; a = a + 20; a", 30
   it_evals "a = 10; b = 5; while a > 5; while b > 2; b = b - 1; end; a = a - 1; end; a + b", 7
   it_evals "def bar x; if 1 > 2; 2; else; 1; end; end; bar 8; def foo; if 1 > 2; 1; else; 2; end; end; foo", 2
+  it_evals "If true; 1; Else; false; End", 1, :focus => true
+  it_evals "If false; 1; Else; false; End", false
 end

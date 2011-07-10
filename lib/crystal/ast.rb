@@ -1,6 +1,7 @@
 module Crystal
   class ASTNode
     attr_accessor :line_number
+    attr_accessor :parent
   end
 
   class Module < ASTNode
@@ -33,6 +34,7 @@ module Crystal
 
     def initialize(expressions = nil)
       @expressions = expressions || []
+      @expressions.each { |e| e.parent = self }
     end
 
     def accept(visitor)
@@ -40,6 +42,15 @@ module Crystal
         expressions.each { |exp| exp.accept visitor }
       end
       visitor.end_visit_expressions self
+    end
+
+    def replace(node, replacement)
+      @expressions.each_with_index do |e, i|
+        if e == node
+          @expressions[i] = replacement
+          return
+        end
+      end
     end
 
     def ==(other)
@@ -298,6 +309,31 @@ module Crystal
 
     def ==(other)
       other.is_a?(If) && other.cond == cond && other.then == self.then && other.else == self.else
+    end
+  end
+
+  class StaticIf < Expression
+    attr_accessor :cond
+    attr_accessor :then
+    attr_accessor :else
+
+    def initialize(cond, a_then, a_else = nil)
+      @cond = cond
+      @then = Expressions.from a_then
+      @else = Expressions.from a_else
+    end
+
+    def accept(visitor)
+      if visitor.visit_static_if self
+        self.cond.accept visitor
+        self.then.accept visitor
+        self.else.accept visitor if self.else
+      end
+      visitor.end_visit_static_if self
+    end
+
+    def ==(other)
+      other.is_a?(StaticIf) && other.cond == cond && other.then == self.then && other.else == self.else
     end
   end
 

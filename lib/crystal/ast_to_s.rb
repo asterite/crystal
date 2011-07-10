@@ -116,6 +116,21 @@ module Crystal
       false
     end
 
+    def visit_static_if(node)
+      @str << "If "
+      node.cond.accept self
+      @str << "\n"
+      with_indent { node.then.accept self }
+      unless node.else.expressions.empty?
+        append_indent
+        @str << "Else\n"
+        with_indent { node.else.accept self }
+      end
+      append_indent
+      @str << "End"
+      false
+    end
+
     def visit_prototype(node)
       @str << "extern "
       @str << " "

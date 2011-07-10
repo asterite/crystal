@@ -292,9 +292,25 @@ module Crystal
 
     def visit_if(node)
       node.cond.accept self
+      raise_error node, "if condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
+
       node.then.accept self
       node.else.accept self
       node.resolved_type = merge_types(node, node.then.resolved_type, node.else.resolved_type)
+      false
+    end
+
+    def visit_static_if(node)
+      node.cond.accept self
+      raise_error node, "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
+
+      if @scope.eval_anon node.cond
+        node.then.accept self
+        node.parent.replace node, node.then
+      else
+        node.else.accept self
+        node.parent.replace node, node.else
+      end
       false
     end
 

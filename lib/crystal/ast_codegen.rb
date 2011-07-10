@@ -39,6 +39,13 @@ module Crystal
       anon_def
     end
 
+    def eval_anon(exp)
+      anon_def = Def.new "$anon", [], [exp]
+      anon_def.resolve self
+      anon_def.codegen self
+      run anon_def
+    end
+
     def remember_block
       block = builder.insert_block
       code = yield
