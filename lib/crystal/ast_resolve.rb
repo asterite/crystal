@@ -38,15 +38,30 @@ module Crystal
       @args_length = value
     end
 
-    def instantiate(scope, arg_types)
+    def instantiate(scope, call_args)
       return self if resolved_type
 
-      instance_name = "#{name}$#{arg_types.join '$'}$"
+      args_types = call_args.map &:resolved_type
+      args_types_signature = args_types.join '$'
+      args_values = []
+      args_values_signature = ""
+      args.each_with_index do |arg, i|
+        if arg.name[0] == arg.name[0].upcase
+          raise "Argument #{arg} must be known at compile time" unless call_args[i].compile_time_value
+          args_values_signature << "$" unless args_values_signature.empty?
+          args_values_signature << call_args[i].compile_time_value.to_s
+          args_values << call_args[i].compile_time_value
+        else
+          args_values << nil
+        end
+      end
+      instance_name = "#{name}$#{args_types_signature}$#{args_values_signature}$"
 
       instance = scope.find_expression instance_name
       if !instance
         instance_args = args.map(&:clone)
-        arg_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
+        instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
+        args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
         instance = Def.new instance_name, instance_args, body.clone
       end
       instance
@@ -258,7 +273,7 @@ module Crystal
       end
 
       # If it's already resolved that means it's an intrinsic function
-      instance = exp.instantiate @scope, node.args.map(&:resolved_type)
+      instance = exp.instantiate @scope, node.args
 
       node.resolved = instance
       instance.accept self
@@ -292,6 +307,7 @@ module Crystal
     def visit_static_if(node)
       node.cond.accept self
       raise_error node, "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
+      raise_error node, "Can't evaluate If at compile-time" unless node.can_be_evaluated_at_compile_time?
 
       if @scope.eval_anon node.cond
         node.then.accept self

@@ -1,6 +1,7 @@
 [
   'ast',
   'ast_codegen',
+  'ast_compile_time',
   'ast_eval',
   'ast_resolve',
   'ast_to_s',

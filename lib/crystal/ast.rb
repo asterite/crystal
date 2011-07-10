@@ -2,6 +2,7 @@ module Crystal
   class ASTNode
     attr_accessor :line_number
     attr_accessor :parent
+    attr_accessor :compile_time_value
   end
 
   class Module < ASTNode
@@ -148,6 +149,10 @@ module Crystal
       @value = value
     end
 
+    def compile_time_value
+      self
+    end
+
     def accept(visitor)
       visitor.visit_bool self
       visitor.end_visit_bool self
@@ -163,6 +168,10 @@ module Crystal
 
     def initialize(value)
       @value = value
+    end
+
+    def compile_time_value
+      self
     end
 
     def has_sign?
@@ -184,6 +193,10 @@ module Crystal
 
     def initialize(value)
       @value = value
+    end
+
+    def compile_time_value
+      self
     end
 
     def has_sign?
@@ -372,6 +385,10 @@ module Crystal
 
     def ==(other)
       other.is_a?(StaticIf) && other.cond == cond && other.then == self.then && other.else == self.else
+    end
+
+    def clone
+      StaticIf.new cond.clone, self.then.clone, self.else.clone
     end
   end
 

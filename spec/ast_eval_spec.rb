@@ -20,7 +20,7 @@ describe "ast eval" do
 
   it_evals "true", true
   it_evals "5", 5
-  it_evals "1 + 2", 3, :focus => true
+  it_evals "1 + 2", 3
   it_evals "1 - 2", -1
   it_evals "4 / 2", 2
   it_evals "4 * 2", 8
@@ -86,4 +86,7 @@ describe "ast eval" do
   it_evals "If false; 1; Else; false; End", false
   it_evals "def foo; If true; 1; Else; false; End; end; foo", 1
   it_evals "class Object; def foo(other); self + other; end; end; 1.foo(1); 1.0.foo(1.0)", 2.0
+  it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 1", 2, :focus => true
+  it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 2", 3
+  it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 1; foo 2", 3
 end

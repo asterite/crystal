@@ -376,7 +376,11 @@ module Crystal
 
   class Var
     def codegen(mod)
-      mod.builder.load code, name
+      if compile_time_value
+        compile_time_value.codegen mod
+      else
+        mod.builder.load code, name
+      end
     end
   end
 
