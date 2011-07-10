@@ -9,17 +9,6 @@ module Crystal
       visitor = ResolveVisitor.new mod
       self.accept visitor
     end
-
-    def initialize_copy(other)
-      resolved = nil
-      resolved_type = nil
-    end
-  end
-
-  class Expressions
-    def initialize_copy(other)
-      self.expressions = other.expressions.map(&:dup)
-    end
   end
 
   class Assign
@@ -56,9 +45,9 @@ module Crystal
 
       instance = scope.find_expression instance_name
       if !instance
-        instance_args = args.dup
+        instance_args = args.clone
         arg_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
-        instance = Def.new instance_name, args, body.dup
+        instance = Def.new instance_name, instance_args, body.clone
       end
       instance
     end
@@ -111,7 +100,7 @@ module Crystal
     end
 
     def visit_class(node)
-      node.resolved_type = @scope.find_expression(node.name).metaclass
+      node.resolved_type = @scope.find_expression(node.name)
     end
 
     def visit_nil(node)
@@ -152,7 +141,7 @@ module Crystal
     def visit_class_def(node)
       exp = @scope.find_expression node.name
       raise_error node, "uninitialized constant #{node.name}" unless exp
-      raise_error node, "can only extend from Class type" unless exp.class < Crystal::Class
+      raise_error node, "can only extend from Class type" unless exp.class <= Crystal::Class
 
       with_new_scope ClassDefScope.new(@scope, exp) do
         node.body.eval @scope
@@ -203,6 +192,9 @@ module Crystal
     def visit_call(node)
       return if node.resolved_type
 
+      # This is to prevent recursive resolutions
+      node.resolved_type = UnknownType
+
       resolve_method_call node if node.obj
       resolve_function_call node
 
@@ -229,9 +221,6 @@ module Crystal
     end
 
     def resolve_function_call(node)
-      # This is to prevent recursive resolutions
-      node.resolved_type = UnknownType
-
       node.args.each { |arg| arg.accept self }
 
       exp = @scope.find_expression(node.name) or raise_error node, "undefined method '#{node.name}'"

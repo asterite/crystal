@@ -20,7 +20,7 @@ describe "ast eval" do
 
   it_evals "true", true
   it_evals "5", 5
-  it_evals "1 + 2", 3
+  it_evals "1 + 2", 3, :focus => true
   it_evals "1 - 2", -1
   it_evals "4 / 2", 2
   it_evals "4 * 2", 8
@@ -81,4 +81,5 @@ describe "ast eval" do
   it_evals "def bar x; if 1 > 2; 2; else; 1; end; end; bar 8; def foo; if 1 > 2; 1; else; 2; end; end; foo", 2
   it_evals "If true; 1; Else; false; End", 1, :focus => true
   it_evals "If false; 1; Else; false; End", false
+  it_evals "def fib n; if n <= 2; 1; else; fib(n - 1) + fib(n - 2); end; end; fib 10", 55
 end
