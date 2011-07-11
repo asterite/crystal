@@ -48,9 +48,10 @@ module Crystal
       args.each_with_index do |arg, i|
         if arg.name[0] == arg.name[0].upcase
           raise "Argument #{arg} must be known at compile time" unless call_args[i].can_be_evaluated_at_compile_time?
+          arg_value = scope.eval_anon call_args[i]
           args_values_signature << "$" unless args_values_signature.empty?
-          args_values_signature << call_args[i].compile_time_value.to_s
-          args_values << call_args[i].compile_time_value
+          args_values_signature << arg_value.to_s
+          args_values << arg_value
         else
           args_values << nil
         end
@@ -309,7 +310,8 @@ module Crystal
       raise_error node, "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
       raise_error node, "can't evaluate If at compile-time" unless node.can_be_evaluated_at_compile_time?
 
-      if @scope.eval_anon node.cond
+      cond_value = @scope.eval_anon node.cond
+      if cond_value.value
         node.then.accept self
         node.parent.replace node, node.then
       else

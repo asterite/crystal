@@ -222,7 +222,7 @@ module Crystal
     end
 
     def llvm_cast(value)
-      nil
+      Nil.new
     end
   end
 
@@ -232,7 +232,7 @@ module Crystal
     end
 
     def llvm_cast(value)
-      value.to_b
+      Bool.new value.to_b
     end
   end
 
@@ -242,7 +242,7 @@ module Crystal
     end
 
     def llvm_cast(value)
-      value.to_i LLVM::Int.type
+      Int.new(value.to_i LLVM::Int.type)
     end
   end
 
@@ -252,7 +252,7 @@ module Crystal
     end
 
     def llvm_cast(value)
-      value.to_f LLVM::Float.type
+      Float.new(value.to_f LLVM::Float.type)
     end
   end
 

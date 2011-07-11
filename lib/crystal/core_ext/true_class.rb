@@ -1,5 +1,5 @@
 class TrueClass
   def bool
-    Bool.new self
+    Crystal::Bool.new self
   end
 end
