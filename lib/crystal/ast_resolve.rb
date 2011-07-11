@@ -47,7 +47,7 @@ module Crystal
       args_values_signature = ""
       args.each_with_index do |arg, i|
         if arg.name[0] == arg.name[0].upcase
-          raise "Argument #{arg} must be known at compile time" unless call_args[i].compile_time_value
+          raise "Argument #{arg} must be known at compile time" unless call_args[i].can_be_evaluated_at_compile_time?
           args_values_signature << "$" unless args_values_signature.empty?
           args_values_signature << call_args[i].compile_time_value.to_s
           args_values << call_args[i].compile_time_value
@@ -190,7 +190,7 @@ module Crystal
           raise_error node, "can't assign to #{node.target}, it is not a variable"
         end
         if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type
-          raise_error node, "Can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
+          raise_error node, "can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
         end
       else
         var = Var.new(node.target.name, node.value.resolved_type)
@@ -281,7 +281,7 @@ module Crystal
       node.resolved_type = instance.resolved_type
 
       if node.resolved_type == UnknownType
-        raise_error node, "Can't deduce the type of #{instance.name}"
+        raise_error node, "can't deduce the type of #{instance.name}"
       end
 
       # Resolve any expressions with unknown types
@@ -307,7 +307,7 @@ module Crystal
     def visit_static_if(node)
       node.cond.accept self
       raise_error node, "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
-      raise_error node, "Can't evaluate If at compile-time" unless node.can_be_evaluated_at_compile_time?
+      raise_error node, "can't evaluate If at compile-time" unless node.can_be_evaluated_at_compile_time?
 
       if @scope.eval_anon node.cond
         node.then.accept self

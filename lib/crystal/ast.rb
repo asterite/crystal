@@ -59,7 +59,9 @@ module Crystal
     end
 
     def clone
-      Expressions.new expressions.map(&:clone)
+      exps = Expressions.new expressions.map(&:clone)
+      exps.line_number = line_number
+      exps
     end
   end
 
@@ -82,7 +84,9 @@ module Crystal
     end
 
     def clone
-      ClassDef.new name, body.clone
+      class_def = ClassDef.new name, body.clone
+      class_def.line_number = line_number
+      class_def
     end
   end
 
@@ -260,7 +264,9 @@ module Crystal
     end
 
     def clone
-      Def.new name, args.clone, body.clone
+      a_def = Def.new name, args.clone, body.clone
+      a_def.line_number = line_number
+      a_def
     end
   end
 
@@ -281,7 +287,9 @@ module Crystal
     end
 
     def clone
-      Ref.new name
+      ref = Ref.new name
+      ref.line_number = line_number
+      ref
     end
   end
 
@@ -303,7 +311,9 @@ module Crystal
     end
 
     def clone
-      Var.new name, resolved_type
+      var = Var.new name, resolved_type
+      var.line_number = line_number
+      var
     end
   end
 
@@ -330,7 +340,9 @@ module Crystal
     end
 
     def clone
-      Call.new obj ? obj.clone : nil, name, *args.map(&:clone)
+      call = Call.new obj ? obj.clone : nil, name, *args.map(&:clone)
+      call.line_number = line_number
+      call
     end
   end
 
@@ -359,7 +371,9 @@ module Crystal
     end
 
     def clone
-      If.new cond.clone, self.then.clone, self.else.clone
+      a_if = If.new cond.clone, self.then.clone, self.else.clone
+      a_if.line_number = line_number
+      a_if
     end
   end
 
@@ -388,7 +402,9 @@ module Crystal
     end
 
     def clone
-      StaticIf.new cond.clone, self.then.clone, self.else.clone
+      a_if = StaticIf.new cond.clone, self.then.clone, self.else.clone
+      a_if.line_number = line_number
+      a_if
     end
   end
 
@@ -414,7 +430,9 @@ module Crystal
     end
 
     def clone
-      Assign.new target.clone, value.clone
+      assign = Assign.new target.clone, value.clone
+      assign.line_number = line_number
+      assign
     end
   end
 
@@ -440,7 +458,9 @@ module Crystal
     end
 
     def clone
-      While.new cond.clone, body.clone
+      a_while = While.new cond.clone, body.clone
+      a_while.line_number = line_number
+      a_while
     end
   end
 
@@ -466,7 +486,9 @@ module Crystal
     end
 
     def clone
-      And.new left.clone, right.clone
+      a_and = And.new left.clone, right.clone
+      a_and.line_number = line_number
+      a_and
     end
   end
 
@@ -492,7 +514,9 @@ module Crystal
     end
 
     def clone
-      Or.new left.clone, right.clone
+      a_or = Or.new left.clone, right.clone
+      a_or.line_number = line_number
+      a_or
     end
   end
 end
