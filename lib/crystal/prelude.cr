@@ -1,10 +1,29 @@
 class Object
 end
 
+class Class
+  extern crystal_class_object_id Class #=> Long
+  def object_id
+    C.crystal_class_object_id self
+  end
+
+  def ==(other)
+    self.object_id == other.object_id
+  end
+
+  def class
+    Class
+  end
+end
+
 class Bool
   extern crystal_eq_bool Bool, Bool #=> Bool
   def ==(other)
     C.crystal_eq_bool self, other
+  end
+
+  def class
+    Bool
   end
 end
 
@@ -61,6 +80,21 @@ class Int
   def -@
     0 - self
   end
+
+  def class
+    Int
+  end
+end
+
+class Long
+  extern crystal_eq_long_long Long, Long #=> Bool
+  def ==(other)
+    C.crystal_eq_long_long self, other
+  end
+
+  def class
+    Long
+  end
 end
 
 class Float
@@ -115,6 +149,10 @@ class Float
 
   def -@
     0.0 - self
+  end
+  
+  def class
+    Float
   end
 end
 

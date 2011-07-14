@@ -20,6 +20,8 @@ module Crystal
     attr_reader :fpm
 
     def initialize
+      $module = self
+
       @expressions = {}
       @module = LLVM::Module.new ''
       @builder = LLVM::Builder.new
@@ -89,6 +91,10 @@ module Crystal
       @int_class
     end
 
+    def long_class
+      @long_class
+    end
+
     def float_class
       @float_class
     end
@@ -132,6 +138,7 @@ module Crystal
       define_nil_class
       define_bool_class
       define_int_class
+      define_long_class
       define_float_class
     end
 
@@ -161,12 +168,16 @@ module Crystal
       @int_class = define_class IntClass.new("Int", @object_class)
     end
 
+    def define_long_class
+      @long_class = define_class LongClass.new("Long", @object_class)
+    end
+
     def define_float_class
       @float_class = define_class FloatClass.new("Float", @object_class)
     end
 
     def define_class(klass)
-      klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass)
+      #klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass)
       add_expression klass
     end
 
@@ -238,11 +249,21 @@ module Crystal
 
   class IntClass < Class
     def llvm_type
-      LLVM::Int
+      LLVM::Int32
     end
 
     def llvm_cast(value)
-      Int.new(value.to_i LLVM::Int.type)
+      Int.new(value.to_i LLVM::Int32.type)
+    end
+  end
+
+  class LongClass < Class
+    def llvm_type
+      LLVM::Int64
+    end
+
+    def llvm_cast(value)
+      Long.new(value.to_i LLVM::Int64.type)
     end
   end
 

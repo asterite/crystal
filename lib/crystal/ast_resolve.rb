@@ -131,6 +131,10 @@ module Crystal
       node.resolved_type = @scope.int_class
     end
 
+    def visit_long(node)
+      node.resolved_type = @scope.long_class
+    end
+
     def visit_float(node)
       node.resolved_type = @scope.float_class
     end
@@ -252,7 +256,7 @@ module Crystal
 
         exp.arg_types.each_with_index do |expected_type, i|
           actual_type = node.args[i].resolved_type
-          if actual_type != expected_type
+          unless actual_type.subclass_of? expected_type
             raise_error node, "argument number #{i + 1} of C.#{exp.name} must be an #{expected_type}, not #{actual_type}"
           end
         end

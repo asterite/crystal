@@ -39,6 +39,10 @@ module Crystal
     def visit_int(node)
       @str << node.value.to_s
     end
+    
+    def visit_long(node)
+      @str << node.value.to_s
+    end
 
     def visit_class_reference(node)
       @str << node.klass

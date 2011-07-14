@@ -6,6 +6,7 @@ module Crystal
       'class',
       'bool',
       'int',
+      'long',
       'float',
       'add',
       'sub',

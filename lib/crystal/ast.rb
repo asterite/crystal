@@ -101,6 +101,10 @@ module Crystal
       @methods = {}
     end
 
+    def subclass_of?(other)
+      self == other || @superclass == other
+    end
+
     def find_method(name)
       method = @methods[name]
       if method
@@ -116,7 +120,7 @@ module Crystal
 
     def define_static_method(name, method)
       unless @type
-        @type = Class.new("Class")
+        @type = Class.new("Class", nil, self)
         @type.define_method name, method
       end
     end
@@ -189,6 +193,31 @@ module Crystal
 
     def ==(other)
       other.is_a?(Int) && other.value.to_i == value.to_i
+    end
+  end
+
+  class Long < Expression
+    attr_accessor :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def compile_time_value
+      self
+    end
+
+    def has_sign?
+      @value[0] == '+' || @value[0] == '-'
+    end
+
+    def accept(visitor)
+      visitor.visit_int self
+      visitor.end_visit_int self
+    end
+
+    def ==(other)
+      other.is_a?(Long) && other.value.to_i == value.to_i
     end
   end
 
