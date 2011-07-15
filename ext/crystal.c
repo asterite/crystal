@@ -5,6 +5,7 @@ long crystal_class_object_id(long x) { return x; }
 int crystal_eq_bool(int x, int y) { return x == y; }
 
 int crystal_add_int_int(int x, int y) { return x + y; }
+float crystal_add_int_float(int x, float y) { return x + y; }
 int crystal_sub_int_int(int x, int y) { return x - y; }
 int crystal_mul_int_int(int x, int y) { return x * y; }
 int crystal_div_int_int(int x, int y) { return x / y; }

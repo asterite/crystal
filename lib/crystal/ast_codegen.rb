@@ -42,17 +42,22 @@ module Crystal
     end
 
     def eval_anon(exp)
-      anon_def = Def.new "$anon", [], [exp]
-      anon_def.resolve self
-      anon_def.codegen self
-      run anon_def
+      remember_block do
+        anon_def = Def.new "$anon", [], [exp]
+        anon_def.resolve self
+        anon_def.codegen self
+        run anon_def
+      end
     end
 
     def remember_block
-      block = builder.insert_block
-      code = yield
-      builder.position_at_end block
-      code
+      if block = builder.insert_block
+        code = yield
+        builder.position_at_end block
+        code
+      else
+        yield
+      end
     end
 
     def add_expression(node, name = node.name)
@@ -342,6 +347,10 @@ module Crystal
       else
         mod.builder.ret code
       end
+
+      #p "!!!"
+      #mod.dump
+      #p "!!!"
 
       # fun.dump
 
