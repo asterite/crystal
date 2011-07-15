@@ -31,8 +31,13 @@ class Int
   end
 
   extern crystal_sub_int_int Int, Int #=> Int
+  extern crystal_sub_int_float Int, Float #=> Float
   def -(other)
-    C.crystal_sub_int_int self, other
+    If other.class == Int
+      C.crystal_sub_int_int self, other
+    Elsif other.class == Float
+      C.crystal_sub_int_float self, other
+    End
   end
 
   extern crystal_mul_int_int Int, Int #=> Int
@@ -97,8 +102,13 @@ class Float
   end
 
   extern crystal_sub_float_float Float, Float #=> Float
+  extern crystal_sub_float_int Float, Int #=> Float
   def -(other)
-    C.crystal_sub_float_float self, other
+    If other.class == Int
+      C.crystal_sub_float_int self, other
+    Elsif other.class == Float
+      C.crystal_sub_float_float self, other
+    End
   end
 
   extern crystal_mul_float_float Float, Float #=> Float

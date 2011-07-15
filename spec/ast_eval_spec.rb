@@ -24,6 +24,8 @@ describe "ast eval" do
   it_evals "1 + 2.0", 3.0.float
   it_evals "1.0 + 2", 3.0.float
   it_evals "1 - 2", -1.int
+  it_evals "1 - 2.0", -1.0.float
+  it_evals "1.0 - 2", -1.0.float
   it_evals "4 / 2", 2.int
   it_evals "4 * 2", 8.int
   it_evals "2 * (3 + 4)", 14.int
