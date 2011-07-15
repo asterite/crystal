@@ -41,38 +41,69 @@ class Int
   end
 
   extern crystal_mul_int_int Int, Int #=> Int
+  extern crystal_mul_int_float Int, Float #=> Float
   def *(other)
-    C.crystal_mul_int_int self, other
+    If other.class == Int
+      C.crystal_mul_int_int self, other
+    Elsif other.class == Float
+      C.crystal_mul_int_float self, other
+    End
   end
 
   extern crystal_div_int_int Int, Int #=> Int
+  extern crystal_div_int_float Int, Float #=> Float
   def /(other)
-    C.crystal_div_int_int self, other
+    If other.class == Int
+      C.crystal_div_int_int self, other
+    Elsif other.class == Float
+      C.crystal_div_int_float self, other
+    End
   end
 
   extern crystal_lt_int_int Int, Int #=> Bool
+  extern crystal_lt_int_float Int, Float #=> Bool
   def <(other)
-    C.crystal_lt_int_int self, other
+    If other.class == Int
+      C.crystal_lt_int_int self, other
+    Elsif other.class == Float
+      C.crystal_lt_int_float self, other
+    End
   end
 
   extern crystal_let_int_int Int, Int #=> Bool
+  extern crystal_let_int_float Int, Float #=> Bool
   def <=(other)
-    C.crystal_let_int_int self, other
+    If other.class == Int
+      C.crystal_let_int_int self, other
+    Elsif other.class == Float
+      C.crystal_let_int_float self, other
+    End
   end
 
   extern crystal_eq_int_int Int, Int #=> Bool
+  extern crystal_eq_int_float Int, Float #=> Bool
   def ==(other)
-    C.crystal_eq_int_int self, other
+    If other.class == Int
+      C.crystal_eq_int_int self, other
+    Elsif other.class == Float
+      C.crystal_eq_int_float self, other
+    End
   end
 
-  extern crystal_gt_int_int Int, Int #=> Bool
   def >(other)
-    C.crystal_gt_int_int self, other
+    If other.class == Int
+      C.crystal_lt_int_int other, self
+    Elsif other.class == Float
+      C.crystal_lt_float_int other, self
+    End
   end
 
-  extern crystal_get_int_int Int, Int #=> Bool
   def >=(other)
-    C.crystal_get_int_int self, other
+    If other.class == Int
+      C.crystal_let_int_int other, self
+    Elsif other.class == Float
+      C.crystal_let_float_int other, self
+    End
   end
 
   def +@
@@ -113,37 +144,66 @@ class Float
 
   extern crystal_mul_float_float Float, Float #=> Float
   def *(other)
-    C.crystal_mul_float_float self, other
+    If other.class == Int
+      C.crystal_mul_int_float other, self
+    Elsif other.class == Float
+      C.crystal_mul_float_float self, other
+    End
   end
 
   extern crystal_div_float_float Float, Float #=> Float
+  extern crystal_div_float_int Float, Int #=> Float
   def /(other)
-    C.crystal_div_float_float self, other
+    If other.class == Int
+      C.crystal_div_float_int self, other
+    Elsif other.class == Float
+      C.crystal_div_float_float self, other
+    End
   end
 
   extern crystal_lt_float_float Float, Float #=> Bool
+  extern crystal_lt_float_int Float, Int #=> Bool
   def <(other)
-    C.crystal_lt_float_float self, other
+    If other.class == Int
+      C.crystal_lt_float_int self, other
+    Elsif other.class == Float
+      C.crystal_lt_float_float self, other
+    End
   end
 
   extern crystal_let_float_float Float, Float #=> Bool
+  extern crystal_let_float_int Float, Int #=> Bool
   def <=(other)
-    C.crystal_let_float_float self, other
+    If other.class == Int
+      C.crystal_let_float_int self, other
+    Elsif other.class == Float
+      C.crystal_let_float_float self, other
+    End
   end
 
   extern crystal_eq_float_float Float, Float #=> Bool
   def ==(other)
-    C.crystal_eq_float_float self, other
+    If other.class == Int
+      C.crystal_eq_int_float other, self
+    Elsif other.class == Float
+      C.crystal_eq_float_float self, other
+    End
   end
 
-  extern crystal_gt_float_float Float, Float #=> Bool
   def >(other)
-    C.crystal_gt_float_float self, other
+    If other.class == Int
+      C.crystal_lt_int_float other, self
+    Elsif other.class == Float
+      C.crystal_lt_float_float other, self
+    End
   end
 
-  extern crystal_get_float_float Float, Float #=> Bool
   def >=(other)
-    C.crystal_get_float_float self, other
+    If other.class == Int
+      C.crystal_let_int_float other, self
+    Elsif other.class == Float
+      C.crystal_let_float_float other, self
+    End
   end
 
   def +@
@@ -151,7 +211,7 @@ class Float
   end
 
   def -@
-    0.0 - self
+    0 - self
   end
 end
 
