@@ -32,7 +32,7 @@ module Crystal
       elsif match = scan(/def|elsif|Elsif|else|Else|end|End|if|If|true|false|extern|class|while|nil/)
         @token.type = :IDENT
         @token.value = match.to_sym
-      elsif match = scan(/[a-zA-Z_][a-zA-Z_0-9]*/)
+      elsif match = scan(/[a-zA-Z_][a-zA-Z_0-9]*(\?|!)?/)
         @token.type = :IDENT
         @token.value = match
       else
