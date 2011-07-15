@@ -7,6 +7,14 @@ describe "ast nodes" do
     5.int.to_s.should eq('5')
   end
 
+  it "should to_s Long" do
+    5.long.to_s.should eq('5')
+  end
+
+  it "should to_s Float" do
+    5.0.float.to_s.should eq('5.0')
+  end
+
   it "should to_s True" do
     true.bool.to_s.should eq('true')
   end
