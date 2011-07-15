@@ -151,3 +151,11 @@ def puts x
     C.putf x
   End
 end
+
+def putchar x
+  If x.class == Int
+    C.putchari x
+  Elsif x.class == Float
+    C.putcharf x
+  End
+end

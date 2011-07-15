@@ -6,4 +6,4 @@ def fact n
   end
 end
 
-C.puti fact(4)
+puts fact 4

@@ -1,12 +1,12 @@
 def printdensity(d)
   if d > 8.0
-    C.putcharf 32.0
+    putchar 32
   elsif d > 4.0
-    C.putcharf 46.0
+    putchar 46
   elsif d > 2.0
-    C.putcharf 43.0
+    putchar 43
   else
-    C.putcharf 42.0
+    putchar 42
   end
 end
 
@@ -30,7 +30,7 @@ def mandelhelp(xmin, xmax, xstep, ymin, ymax, ystep)
       printdensity(mandelconverge x, y)
       x = x + xstep
     end
-    C.putcharf 10.0
+    putchar 10
     y = y + ystep
   end
 end
