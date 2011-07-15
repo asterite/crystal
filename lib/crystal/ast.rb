@@ -47,10 +47,7 @@ module Crystal
 
     def replace(node, replacement)
       @expressions.each_with_index do |e, i|
-        if e == node
-          @expressions[i] = replacement
-          return
-        end
+        return @expressions[i] = replacement if e.equal? node
       end
     end
 
@@ -101,6 +98,10 @@ module Crystal
       @methods = {}
     end
 
+    def compile_time_value
+      self
+    end
+
     def subclass_of?(other)
       self == other || @superclass == other
     end
@@ -143,6 +144,10 @@ module Crystal
     def accept(visitor)
       visitor.visit_nil self
       visitor.end_visit_nil self
+    end
+
+    def compile_time_value
+      self
     end
 
     def ==(other)
@@ -353,8 +358,10 @@ module Crystal
 
     def initialize(obj, name, *args)
       @obj = obj
+      @obj.parent = self if @obj
       @name = name
       @args = args
+      @args.each { |arg| arg.parent = self }
     end
 
     def accept(visitor)
@@ -372,6 +379,14 @@ module Crystal
       call = Call.new obj ? obj.clone : nil, name, *args.map(&:clone)
       call.line_number = line_number
       call
+    end
+
+    def replace(node, replacement)
+      return @obj = replacement if obj.equal? node
+
+      @args.each_with_index do |arg, i|
+        return @args[i] = replacement if arg.equal? node
+      end
     end
   end
 

@@ -212,6 +212,13 @@ module Crystal
     def visit_call(node)
       return if node.resolved_type
 
+      # Solve class method at compile-time
+      if node.obj && node.name == :class && node.args.empty?
+        node.obj.accept self
+        node.parent.replace node, node.obj.resolved_type
+        return false
+      end
+
       # This is to prevent recursive resolutions
       node.resolved_type = UnknownType
 
@@ -312,7 +319,7 @@ module Crystal
     def visit_static_if(node)
       node.cond.accept self
       raise_error node, "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
-      raise_error node, "can't evaluate If at compile-time" unless node.can_be_evaluated_at_compile_time?
+      raise_error node, "can't evaluate If at compile-time" unless node.cond.can_be_evaluated_at_compile_time?
 
       cond_value = @scope.eval_anon node.cond
       if cond_value.value

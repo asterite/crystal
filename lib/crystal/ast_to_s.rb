@@ -63,12 +63,14 @@ module Crystal
       else
         @str << "." if node.obj
         @str << node.name.to_s
-        @str << "("
-        node.args.each_with_index do |arg, i|
-          @str << ", " if i > 0
-          arg.accept self
+        unless node.args.empty?
+          @str << "("
+          node.args.each_with_index do |arg, i|
+            @str << ", " if i > 0
+            arg.accept self
+          end
+          @str << ")"
         end
-        @str << ")"
       end
       false
     end

@@ -48,7 +48,7 @@ describe "ast nodes" do
   end
 
   it "should to_s Call with no args" do
-    Call.new(nil, "foo").to_s.should eq("foo()")
+    Call.new(nil, "foo").to_s.should eq("foo")
   end
 
   it "should to_s Call with args" do

@@ -10,20 +10,12 @@ class Class
   def ==(other)
     self.object_id == other.object_id
   end
-
-  def class
-    Class
-  end
 end
 
 class Bool
   extern crystal_eq_bool Bool, Bool #=> Bool
   def ==(other)
     C.crystal_eq_bool self, other
-  end
-
-  def class
-    Bool
   end
 end
 
@@ -80,20 +72,12 @@ class Int
   def -@
     0 - self
   end
-
-  def class
-    Int
-  end
 end
 
 class Long
   extern crystal_eq_long_long Long, Long #=> Bool
   def ==(other)
     C.crystal_eq_long_long self, other
-  end
-
-  def class
-    Long
   end
 end
 
@@ -150,10 +134,6 @@ class Float
   def -@
     0.0 - self
   end
-  
-  def class
-    Float
-  end
 end
 
 extern putb Bool #=> Nil
@@ -161,3 +141,13 @@ extern puti Int #=> Nil
 extern putf Float #=> Nil
 extern putchari Int #=> Nil
 extern putcharf Float #=> Nil
+
+def puts x
+  If x.class == Bool
+    C.putb x
+  Elsif x.class == Int
+    C.puti x
+  Elsif x.class == Float
+    C.putf x
+  End
+end

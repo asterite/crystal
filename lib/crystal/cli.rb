@@ -43,7 +43,7 @@ loop do
       puts " => #{result.nil? ? 'nil' : result}"
     rescue => ex
       puts ex
-      # puts ex.backtrace
+      puts ex.backtrace
     end
 
     buffer = ""
