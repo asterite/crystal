@@ -104,6 +104,10 @@ module Crystal
       @float_class
     end
 
+    def char_class
+      @char_class
+    end
+
     def run(fun)
       result = @engine.run_function(fun.code)
       fun.resolved_type.llvm_cast result
@@ -145,6 +149,7 @@ module Crystal
       define_int_class
       define_long_class
       define_float_class
+      define_char_class
     end
 
     def define_object_class
@@ -181,8 +186,11 @@ module Crystal
       @float_class = define_class FloatClass.new("Float", @object_class)
     end
 
+    def define_char_class
+      @char_class = define_class CharClass.new("Char", @object_class)
+    end
+
     def define_class(klass)
-      #klass.define_method :class, Def.new("#{klass.name}#class", [Var.new("self")], klass)
       add_expression klass
     end
 
@@ -282,6 +290,16 @@ module Crystal
     end
   end
 
+  class CharClass < Class
+    def llvm_type
+      LLVM::Int8
+    end
+
+    def llvm_cast(value)
+      Char.new(value.to_i LLVM::Int8.type)
+    end
+  end
+
   class Nil
     def codegen(mod)
       nil
@@ -303,6 +321,12 @@ module Crystal
   class Float
     def codegen(mod)
       LLVM::Float value.to_f
+    end
+  end
+
+  class Char
+    def codegen(mod)
+      LLVM::Int8.from_i value.ord
     end
   end
 

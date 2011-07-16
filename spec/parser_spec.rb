@@ -111,4 +111,6 @@ describe Parser do
 
   it_parses_single_node "1 && 2", And.new(1.int, 2.int)
   it_parses_single_node "1 || 2", Or.new(1.int, 2.int)
+
+  it_parses_single_node "'a'", Char.new(?a.ord)
 end

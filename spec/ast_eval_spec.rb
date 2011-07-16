@@ -62,6 +62,7 @@ describe "ast eval" do
   it_evals "false || false", false.bool
   it_evals "false || true", true.bool
   it_evals "1.0", 1.0.float
+  it_evals "'a'", Crystal::Char.new(?a.ord)
   it_evals "def foo; end", nil
   it_evals "def foo; end; foo", Crystal::Nil.new
   it_evals "def foo; 1; end", nil

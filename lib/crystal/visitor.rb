@@ -8,6 +8,7 @@ module Crystal
       'int',
       'long',
       'float',
+      'char',
       'add',
       'sub',
       'mul',

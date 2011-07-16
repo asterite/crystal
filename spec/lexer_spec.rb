@@ -50,6 +50,10 @@ describe Lexer do
     end
   end
 
+  def self.it_lexes_char(string, value)
+    it_lexes string, :CHAR, value
+  end
+
   it_lexes " ", :SPACE
   it_lexes "\n", :NEWLINE
   it_lexes "\n\n\n", :NEWLINE
@@ -57,5 +61,8 @@ describe Lexer do
   it_lexes_idents "ident", "something", "with_underscores", "with_1", "foo?", "bar!"
   it_lexes_ints "1", ["1hello", "1"], "+1", "-1"
   it_lexes_floats "1.0", ["1.0hello", "1.0"], "+1.0", "-1.0"
+  it_lexes_char "'a'", ?a.ord
+  it_lexes_char "'\\n'", ?\n.ord
+  it_lexes_char "'\\t'", ?\t.ord
   it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", ",", '.', '#=>', "+@", "-@", "&&", "||"
 end

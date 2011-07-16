@@ -251,6 +251,27 @@ module Crystal
     end
   end
 
+  class Char < Expression
+    attr_accessor :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def compile_time_value
+      self
+    end
+
+    def accept(visitor)
+      visitor.visit_char self
+      visitor.end_visit_char self
+    end
+
+    def ==(other)
+      other.is_a?(Char) && other.value.to_i == value.to_i
+    end
+  end
+
   class Prototype < Expression
     attr_accessor :name
     attr_accessor :arg_types

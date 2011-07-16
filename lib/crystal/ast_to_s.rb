@@ -48,6 +48,12 @@ module Crystal
       @str << node.value.to_s
     end
 
+    def visit_char(node)
+      @str << "'"
+      @str << node.value.chr
+      @str << "'"
+    end
+
     def visit_class_reference(node)
       @str << node.klass
     end

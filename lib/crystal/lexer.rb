@@ -27,6 +27,15 @@ module Crystal
       elsif match = scan(/(\+|-)?\d+/)
         @token.type = :INT
         @token.value = match
+      elsif match = scan(/'\\n'/)
+        @token.type = :CHAR
+        @token.value = ?\n.ord
+      elsif match = scan(/'\\t'/)
+        @token.type = :CHAR
+        @token.value = ?\t.ord
+      elsif match = scan(/'.'/)
+        @token.type = :CHAR
+        @token.value = match[1 .. -2].ord
       elsif match = scan(%r(==|=|<=|<|>=|>|\+@|\+|-@|-|\*|/|\(|\)|,|\.|#=>|&&|\|\|))
         @token.type = match.to_sym
       elsif match = scan(/def|elsif|Elsif|else|Else|end|End|if|If|true|false|extern|class|while|nil/)

@@ -135,6 +135,10 @@ module Crystal
       node.resolved_type = @scope.long_class
     end
 
+    def visit_char(node)
+      node.resolved_type = @scope.char_class
+    end
+
     def visit_float(node)
       node.resolved_type = @scope.float_class
     end
