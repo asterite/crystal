@@ -1,6 +1,6 @@
 def printdensity(d)
   if d > 8
-    print '  '
+    print ' '
   elsif d > 4
     print '.'
   elsif d > 2
