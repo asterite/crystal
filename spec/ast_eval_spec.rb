@@ -63,6 +63,7 @@ describe "ast eval" do
   it_evals "false || true", true.bool
   it_evals "1.0", 1.0.float
   it_evals "'a'", Crystal::Char.new(?a.ord)
+  it_evals "'a' == 'a'", true.bool
   it_evals "def foo; end", nil
   it_evals "def foo; end; foo", Crystal::Nil.new
   it_evals "def foo; 1; end", nil
@@ -86,7 +87,7 @@ describe "ast eval" do
   ["1.class", "Int"].each do |string|
     it_evals_class string, "Int"
   end
-  it_evals "extern puti Int #=> Nil; C.puti 1", Crystal::Nil.new
+  it_evals "extern puts_int Int #=> Nil; C.puts_int 1", Crystal::Nil.new
   it_evals "class Int; end", nil
   it_evals "class Int; def foo; 2; end; end; 1.foo", 2.int
   it_evals "class Int; def foo(bar); bar; end; end; 1.foo 2", 2.int

@@ -34,7 +34,9 @@ int crystal_let_float_int(float x, int y) { return x <= y; }
 int crystal_let_int_float(int x, float y) { return x <= y; }
 int crystal_eq_int_float(int x, float y) { return x == y; }
 
-void putb(int x) {
+char crystal_eq_char_char(char x, char y) { return x == y; }
+
+void puts_bool(int x) {
   if (x == 0) {
     printf("true\n");
   } else {
@@ -42,18 +44,34 @@ void putb(int x) {
   }
 }
 
-void puti(int x) {
+void puts_char(char x) {
+  printf("%c\n", x);
+}
+
+void puts_int(int x) {
   printf("%d\n", x);
 }
 
-void putf(float x) {
+void puts_float(float x) {
   printf("%f\n", x);
 }
 
-void putchari(int x) {
+void print_bool(int x) {
+  if (x == 0) {
+    printf("true");
+  } else {
+    printf("false");
+  }
+}
+
+void print_char(char x) {
   printf("%c", x);
 }
 
-void putcharf(float x) {
-  putchar((char) x);
+void print_int(int x) {
+  printf("%d", x);
+}
+
+void print_float(float x) {
+  printf("%f", x);
 }

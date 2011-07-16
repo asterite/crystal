@@ -115,6 +115,13 @@ class Int
   end
 end
 
+class Char
+  extern crystal_eq_char_char Char, Char #=> Bool
+  def ==(other)
+    C.crystal_eq_char_char self, other
+  end
+end
+
 class Long
   extern crystal_eq_long_long Long, Long #=> Bool
   def ==(other)
@@ -215,26 +222,36 @@ class Float
   end
 end
 
-extern putb Bool #=> Nil
-extern puti Int #=> Nil
-extern putf Float #=> Nil
-extern putchari Int #=> Nil
-extern putcharf Float #=> Nil
+extern puts_bool Bool #=> Nil
+extern puts_int Int #=> Nil
+extern puts_char Char #=> Nil
+extern puts_float Float #=> Nil
 
 def puts x
   If x.class == Bool
-    C.putb x
+    C.puts_bool x
+  Elsif x.class == Char
+    C.puts_char x
   Elsif x.class == Int
-    C.puti x
+    C.puts_int x
   Elsif x.class == Float
-    C.putf x
+    C.puts_float x
   End
 end
 
-def putchar x
-  If x.class == Int
-    C.putchari x
+extern print_bool Bool #=> Nil
+extern print_int Int #=> Nil
+extern print_char Char #=> Nil
+extern print_float Float #=> Nil
+
+def print x
+  If x.class == Bool
+    C.print_bool x
+  Elsif x.class == Char
+    C.print_char x
+  Elsif x.class == Int
+    C.print_int x
   Elsif x.class == Float
-    C.putcharf x
+    C.print_float x
   End
 end
