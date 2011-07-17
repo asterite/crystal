@@ -377,7 +377,7 @@ module Crystal
     attr_accessor :name
     attr_accessor :args
 
-    def initialize(obj, name, *args)
+    def initialize(obj, name, args = [])
       @obj = obj
       @obj.parent = self if @obj
       @name = name
@@ -397,7 +397,7 @@ module Crystal
     end
 
     def clone
-      call = Call.new obj ? obj.clone : nil, name, *args.map(&:clone)
+      call = Call.new obj ? obj.clone : nil, name, args.map(&:clone)
       call.line_number = line_number
       call
     end

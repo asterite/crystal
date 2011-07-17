@@ -255,7 +255,7 @@ module Crystal
 
           next_token_skip_space_or_newline
           right = parse_add_or_sub
-          left = Call.new left, method, right
+          left = Call.new left, method, [right]
         else
           return left
         end
@@ -275,11 +275,11 @@ module Crystal
           method = @token.type
           next_token_skip_space_or_newline
           right = parse_mul_or_div
-          left = Call.new left, method, right
+          left = Call.new left, method, [right]
         when :INT
           case @token.value[0]
           when '+', '-'
-            left = Call.new left, @token.value[0].to_sym, Int.new(@token.value)
+            left = Call.new left, @token.value[0].to_sym, [Int.new(@token.value)]
             next_token_skip_space_or_newline
           else
             return left
@@ -303,7 +303,7 @@ module Crystal
           method = @token.type
           next_token_skip_space_or_newline
           right = parse_atomic_with_method
-          left = Call.new left, method, right
+          left = Call.new left, method, [right]
         else
           return left
         end
@@ -328,7 +328,7 @@ module Crystal
           next_token
 
           args = parse_args
-          atomic = args ? (Call.new atomic, name, *args) : (Call.new atomic, name)
+          atomic = args ? (Call.new atomic, name, args) : (Call.new atomic, name)
         when :'='
           break unless atomic.is_a?(Ref)
 
@@ -385,7 +385,7 @@ module Crystal
       next_token
 
       args = parse_args
-      args ? Call.new(nil, name, *args) : Ref.new(name)
+      args ? Call.new(nil, name, args) : Ref.new(name)
     end
 
     def parse_args

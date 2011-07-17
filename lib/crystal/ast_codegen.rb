@@ -413,7 +413,7 @@ module Crystal
         LLVM::Int64.from_i resolved.object_id
       when Var
         # Case when the call is "foo -1" but foo is an arg, not a call
-        call = Call.new(resolved, :'+', args[0])
+        call = Call.new(resolved, :'+', [args[0]])
         call.resolve mod
         call.codegen mod
       else
