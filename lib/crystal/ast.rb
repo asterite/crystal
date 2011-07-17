@@ -376,28 +376,31 @@ module Crystal
     attr_accessor :obj
     attr_accessor :name
     attr_accessor :args
+    attr_accessor :block
 
-    def initialize(obj, name, args = [])
+    def initialize(obj, name, args = [], block = nil)
       @obj = obj
       @obj.parent = self if @obj
       @name = name
       @args = args
       @args.each { |arg| arg.parent = self }
+      @block = block
     end
 
     def accept(visitor)
       if visitor.visit_call self
         args.each { |arg| arg.accept visitor }
+        block.accept visitor if block
       end
       visitor.end_visit_call self
     end
 
     def ==(other)
-      other.is_a?(Call) && other.obj == obj && other.name == name && other.args == args
+      other.is_a?(Call) && other.obj == obj && other.name == name && other.args == args && other.block == block
     end
 
     def clone
-      call = Call.new obj ? obj.clone : nil, name, args.map(&:clone)
+      call = Call.new obj ? obj.clone : nil, name, args.map(&:clone), block ? block.clone : nil
       call.line_number = line_number
       call
     end
@@ -582,6 +585,34 @@ module Crystal
       a_or = Or.new left.clone, right.clone
       a_or.line_number = line_number
       a_or
+    end
+  end
+
+  class Block
+    attr_accessor :args
+    attr_accessor :body
+
+    def initialize(args, body)
+      @args = args
+      @body = Expressions.from body
+    end
+
+    def accept(visitor)
+      if visitor.visit_block self
+        args.each { |arg| arg.accept visitor }
+        body.accept visitor
+      end
+      visitor.end_visit_block self
+    end
+
+    def ==(other)
+      other.is_a?(Block) && other.args == args && other.body == body
+    end
+
+    def clone
+      block = Block.new args.map(&:clone), body.clone
+      block.line_number = line_number
+      block
     end
   end
 end

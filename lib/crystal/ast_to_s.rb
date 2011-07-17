@@ -82,6 +82,28 @@ module Crystal
           @str << ")"
         end
       end
+      if node.block
+        @str << " "
+        node.block.accept self
+      end
+      false
+    end
+
+    def visit_block(node)
+      @str << "do"
+      unless node.args.empty?
+        @str << " |"
+        node.args.each_with_index do |arg, i|
+          @str << ", " if i > 0
+          arg.accept self
+        end
+        @str << "|\n"
+      end
+
+      with_indent do
+        node.body.accept self
+      end
+      @str << "end"
       false
     end
 

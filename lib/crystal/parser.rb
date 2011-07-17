@@ -385,7 +385,42 @@ module Crystal
       next_token
 
       args = parse_args
-      args ? Call.new(nil, name, args) : Ref.new(name)
+      block = nil
+
+      if @token.type == :IDENT && @token.value == :do
+        block_args = []
+        block_body = nil
+
+        next_token_skip_space
+        if @token.type == :'|'
+          next_token_skip_space_or_newline
+          while @token.type != :'|'
+            check :IDENT
+            block_args << Var.new(@token.value)
+            next_token_skip_space_or_newline
+            if @token.type == :','
+              next_token_skip_space_or_newline
+            end
+          end
+          next_token_skip_statement_end
+          block_body = parse_expressions
+        else
+          skip_statement_end
+          block_body = parse_expressions
+        end
+
+        check_ident :end
+        next_token_skip_statement_end
+
+        block = Block.new(block_args, block_body)
+      end
+
+      if block
+        Call.new(nil, name, args, block)
+      else
+        args ? Call.new(nil, name, args) : Ref.new(name)
+      end
+
     end
 
     def parse_args
@@ -409,14 +444,14 @@ module Crystal
           nil
         else
           args = []
-          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :'#=>'
+          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :'#=>' && !is_end_token
             args << parse_expression
             skip_space
             if @token.type == :","
               next_token_skip_space_or_newline
             end
           end
-          next_token_skip_space unless @token.type == :')' || @token.type == :'#=>'
+          next_token_skip_space unless @token.type == :')' || @token.type == :'#=>' || is_end_token
           args
         end
       else
@@ -447,7 +482,7 @@ module Crystal
       return false unless @token.type == :IDENT
 
       case @token.value
-      when :end, :End, :else, :Else, :elsif, :Elsif
+      when :do, :end, :End, :else, :Else, :elsif, :Elsif
         true
       else
         false

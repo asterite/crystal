@@ -31,6 +31,7 @@ module Crystal
       'nil',
       'and',
       'or',
+      'block',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)
