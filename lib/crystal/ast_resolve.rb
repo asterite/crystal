@@ -63,15 +63,26 @@ module Crystal
         instance_args = args.map(&:clone)
         instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
         args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
-        instance = Def.new instance_name, instance_args, body.clone
+        if needs_instance
+          instance = Def.new instance_name, instance_args, body.clone
+        else
+          self.args = instance_args
+          instance = self
+        end
       end
 
       if node.block
         block = scope.define_block node.block
         instance.replace_yields block
-      end
+        instance.accept resolver
 
-      instance.accept resolver
+        scope.remove_expression instance
+
+        instance.name = "#{name}$#{args_types_signature}$#{block.resolved_type}$#{args_values_signature}$"
+        scope.add_expression instance
+      else
+        instance.accept resolver
+      end
       instance
     end
   end

@@ -300,11 +300,13 @@ module Crystal
     attr_accessor :args
     attr_accessor :body
     attr_accessor :block_args_types
+    attr_accessor :needs_instance
 
     def initialize(name, args, body)
       @name = name
       @args = args
       @body = Expressions.from body
+      @needs_instance = true
     end
 
     def accept(visitor)
@@ -392,7 +394,7 @@ module Crystal
       @obj = obj
       @obj.parent = self if @obj
       @name = name
-      @args = args
+      @args = args || []
       @args.each { |arg| arg.parent = self }
       @block = block
     end

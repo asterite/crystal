@@ -46,6 +46,7 @@ module Crystal
       @blocks_count += 1
 
       block_def = Def.new "$block#{@blocks_count}", block.args, block.body
+      block_def.needs_instance = false
       block_def.compile self
       block_def
     end
@@ -75,6 +76,10 @@ module Crystal
 
     def add_c_expression(node)
       @expressions["#{node.name}"] = node
+    end
+
+    def remove_expression(node)
+      @expressions.delete "##{node.name}"
     end
 
     def find_expression(name)

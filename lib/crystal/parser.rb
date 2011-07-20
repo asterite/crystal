@@ -390,31 +390,11 @@ module Crystal
       block = nil
 
       if @token.type == :IDENT && @token.value == :do
-        block_args = []
-        block_body = nil
+        block = parse_block { check_ident :end }
+      end
 
-        next_token_skip_space
-        if @token.type == :'|'
-          next_token_skip_space_or_newline
-          while @token.type != :'|'
-            check :IDENT
-            block_args << Var.new(@token.value)
-            next_token_skip_space_or_newline
-            if @token.type == :','
-              next_token_skip_space_or_newline
-            end
-          end
-          next_token_skip_statement_end
-          block_body = parse_expressions
-        else
-          skip_statement_end
-          block_body = parse_expressions
-        end
-
-        check_ident :end
-        next_token_skip_statement_end
-
-        block = Block.new(block_args, block_body)
+      if @token.type == :'{'
+        block = parse_block { check :'}' }
       end
 
       if block
@@ -422,6 +402,34 @@ module Crystal
       else
         args ? Call.new(nil, name, args) : Ref.new(name)
       end
+    end
+
+    def parse_block
+      block_args = []
+      block_body = nil
+
+      next_token_skip_space
+      if @token.type == :'|'
+        next_token_skip_space_or_newline
+        while @token.type != :'|'
+          check :IDENT
+          block_args << Var.new(@token.value)
+          next_token_skip_space_or_newline
+          if @token.type == :','
+            next_token_skip_space_or_newline
+          end
+        end
+        next_token_skip_statement_end
+        block_body = parse_expressions
+      else
+        skip_statement_end
+        block_body = parse_expressions
+      end
+
+      yield
+      next_token_skip_statement_end
+
+      Block.new(block_args, block_body)
     end
 
     def parse_yield
@@ -432,6 +440,8 @@ module Crystal
 
     def parse_args
       case @token.type
+      when :'{'
+        nil
       when :"("
         args = []
         next_token_skip_space
@@ -447,7 +457,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>', :"="
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>', :"=", :'{'
           nil
         else
           args = []
@@ -486,6 +496,7 @@ module Crystal
     end
 
     def is_end_token
+      return true if @token.type == :'}'
       return false unless @token.type == :IDENT
 
       case @token.value

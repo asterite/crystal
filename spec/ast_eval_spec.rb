@@ -110,4 +110,6 @@ describe "ast eval" do
   it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 2", 3.int
   it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 1; foo 2", 3.int
   it_evals "def foo; yield 1; end; foo do |x| x + 2; end", 3.int
+  it_evals "def foo; yield 1; end; foo do |x| x + 2; end; foo do |x| x + 3; end", 4.int
+  it_evals "def foo; yield 1; end; foo do |x| x + 2; end; foo do |x| x > 0; end", true.bool
 end
