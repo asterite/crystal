@@ -120,6 +120,7 @@ describe Parser do
   it_parses_single_node "foo { 1 }", Call.new(nil, "foo", [], Block.new([], 1.int))
   it_parses_single_node "foo { |a| 1 }", Call.new(nil, "foo", [], Block.new(["a".var], 1.int))
   it_parses_single_node "foo { |a, b| 1 }", Call.new(nil, "foo", [], Block.new(["a".var, "b".var], 1.int))
+  it_parses_single_node "1.foo do; 1; end", Call.new(1.int, "foo", [], Block.new([], 1.int))
 
   it_parses_single_node "yield 1", Yield.new([1.int])
 end

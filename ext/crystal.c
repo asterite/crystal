@@ -38,9 +38,9 @@ char crystal_eq_char_char(char x, char y) { return x == y; }
 
 void puts_bool(int x) {
   if (x == 0) {
-    printf("true\n");
-  } else {
     printf("false\n");
+  } else {
+    printf("true\n");
   }
 }
 

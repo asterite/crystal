@@ -5,6 +5,7 @@
   'ast_eval',
   'ast_resolve',
   'ast_to_s',
+  'ast_yield',
   'lexer',
   'parser',
   'token',

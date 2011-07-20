@@ -328,7 +328,12 @@ module Crystal
           next_token
 
           args = parse_args
-          atomic = args ? (Call.new atomic, name, args) : (Call.new atomic, name)
+          block = parse_block
+          if block
+            atomic = Call.new atomic, name, args, block
+          else
+            atomic = args ? (Call.new atomic, name, args) : (Call.new atomic, name)
+          end
         when :'='
           break unless atomic.is_a?(Ref)
 
@@ -387,24 +392,24 @@ module Crystal
       next_token
 
       args = parse_args
-      block = nil
-
-      if @token.type == :IDENT && @token.value == :do
-        block = parse_block { check_ident :end }
-      end
-
-      if @token.type == :'{'
-        block = parse_block { check :'}' }
-      end
+      block = parse_block
 
       if block
-        Call.new(nil, name, args, block)
+        Call.new nil, name, args, block
       else
-        args ? Call.new(nil, name, args) : Ref.new(name)
+        args && args.length > 0 ? Call.new(nil, name, args) : Ref.new(name)
       end
     end
 
     def parse_block
+      if @token.type == :IDENT && @token.value == :do
+        parse_block2 { check_ident :end }
+      elsif @token.type == :'{'
+        parse_block2 { check :'}' }
+      end
+    end
+
+    def parse_block2
       block_args = []
       block_body = nil
 

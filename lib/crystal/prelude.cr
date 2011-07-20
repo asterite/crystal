@@ -113,6 +113,17 @@ class Int
   def -@
     0 - self
   end
+
+  def times
+    if self > 0
+      n = 0
+      while n < self
+        yield n
+        n = n + 1
+      end
+    end
+    self
+  end
 end
 
 class Char

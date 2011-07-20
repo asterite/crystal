@@ -73,14 +73,12 @@ module Crystal
       else
         @str << "." if node.obj
         @str << node.name.to_s
-        unless node.args.empty?
-          @str << "("
-          node.args.each_with_index do |arg, i|
-            @str << ", " if i > 0
-            arg.accept self
-          end
-          @str << ")"
+        @str << "("
+        node.args.each_with_index do |arg, i|
+          @str << ", " if i > 0
+          arg.accept self
         end
+        @str << ")"
       end
       if node.block
         @str << " "
@@ -115,6 +113,7 @@ module Crystal
       with_indent do
         node.body.accept self
       end
+      append_indent
       @str << "end"
       false
     end
@@ -216,6 +215,7 @@ module Crystal
       node.cond.accept self
       @str << "\n"
       with_indent { node.body.accept self }
+      append_indent
       @str << "end"
       false
     end

@@ -504,13 +504,14 @@ module Crystal
       mod.builder.cond cond_code, while_body_block, while_exit_block
 
       mod.builder.position_at_end while_body_block
-      body.codegen mod
+      code = body.codegen mod
       mod.builder.br while_block
 
       mod.builder.position_at_end start_block
       mod.builder.br while_block
 
       mod.builder.position_at_end while_exit_block
+      code
     end
   end
 

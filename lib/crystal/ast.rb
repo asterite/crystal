@@ -69,6 +69,7 @@ module Crystal
     def initialize(name, body = nil)
       @name = name
       @body = Expressions.from body
+      @body.parent = self
     end
 
     def accept(visitor)
@@ -305,7 +306,9 @@ module Crystal
     def initialize(name, args, body)
       @name = name
       @args = args
+      @args.each { |arg| arg.parent = self } if @args
       @body = Expressions.from body
+      @body.parent = self
       @needs_instance = true
     end
 
@@ -397,6 +400,7 @@ module Crystal
       @args = args || []
       @args.each { |arg| arg.parent = self }
       @block = block
+      @block.parent = self if @block
     end
 
     def accept(visitor)
@@ -433,8 +437,11 @@ module Crystal
 
     def initialize(cond, a_then, a_else = nil)
       @cond = cond
+      @cond.parent = self
       @then = Expressions.from a_then
+      @then.parent = self
       @else = Expressions.from a_else
+      @else.parent = self
     end
 
     def accept(visitor)
@@ -464,8 +471,11 @@ module Crystal
 
     def initialize(cond, a_then, a_else = nil)
       @cond = cond
+      @cond.parent = self
       @then = Expressions.from a_then
+      @then.parent = self
       @else = Expressions.from a_else
+      @else.parent = self
     end
 
     def accept(visitor)
@@ -494,7 +504,9 @@ module Crystal
 
     def initialize(target, value)
       @target = target
+      @target.parent = self
       @value = value
+      @value.parent = self
     end
 
     def accept(visitor)
@@ -522,7 +534,9 @@ module Crystal
 
     def initialize(cond, body = nil)
       @cond = cond
+      @cond.parent = self
       @body = Expressions.from body
+      @body.parent = self
     end
 
     def accept(visitor)
@@ -550,7 +564,9 @@ module Crystal
 
     def initialize(left, right)
       @left = left
+      @left.parent = self
       @right = right
+      @right.parent = self
     end
 
     def accept(visitor)
@@ -578,7 +594,9 @@ module Crystal
 
     def initialize(left, right)
       @left = left
+      @left.parent = self
       @right = right
+      @right.parent = self
     end
 
     def accept(visitor)
@@ -600,13 +618,15 @@ module Crystal
     end
   end
 
-  class Block
+  class Block < Expression
     attr_accessor :args
     attr_accessor :body
 
     def initialize(args, body)
       @args = args
+      @args.each { |arg| arg.parent = self } if @args
       @body = Expressions.from body
+      @body.parent = self
     end
 
     def accept(visitor)
@@ -633,6 +653,7 @@ module Crystal
 
     def initialize(args)
       @args = args
+      @args.each { |arg| arg.parent = self } if @args
     end
 
     def accept(visitor)
