@@ -299,6 +299,7 @@ module Crystal
     attr_accessor :name
     attr_accessor :args
     attr_accessor :body
+    attr_accessor :block_args_types
 
     def initialize(name, args, body)
       @name = name
@@ -322,6 +323,15 @@ module Crystal
       a_def = Def.new name, args.clone, body.clone
       a_def.line_number = line_number
       a_def
+    end
+
+    def replace_yields(block)
+      @body.expressions.each do |exp|
+        if exp.is_a? Yield
+          call = Call.new(nil, block.name, exp.args)
+          @body.replace exp, call
+        end
+      end
     end
   end
 
@@ -613,6 +623,31 @@ module Crystal
       block = Block.new args.map(&:clone), body.clone
       block.line_number = line_number
       block
+    end
+  end
+
+  class Yield < Expression
+    attr_accessor :args
+
+    def initialize(args)
+      @args = args
+    end
+
+    def accept(visitor)
+      if visitor.visit_yield self
+        args.each { |arg| arg.accept visitor }
+      end
+      visitor.end_visit_yield self
+    end
+
+    def ==(other)
+      other.is_a?(Yield) && other.args == args
+    end
+
+    def clone
+      call = Yield.new args.map(&:clone)
+      call.line_number = line_number
+      call
     end
   end
 end

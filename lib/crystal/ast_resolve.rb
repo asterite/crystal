@@ -38,17 +38,17 @@ module Crystal
       @args_length = value
     end
 
-    def instantiate(scope, call_args)
+    def instantiate(resolver, scope, node)
       return self if resolved_type
 
-      args_types = call_args.map &:resolved_type
+      args_types = node.args.map &:resolved_type
       args_types_signature = args_types.join '$'
       args_values = []
       args_values_signature = ""
       args.each_with_index do |arg, i|
         if arg.name[0] == arg.name[0].upcase
-          raise "Argument #{arg} must be known at compile time" unless call_args[i].can_be_evaluated_at_compile_time?
-          arg_value = scope.eval_anon call_args[i]
+          raise "Argument #{arg} must be known at compile time" unless node.args[i].can_be_evaluated_at_compile_time?
+          arg_value = scope.eval_anon node.args[i]
           args_values_signature << "$" unless args_values_signature.empty?
           args_values_signature << arg_value.to_s
           args_values << arg_value
@@ -59,12 +59,19 @@ module Crystal
       instance_name = "#{name}$#{args_types_signature}$#{args_values_signature}$"
 
       instance = scope.find_expression instance_name
-      if !instance
+      unless instance
         instance_args = args.map(&:clone)
         instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
         args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
         instance = Def.new instance_name, instance_args, body.clone
       end
+
+      if node.block
+        block = scope.define_block node.block
+        instance.replace_yields block
+      end
+
+      instance.accept resolver
       instance
     end
   end
@@ -288,12 +295,9 @@ module Crystal
         end
       end
 
-      # If it's already resolved that means it's an intrinsic function
-      instance = exp.instantiate @scope, node.args
+      instance = exp.instantiate self, @scope, node
 
       node.resolved = instance
-      instance.accept self
-
       node.resolved_type = instance.resolved_type
 
       if node.resolved_type == UnknownType
@@ -351,6 +355,10 @@ module Crystal
       node.resolved_type = @scope.bool_class
     end
 
+    def end_visit_yield(node)
+      @scope.yield node
+    end
+
     def merge_types(node, type1, type2)
       return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.nil_class
       return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.nil_class
@@ -403,6 +411,10 @@ module Crystal
       return var if var
 
       @scope.find_expression name
+    end
+
+    def yield(node)
+      @def.block_args_types = node.args.map &:resolved_type
     end
   end
 

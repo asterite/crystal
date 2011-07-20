@@ -41,6 +41,15 @@ module Crystal
       anon_def
     end
 
+    def define_block(block)
+      @blocks_count ||= 0
+      @blocks_count += 1
+
+      block_def = Def.new "$block#{@blocks_count}", block.args, block.body
+      block_def.compile self
+      block_def
+    end
+
     def eval_anon(exp)
       remember_block do
         anon_def = Def.new "$anon", [], [exp]

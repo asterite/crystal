@@ -372,6 +372,8 @@ module Crystal
           node_and_next_token Bool.new(false)
         when :true
           node_and_next_token Bool.new(true)
+        when :yield
+          parse_yield
         else
           parse_ref_or_call
         end
@@ -420,7 +422,12 @@ module Crystal
       else
         args ? Call.new(nil, name, args) : Ref.new(name)
       end
+    end
 
+    def parse_yield
+      next_token
+
+      Yield.new parse_args
     end
 
     def parse_args

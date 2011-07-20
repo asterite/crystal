@@ -76,7 +76,7 @@ describe "ast eval" do
   it_evals "if true; 2; end", 2.int
   it_evals "if false; 3; end", 0.int
   it_evals "if false; 1; else; 3; end", 3.int
-  it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1.int, :focus => true
+  it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1.int
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24.int
   ["Bool.class", "Int.class", "Class"].each do |string|
     it_evals_class string, "Class"
@@ -109,4 +109,5 @@ describe "ast eval" do
   it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 1", 2.int
   it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 2", 3.int
   it_evals "def foo X; If X == 1; 2; Else; 3; End; end; foo 1; foo 2", 3.int
+  it_evals "def foo; yield 1; end; foo do |x| x + 2; end", 3.int
 end

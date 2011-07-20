@@ -32,6 +32,7 @@ module Crystal
       'and',
       'or',
       'block',
+      'yield',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)
