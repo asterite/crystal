@@ -376,6 +376,7 @@ module Crystal
         arg.code = mod.builder.alloca args_types[i], param.name
         mod.builder.store param, arg.code
       end
+      fun.params[fun.params.size - 1].name = "&block" if block
 
       @code = fun
 
