@@ -115,11 +115,22 @@ class Int
   end
 
   def times
-    if self > 0
+    if self >= 0
       n = 0
       while n < self
         yield n
         n = n + 1
+      end
+    end
+    self
+  end
+
+  def upto(n)
+    if self <= n
+      x = self
+      while x <= n
+        yield x
+        x = x + 1
       end
     end
     self

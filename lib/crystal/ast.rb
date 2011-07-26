@@ -300,8 +300,8 @@ module Crystal
     attr_accessor :name
     attr_accessor :args
     attr_accessor :body
-    attr_accessor :block_args_types
     attr_accessor :needs_instance
+    attr_accessor :block
 
     def initialize(name, args, body)
       @name = name
@@ -671,6 +671,31 @@ module Crystal
       call = Yield.new args.map(&:clone)
       call.line_number = line_number
       call
+    end
+  end
+
+  class BlockCall < Expression
+    attr_accessor :block
+    attr_accessor :args
+    attr_accessor :def
+
+    def initialize(block, args)
+      @block = block
+      @block.parent = self
+      @args = args
+      @args.each { |arg| arg.parent = self }
+    end
+
+    def accept(visitor)
+      if visitor.visit_block_call self
+        block.accept visitor
+        args.each { |arg| arg.accept visitor }
+      end
+      visitor.end_visit_block_call self
+    end
+
+    def ==(other)
+      other.is_a?(BlockCall) && other.block == block && other.args == args
     end
   end
 end

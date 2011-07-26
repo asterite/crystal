@@ -87,6 +87,17 @@ module Crystal
       false
     end
 
+    def visit_block_call(node)
+      @str << node.block.name
+      @str << "("
+      node.args.each_with_index do |arg, i|
+        @str << ", " if i > 0
+        arg.accept self
+      end
+      @str << ")"
+      false
+    end
+
     def visit_yield(node)
       @str << "yield"
       unless node.args.empty?

@@ -171,12 +171,14 @@ module Crystal
 
       return false if @scope.is_a?(ClassDefScope)
 
+
       if node.body
         with_new_scope DefScope.new(@scope, node) do
           node.body.accept self
         end
         node.resolved_type = node.body.resolved_type
       end
+
       false
     end
 
@@ -370,6 +372,17 @@ module Crystal
       @scope.yield node
     end
 
+    def visit_block_call(node)
+      node.args.each { |arg| arg.accept self }
+      node.args.each_with_index do |arg, i|
+        node.block.args[i].resolved_type = arg.resolved_type
+      end
+      node.block.accept self
+      node.resolved_type = node.block.resolved_type
+      @scope.block = node.block
+      false
+    end
+
     def merge_types(node, type1, type2)
       return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.nil_class
       return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.nil_class
@@ -402,6 +415,10 @@ module Crystal
       @local_variables = {}
     end
 
+    def block=(block)
+      @def.block = block
+    end
+
     def global?
       @def.is_a? TopLevelDef
     end
@@ -422,10 +439,6 @@ module Crystal
       return var if var
 
       @scope.find_expression name
-    end
-
-    def yield(node)
-      @def.block_args_types = node.args.map &:resolved_type
     end
   end
 

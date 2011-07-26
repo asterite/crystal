@@ -363,6 +363,8 @@ module Crystal
       mod.module.functions.delete fun if fun
 
       args_types = args.map { |arg| arg.resolved_type.llvm_type }
+      args_types << block.llvm_type(mod) if block
+
       fun = mod.module.functions.add name, args_types, resolved_type.llvm_type
 
       entry = fun.basic_blocks.append 'entry'
@@ -386,10 +388,6 @@ module Crystal
         mod.builder.ret code
       end
 
-      #p "!!!"
-      #mod.dump
-      #p "!!!"
-
       # fun.dump
 
       fun.verify
@@ -397,6 +395,12 @@ module Crystal
 
       # fun.dump
       fun
+    end
+
+    def llvm_type(mod)
+      arg_types = args.map { |x| x.resolved_type.llvm_type }
+      return_type = resolved_type.llvm_type
+      LLVM::Pointer LLVM::Function(arg_types, return_type)
     end
 
     def optimize(fun)
@@ -434,6 +438,10 @@ module Crystal
         resolved_code = mod.remember_block { resolved.codegen mod }
         resolved_args = self.args.map do |arg|
           mod.remember_block { arg.codegen(mod) }
+        end
+        if resolved.is_a?(Def) && resolved.block
+          fun = mod.remember_block { resolved.block.codegen(mod) }
+          resolved_args << fun
         end
         resolved_args.push('calltmp') if resolved.resolved_type != mod.nil_class
 
@@ -546,6 +554,19 @@ module Crystal
       left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'
       right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'rightandtmp'
       mod.builder.or left_code, right_code, 'andtmp'
+    end
+  end
+
+  class BlockCall
+    def codegen(mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      resolved_args = args.map do |arg|
+        mod.remember_block { arg.codegen(mod) }
+      end
+
+      mod.builder.call fun.params[fun.params.size - 1], *resolved_args
     end
   end
 end
