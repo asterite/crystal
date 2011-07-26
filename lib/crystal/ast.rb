@@ -392,6 +392,7 @@ module Crystal
     attr_accessor :name
     attr_accessor :args
     attr_accessor :block
+    attr_accessor :resolved_block
 
     def initialize(obj, name, args = [], block = nil)
       @obj = obj

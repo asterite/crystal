@@ -59,7 +59,7 @@ module Crystal
       instance_name = "#{name}$#{args_types_signature}$#{args_values_signature}$"
 
       instance = scope.find_expression instance_name
-      unless instance
+      if !instance || node.block
         instance_args = args.map(&:clone)
         instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
         args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
@@ -79,6 +79,7 @@ module Crystal
         scope.remove_expression instance
 
         instance.name = "#{name}$#{args_types_signature}$#{block.resolved_type}$#{args_values_signature}$"
+        instance.block = block
         scope.add_expression instance
       else
         instance.accept resolver
@@ -309,6 +310,7 @@ module Crystal
       end
 
       instance = exp.instantiate self, @scope, node
+      node.resolved_block = instance.block
 
       node.resolved = instance
       node.resolved_type = instance.resolved_type
@@ -379,7 +381,6 @@ module Crystal
       end
       node.block.accept self
       node.resolved_type = node.block.resolved_type
-      @scope.block = node.block
       false
     end
 
@@ -413,10 +414,6 @@ module Crystal
       @scope = scope
       @def = a_def
       @local_variables = {}
-    end
-
-    def block=(block)
-      @def.block = block
     end
 
     def global?

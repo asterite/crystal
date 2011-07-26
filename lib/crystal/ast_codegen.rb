@@ -440,8 +440,8 @@ module Crystal
         resolved_args = self.args.map do |arg|
           mod.remember_block { arg.codegen(mod) }
         end
-        if resolved.is_a?(Def) && resolved.block
-          fun = mod.remember_block { resolved.block.codegen(mod) }
+        if resolved_block
+          fun = mod.remember_block { resolved_block.codegen(mod) }
           resolved_args << fun
         end
         resolved_args.push('calltmp') if resolved.resolved_type != mod.nil_class
@@ -538,7 +538,7 @@ module Crystal
       end
 
       mod.builder.store value.codegen(mod), alloca
-      mod.builder.load target.resolved.code
+      mod.builder.load target.resolved.code, target.name
     end
   end
 
