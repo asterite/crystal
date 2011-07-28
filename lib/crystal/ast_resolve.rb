@@ -67,6 +67,11 @@ module Crystal
       end
 
       if node.block
+        args_count = instance.count_yield_args
+        while node.block.args.length < args_count
+          node.block.args << Var.new('%missing')
+        end
+
         block = scope.define_block node.block
         instance.replace_yield block
         instance.accept resolver

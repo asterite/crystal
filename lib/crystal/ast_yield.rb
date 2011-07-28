@@ -9,6 +9,12 @@ module Crystal
       visitor = ReplaceYieldVisitor.new block
       self.accept visitor
     end
+
+    def count_yield_args
+      visitor = CountYieldArgsVisitor.new
+      self.accept visitor
+      visitor.count
+    end
   end
 
   class ReplaceYieldVisitor < Visitor
@@ -18,6 +24,18 @@ module Crystal
 
     def visit_yield(node)
       node.parent.replace node, BlockCall.new(@block, node.args)
+    end
+  end
+
+  class CountYieldArgsVisitor < Visitor
+    attr_accessor :count
+
+    def initialize
+      @count = 0
+    end
+
+    def visit_yield(node)
+      @count = node.args.length
     end
   end
 end
