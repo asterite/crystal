@@ -63,12 +63,7 @@ module Crystal
         instance_args = args.map(&:clone)
         instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
         args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
-        if needs_instance
-          instance = Def.new instance_name, instance_args, body.clone
-        else
-          self.args = instance_args
-          instance = self
-        end
+        instance = Def.new instance_name, instance_args, body.clone
       end
 
       if node.block
@@ -168,10 +163,11 @@ module Crystal
     end
 
     def visit_def(node)
+      return false if node.resolved_type
+
       @scope.add_expression node
 
       return false if @scope.is_a?(ClassDefScope)
-
 
       if node.body
         with_new_scope DefScope.new(@scope, node) do
@@ -404,6 +400,14 @@ module Crystal
   end
 
   class Scope
+    def next
+      @scope
+    end
+
+    def parent
+      @scope
+    end
+
     def method_missing(name, *args)
       @scope.send name, *args
     end
@@ -435,8 +439,19 @@ module Crystal
       var = @local_variables[name]
       return var if var
 
-      @scope.find_expression name
+      self.next.find_expression name
     end
+
+    def next
+      tentative = @scope
+      tentative = tentative.parent while tentative.is_a? DefScope
+      tentative
+    end
+
+    def to_s
+      "Def<#{@def.name}> -> #{@scope.to_s}"
+    end
+    alias inspect to_s
   end
 
   class ClassDefScope < Scope
@@ -456,5 +471,10 @@ module Crystal
       node.args_length = node.args.length - 1
       @class.define_method name, node
     end
+
+    def to_s
+      "Class<#{@class.name}> -> #{@scope.to_s}"
+    end
+    alias inspect to_s
   end
 end

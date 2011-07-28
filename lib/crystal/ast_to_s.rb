@@ -132,12 +132,17 @@ module Crystal
     def visit_def(node)
       @str << "def "
       @str << node.name.to_s
-      unless node.args.empty?
+      if node.args.length > 0 || node.block
         @str << "("
         node.args.each_with_index do |arg, i|
           @str << ", " if i > 0
           arg.accept self
           i += 1
+        end
+        if node.block
+          @str << ", " unless node.args.empty?
+          @str << '&'
+          @str << node.block.name
         end
         @str << ")"
       end

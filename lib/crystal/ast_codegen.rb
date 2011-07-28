@@ -46,7 +46,6 @@ module Crystal
       @blocks_count += 1
 
       block_def = Def.new "$block#{@blocks_count}", block.args, block.body
-      block_def.needs_instance = false
       block_def.compile self
       block_def
     end
@@ -366,6 +365,7 @@ module Crystal
       args_types << block.llvm_type(mod) if block
 
       fun = mod.module.functions.add name, args_types, resolved_type.llvm_type
+      @code = fun
 
       entry = fun.basic_blocks.append 'entry'
       mod.builder.position_at_end entry
@@ -377,8 +377,6 @@ module Crystal
         mod.builder.store param, arg.code
       end
       fun.params[fun.params.size - 1].name = "&block" if block
-
-      @code = fun
 
       optimize fun
 

@@ -115,7 +115,7 @@ class Int
   end
 
   def times
-    if self >= 0
+    if self > 0
       n = 0
       while n < self
         yield n

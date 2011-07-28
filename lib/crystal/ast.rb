@@ -300,7 +300,6 @@ module Crystal
     attr_accessor :name
     attr_accessor :args
     attr_accessor :body
-    attr_accessor :needs_instance
     attr_accessor :block
 
     def initialize(name, args, body)
@@ -309,7 +308,6 @@ module Crystal
       @args.each { |arg| arg.parent = self } if @args
       @body = Expressions.from body
       @body.parent = self
-      @needs_instance = true
     end
 
     def accept(visitor)
@@ -325,7 +323,7 @@ module Crystal
     end
 
     def clone
-      a_def = Def.new name, args.clone, body.clone
+      a_def = Def.new name, args.map(&:clone), body.clone
       a_def.line_number = line_number
       a_def
     end
@@ -381,7 +379,7 @@ module Crystal
     end
 
     def clone
-      var = Var.new name, resolved_type
+      var = Var.new name
       var.line_number = line_number
       var
     end
