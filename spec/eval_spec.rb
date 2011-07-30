@@ -114,7 +114,7 @@ describe "ast eval" do
   it_evals "def foo; yield 1; end; foo { |x| x + 2 }; foo { |x| x > 0 }", true.bool
   it_evals "class Int; def foo; yield 1; end; end; 1.foo { |x| x + 2 }", 3.int
   it_evals "def foo; if true; while false; 1; end; end; 1; end; foo", 1.int
-  it_evals "5.times { |x| x }", 5.int
-  #it_evals "5.times { |x| 5.times { |y| y } }", 5.int
-  it_evals "5.times { 1 }", 5.int, :focus => true
+  it_evals "5.times { |x| x }", 5.int, :focus => true
+  # it_evals "5.times { |x| 5.times { |y| y } }", 5.int, :focus => true
+  it_evals "5.times { 1 }", 5.int
 end
