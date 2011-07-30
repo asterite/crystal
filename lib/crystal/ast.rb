@@ -283,6 +283,14 @@ module Crystal
       @resolved_type = resolved_type
     end
 
+    def args_length_is(length)
+      @arg_types.length == length - 1
+    end
+
+    def args_length
+      @arg_types.length
+    end
+
     def accept(visitor)
       if visitor.visit_prototype self
         arg_types.each { |type| type.accept visitor }
@@ -308,6 +316,18 @@ module Crystal
       @args.each { |arg| arg.parent = self } if @args
       @body = Expressions.from body
       @body.parent = self
+    end
+
+    def args_length_is(length)
+      args.length == length
+    end
+
+    def args_length
+      @args_length || args.length
+    end
+
+    def args_length=(value)
+      @args_length = value
     end
 
     def accept(visitor)
@@ -369,6 +389,10 @@ module Crystal
       @resolved_type = resolved_type
     end
 
+    def constant?
+      name[0] == name[0].upcase
+    end
+
     def accept(visitor)
       visitor.visit_var self
       visitor.end_visit_var self
@@ -400,6 +424,10 @@ module Crystal
       @args.each { |arg| arg.parent = self }
       @block = block
       @block.parent = self if @block
+    end
+
+    def args_length
+      args.length
     end
 
     def accept(visitor)
@@ -500,6 +528,7 @@ module Crystal
   class Assign < Expression
     attr_accessor :target
     attr_accessor :value
+    attr_accessor :global
 
     def initialize(target, value)
       @target = target
