@@ -174,7 +174,12 @@ module Crystal
       # This is to prevent recursive resolutions
       node.resolved_type = UnknownType
 
-      resolve_method_call node if node.obj
+      parent = node.parent
+      replacement = resolve_method_call node if node.obj
+      if replacement
+        parent.replace node, replacement
+        return false
+      end
       resolve_function_call node
 
       false
@@ -185,8 +190,15 @@ module Crystal
       resolved_type = node.obj.resolved_type
 
       exp = @scope.find_expression "#{resolved_type}##{node.name}"
-      if !exp
-        exp = resolved_type.find_method(node.name) or raise_error node, "undefined method '#{node.name}' for #{resolved_type}"
+      unless exp
+        exp = resolved_type.find_method(node.name)
+        unless exp
+          # Special case: rewrite a != b as !(a == b)
+          return new_not_equals(node) if node.name == :'!='
+
+          raise_error node, "undefined method '#{node.name}' for #{resolved_type}"
+        end
+
         @scope.add_expression exp
       end
 
@@ -197,6 +209,7 @@ module Crystal
       node.args = [node.obj] + node.args
       node.name = exp.name
       node.obj = nil
+      nil
     end
 
     def resolve_function_call(node)
@@ -256,6 +269,14 @@ module Crystal
       end
     end
 
+    def new_not_equals(node)
+      node.name = :'=='
+      node.resolved_type = nil
+      not_node = Not.new node
+      not_node.accept self
+      return not_node
+    end
+
     def visit_if(node)
       node.cond.accept self
       raise_error node, "if condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
@@ -289,12 +310,29 @@ module Crystal
       false
     end
 
-    def end_visit_and(node)
+    def visit_not(node)
+      node.exp.accept self
+      raise_error node, "! condition must be Bool" unless node.exp.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
+      false
     end
 
-    def end_visit_or(node)
+    def visit_and(node)
+      node.left.accept self
+      node.right.accept self
+      raise_error node, "left && condition must be Bool" unless node.left.resolved_type == @scope.bool_class
+      raise_error node, "right && condition must be Bool" unless node.right.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
+      false
+    end
+
+    def visit_or(node)
+      node.left.accept self
+      node.right.accept self
+      raise_error node, "left || condition must be Bool" unless node.left.resolved_type == @scope.bool_class
+      raise_error node, "right || condition must be Bool" unless node.right.resolved_type == @scope.bool_class
+      node.resolved_type = @scope.bool_class
+      false
     end
 
     def end_visit_yield(node)

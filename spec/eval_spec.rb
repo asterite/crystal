@@ -51,10 +51,13 @@ describe "ast eval" do
   it_evals "8 >= 9.0", false.bool
   it_evals "8 == 8", true.bool
   it_evals "8 == 9", false.bool
+  it_evals "8 != 8", false.bool
+  it_evals "8 == 8", true.bool
   it_evals "8.0 == 9", false.bool
   it_evals "8 == 9.0", false.bool
   it_evals "true == false", false.bool
   it_evals "true == true", true.bool
+  it_evals "!true", false.bool
   it_evals "+ 1", 1.int
   it_evals "- 1", -1.int
   it_evals "false && true", false.bool
@@ -118,4 +121,5 @@ describe "ast eval" do
   it_evals "5.times { |x| x }", 5.int
   #it_evals "5.times { |x| 5.times { |y| y } }", 5.int
   it_evals "5.times { 1 }", 5.int
+  it_evals "class Int; def !=(other); self + other == 42; end; end; 21 != 21", true.bool
 end

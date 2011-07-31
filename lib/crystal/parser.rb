@@ -74,7 +74,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :"<", :"<=", :"==", :">", :">=", :"+", :"-", :"*", :"/", :"+@", :"-@"
+      check :IDENT, :"=", :"<", :"<=", :"==", :"!=", :">", :">=", :"+", :"-", :"*", :"/", :"+@", :"-@"
 
       name = @token.type == :IDENT ? @token.value : @token.type
       args = []
@@ -277,7 +277,7 @@ module Crystal
         case @token.type
         when :SPACE
           next_token
-        when :"<", :"<=", :"==", :">", :">="
+        when :"<", :"<=", :"==", :"!=", :">", :">="
           method = @token.type
 
           next_token_skip_space_or_newline
@@ -350,7 +350,7 @@ module Crystal
           next_token
         when :'.'
           next_token_skip_space_or_newline
-          check :IDENT, :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">="
+          check :IDENT, :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :"!=", :">", :">="
           name = @token.type == :IDENT ? @token.value : @token.type
           next_token
 
@@ -384,6 +384,9 @@ module Crystal
         check :')'
         next_token_skip_statement_end
         exp
+      when :"!"
+        next_token_skip_space_or_newline
+        Not.new parse_expression
       when :"+"
         next_token_skip_space_or_newline
         Call.new parse_expression, :"+@"
@@ -489,7 +492,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>', :"=", :'{', :'?', :':'
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :"!=", :">", :">=", :'#=>', :"=", :'{', :'?', :':'
           nil
         else
           args = []

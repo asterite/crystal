@@ -29,6 +29,7 @@ module Crystal
       'assign',
       'while',
       'nil',
+      'not',
       'and',
       'or',
       'block',

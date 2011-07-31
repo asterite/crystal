@@ -588,6 +588,32 @@ module Crystal
     end
   end
 
+  class Not < Expression
+    attr_accessor :exp
+
+    def initialize(exp)
+      @exp = exp
+      @exp.parent = self
+    end
+
+    def accept(visitor)
+      if visitor.visit_not self
+        exp.accept visitor
+      end
+      visitor.end_visit_not self
+    end
+
+    def ==(other)
+      other.is_a?(Not) && other.exp == exp
+    end
+
+    def clone
+      a_not = Not.new exp.clone
+      a_not.line_number = line_number
+      a_not
+    end
+  end
+
   class And < Expression
     attr_accessor :left
     attr_accessor :right

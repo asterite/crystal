@@ -360,6 +360,13 @@ module Crystal
     end
   end
 
+  class Not
+    def codegen(mod)
+      exp_code = exp.codegen(mod)
+      mod.builder.not exp_code, 'nottmp'
+    end
+  end
+
   class And
     def codegen(mod)
       left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'

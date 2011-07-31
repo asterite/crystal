@@ -240,6 +240,13 @@ module Crystal
       false
     end
 
+    def visit_not(node)
+      @str << "!("
+      node.exp.accept self
+      @str << ")"
+      false
+    end
+
     def visit_and(node)
       node.left.accept self
       @str << " && "
