@@ -17,18 +17,13 @@ module Crystal
     def initialize(scope, a_def)
       @scope = scope
       @def = a_def
-      @local_variables = {}
-    end
-
-    def global?
-      @def.is_a? TopLevelDef
     end
 
     def add_expression(node)
       if @def.is_a?(TopLevelDef) || node.is_a?(Def) || node.is_a?(Prototype)
         @scope.add_expression node
       else
-        @local_variables[node.name] = node
+        @def.local_variables[node.name] = node
       end
     end
 
@@ -36,7 +31,7 @@ module Crystal
       arg = @def.args.select{|arg| arg.name == name}.first
       return arg if arg
 
-      var = @local_variables[name]
+      var = @def.local_variables[name]
       return var if var
 
       self.next.find_expression name
@@ -58,10 +53,6 @@ module Crystal
     def initialize(scope, a_class)
       @scope = scope
       @class = a_class
-    end
-
-    def global?
-      true
     end
 
     def add_expression(node)

@@ -151,12 +151,12 @@ module Crystal
         end
       else
         var = Var.new(node.target.name, node.value.resolved_type)
+
         @scope.add_expression var
         node.target.resolved = var
       end
 
       node.resolved_type = node.value.resolved_type
-      node.global = @scope.global?
 
       false
     end

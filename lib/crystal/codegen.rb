@@ -190,6 +190,8 @@ module Crystal
       entry = fun.basic_blocks.append 'entry'
       mod.builder.position_at_end entry
 
+      @local_variables.each { |name, var| var.alloca(mod) }
+
       args.each_with_index do |arg, i|
         param = fun.params[i]
         param.name = arg.name
@@ -277,6 +279,10 @@ module Crystal
         mod.builder.load code, name
       end
     end
+
+    def alloca(mod)
+      @code = mod.builder.alloca(resolved_type.llvm_type, name)
+    end
   end
 
   class If
@@ -344,18 +350,13 @@ module Crystal
 
   class Assign
     def codegen(mod)
-      alloca = target.resolved.code
-      unless alloca
-        if global
-          alloca = target.resolved.code = mod.module.globals.add(resolved_type.llvm_type, target.name)
-          alloca.linkage = :internal
-          alloca.initializer = LLVM::Constant.undef resolved_type.llvm_type
-        else
-          alloca = target.resolved.code = mod.builder.alloca(resolved_type.llvm_type, target.name)
-        end
+      unless target.resolved.code
+        target.resolved.code = mod.module.globals.add(resolved_type.llvm_type, target.name)
+        target.resolved.code.linkage = :internal
+        target.resolved.code.initializer = LLVM::Constant.undef resolved_type.llvm_type
       end
 
-      mod.builder.store value.codegen(mod), alloca
+      mod.builder.store value.codegen(mod), target.resolved.code
       mod.builder.load target.resolved.code, target.name
     end
   end

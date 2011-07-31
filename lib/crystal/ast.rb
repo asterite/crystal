@@ -311,6 +311,7 @@ module Crystal
     attr_accessor :args
     attr_accessor :body
     attr_accessor :block
+    attr_accessor :local_variables
 
     def initialize(name, args, body)
       @name = name
@@ -318,6 +319,7 @@ module Crystal
       @args.each { |arg| arg.parent = self } if @args
       @body = Expressions.from body
       @body.parent = self
+      @local_variables = {}
     end
 
     def args_length_is(length)
@@ -530,7 +532,6 @@ module Crystal
   class Assign < Expression
     attr_accessor :target
     attr_accessor :value
-    attr_accessor :global
 
     def initialize(target, value)
       @target = target
