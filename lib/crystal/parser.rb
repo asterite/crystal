@@ -50,14 +50,24 @@ module Crystal
       check :IDENT
 
       name = @token.value
-      next_token_skip_statement_end
+      next_token_skip_space
+
+      superclass = nil
+
+      if @token.type == :'<'
+        next_token_skip_space_or_newline
+        check :IDENT
+        superclass = @token.value
+        next_token
+      end
+      skip_statement_end
 
       body = parse_expressions
 
       check_ident :end
       next_token_skip_statement_end
 
-      class_def = ClassDef.new name, body
+      class_def = ClassDef.new name, body, superclass
       class_def.line_number = line_number
       class_def
     end

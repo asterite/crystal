@@ -65,11 +65,13 @@ module Crystal
   class ClassDef < Expression
     attr_accessor :name
     attr_accessor :body
+    attr_accessor :superclass
 
-    def initialize(name, body = nil)
+    def initialize(name, body = nil, superclass = nil)
       @name = name
       @body = Expressions.from body
       @body.parent = self
+      @superclass = superclass
     end
 
     def accept(visitor)
@@ -78,11 +80,11 @@ module Crystal
     end
 
     def ==(other)
-      other.is_a?(ClassDef) && other.name == name && other.body == body
+      other.is_a?(ClassDef) && other.name == name && other.body == body && other.superclass == superclass
     end
 
     def clone
-      class_def = ClassDef.new name, body.clone
+      class_def = ClassDef.new name, body.clone, superclass
       class_def.line_number = line_number
       class_def
     end

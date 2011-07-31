@@ -92,6 +92,7 @@ describe "ast eval" do
   it_evals "class Int; def foo; 2; end; end; 1.foo", 2.int
   it_evals "class Int; def foo(bar); bar; end; end; 1.foo 2", 2.int
   it_evals "class Int; def foo(bar, baz); bar + baz; end; end; 1.foo 2, 3", 5.int
+  it_evals "class Foo < Int; end;", nil
   it_evals "def foo x; x = 3; x; end; foo 2", 3.int
   it_evals "def foo x; x = 3; end; foo 2", 3.int
   it_evals "def foo; x = 3; x; end; foo", 3.int

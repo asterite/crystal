@@ -102,6 +102,7 @@ describe Parser do
   it_parses_single_node "class Foo; end", ClassDef.new("Foo")
   it_parses_single_node "class Foo\nend", ClassDef.new("Foo")
   it_parses_single_node "class Foo\ndef foo; end; end", ClassDef.new("Foo", [Def.new("foo", [], nil)])
+  it_parses_single_node "class Foo < Bar; end", ClassDef.new("Foo", nil, "Bar")
 
   it_parses_single_node "a = 1", Assign.new("a".ref, 1.int)
 
@@ -124,5 +125,5 @@ describe Parser do
 
   it_parses_single_node "yield 1", Yield.new([1.int])
   it_parses_single_node "1 ? 2 : 3", If.new(1.int, 2.int, 3.int)
-  it_parses_single_node "1 ? a : b", If.new(1.int, "a".ref, "b".ref), :focus => true
+  it_parses_single_node "1 ? a : b", If.new(1.int, "a".ref, "b".ref)
 end

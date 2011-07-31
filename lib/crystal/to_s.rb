@@ -213,6 +213,10 @@ module Crystal
     def visit_class_def(node)
       @str << "class "
       @str << node.name
+      if node.superclass
+        @str << " < "
+        @str << node.superclass
+      end
       @str << "\n"
       with_indent { node.body.accept self }
       @str << "end"

@@ -4,6 +4,7 @@ module Crystal
     attr_reader :class_class
     attr_reader :nil_class
     attr_reader :bool_class
+    attr_reader :number_class
     attr_reader :int_class
     attr_reader :long_class
     attr_reader :float_class
@@ -15,6 +16,7 @@ module Crystal
       define_c_class
       define_nil_class
       define_bool_class
+      define_number_class
       define_int_class
       define_long_class
       define_float_class
@@ -39,8 +41,12 @@ module Crystal
       @bool_class = define_class BoolClass.new("Bool", @object_class)
     end
 
+    def define_number_class
+      @number_class = define_class Class.new("Number", @object_class)
+    end
+
     def define_int_class
-      @int_class = define_class IntClass.new("Int", @object_class)
+      @int_class = define_class IntClass.new("Int", @number_class)
     end
 
     def define_long_class
@@ -48,7 +54,7 @@ module Crystal
     end
 
     def define_float_class
-      @float_class = define_class FloatClass.new("Float", @object_class)
+      @float_class = define_class FloatClass.new("Float", @number_class)
     end
 
     def define_char_class

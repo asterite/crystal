@@ -19,7 +19,25 @@ class Bool
   end
 end
 
-class Int
+class Number
+  def +@
+    self
+  end
+
+  def -@
+    0 - self
+  end
+
+  def abs
+    self >= 0 ? self : -self
+  end
+
+  def zero?
+    self == 0
+  end
+end
+
+class Int < Number
   extern crystal_add_int_int Int, Int #=> Int
   extern crystal_add_int_float Int, Float #=> Float
   def +(other)
@@ -106,18 +124,6 @@ class Int
     End
   end
 
-  def +@
-    self
-  end
-
-  def -@
-    0 - self
-  end
-
-  def abs
-    self >= 0 ? self : -self
-  end
-
   def times
     if self > 0
       n = 0
@@ -155,7 +161,7 @@ class Long
   end
 end
 
-class Float
+class Float < Number
   extern crystal_add_float_float Float, Float #=> Float
   def +(other)
     If other.class == Int
@@ -237,18 +243,6 @@ class Float
     Elsif other.class == Float
       C.crystal_let_float_float other, self
     End
-  end
-
-  def +@
-    self
-  end
-
-  def -@
-    0 - self
-  end
-
-  def abs
-    self >= 0 ? self : -self
   end
 end
 
