@@ -42,6 +42,8 @@ module Crystal
 
         instance.name = instance_name name, args_types_signature, args_values_signature, block.resolved_type
         instance.block = block
+
+        scope.add_expression instance
       else
         instance.accept resolver
       end
@@ -50,7 +52,7 @@ module Crystal
 
     def instance_name(name, args_types, args_values, block_type = nil)
       i = "#{name}"
-      i << "<#{args_types}>" if args_types.length > 0
+      i << "<#{args_types}>"
       i << "(#{args_values})" if args_values.length > 0
       i << "&#{block_type}" if block_type
       i

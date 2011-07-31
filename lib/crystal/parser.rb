@@ -40,7 +40,7 @@ module Crystal
         end
       end
 
-      parse_and
+      parse_primary_expression
     end
 
     def parse_class
@@ -198,6 +198,23 @@ module Crystal
       next_token_skip_space
       return_type = parse_expression
       Prototype.new name, (args_types || []), return_type
+    end
+
+    def parse_primary_expression
+      parse_question_colon
+    end
+
+    def parse_question_colon
+      cond = parse_and
+      if @token.type == :'?'
+        next_token_skip_space_or_newline
+        true_val = parse_expression
+        check :':'
+        next_token_skip_space_or_newline
+        false_val = parse_expression
+        cond = If.new(cond, true_val, false_val)
+      end
+      cond
     end
 
     def parse_and
@@ -462,7 +479,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>', :"=", :'{'
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :">", :">=", :'#=>', :"=", :'{', :'?', :':'
           nil
         else
           args = []

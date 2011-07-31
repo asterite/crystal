@@ -114,6 +114,10 @@ class Int
     0 - self
   end
 
+  def abs
+    self >= 0 ? self : -self
+  end
+
   def times
     if self > 0
       n = 0
@@ -241,6 +245,10 @@ class Float
 
   def -@
     0 - self
+  end
+
+  def abs
+    self >= 0 ? self : -self
   end
 end
 

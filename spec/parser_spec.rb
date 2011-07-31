@@ -123,4 +123,6 @@ describe Parser do
   it_parses_single_node "1.foo do; 1; end", Call.new(1.int, "foo", [], Block.new([], 1.int))
 
   it_parses_single_node "yield 1", Yield.new([1.int])
+  it_parses_single_node "1 ? 2 : 3", If.new(1.int, 2.int, 3.int)
+  it_parses_single_node "1 ? a : b", If.new(1.int, "a".ref, "b".ref), :focus => true
 end
