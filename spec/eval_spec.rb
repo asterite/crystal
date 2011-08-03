@@ -119,7 +119,7 @@ describe "ast eval" do
   it_evals "class Int; def foo; yield 1; end; end; 1.foo { |x| x + 2 }", 3.int
   it_evals "def foo; if true; while false; 1; end; end; 1; end; foo", 1.int
   it_evals "5.times { |x| x }", 5.int
-  #it_evals "5.times { |x| 5.times { |y| y } }", 5.int
+  it_evals "5.times { |x| 5.times { |y| y } }", 5.int
   it_evals "5.times { 1 }", 5.int
   it_evals "class Int; def !=(other); self + other == 42; end; end; 21 != 21", true.bool
 end

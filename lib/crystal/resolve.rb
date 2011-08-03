@@ -43,6 +43,7 @@ module Crystal
 
     def visit_expressions(node)
       if node.expressions.empty?
+        node.resolved_type = @scope.nil_class
       else
         node.expressions.each { |exp| exp.accept self }
         node.resolved_type = node.expressions.last.resolved_type
