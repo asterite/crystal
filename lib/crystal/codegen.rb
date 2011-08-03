@@ -20,8 +20,6 @@ module Crystal
     attr_reader :fpm
 
     def initialize
-      $module = self
-
       @expressions = {}
       @module = LLVM::Module.new ''
       @builder = LLVM::Builder.new
@@ -209,7 +207,7 @@ module Crystal
         mod.builder.ret code
       end
 
-      # fun.dump
+      #fun.dump
 
       fun.verify
       mod.fpm.run fun
@@ -260,6 +258,7 @@ module Crystal
         resolved_args = self.args.map do |arg|
           mod.remember_block { arg.codegen(mod) }
         end
+
         if resolved_block
           fun = mod.remember_block { resolved_block.codegen(mod) }
           resolved_args << fun

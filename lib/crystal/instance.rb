@@ -41,6 +41,10 @@ module Crystal
         scope.remove_expression instance
 
         instance.name = instance_name name, args_types_signature, args_values_signature, block.resolved_type
+
+        existing_instance = scope.find_expression instance.name
+        instance = existing_instance if existing_instance
+
         instance.block = block
 
         scope.add_expression instance
