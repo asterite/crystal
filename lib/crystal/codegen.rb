@@ -33,7 +33,7 @@ module Crystal
       @top_level_expressions_count ||= 0
       @top_level_expressions_count += 1
 
-      anon_def = TopLevelDef.new "$main#{@top_level_expressions_count}", [], [exp]
+      anon_def = TopLevelDef.new "&main#{@top_level_expressions_count}", [], [exp]
       anon_def.resolve self
       anon_def.codegen self
       anon_def
@@ -43,14 +43,15 @@ module Crystal
       @blocks_count ||= 0
       @blocks_count += 1
 
-      block_def = Def.new "$block#{@blocks_count}", block.args, block.body
+      block_def = Def.new "&block#{@blocks_count}", block.args, block.body
+      block_def.context = BlockContext.new
       block_def.compile self
       block_def
     end
 
     def eval_anon(exp)
       remember_block do
-        anon_def = Def.new "$anon", [], [exp]
+        anon_def = Def.new "&anon", [], [exp]
         anon_def.resolve self
         anon_def.codegen self
         run anon_def
@@ -85,7 +86,7 @@ module Crystal
     end
 
     def create_main
-      funcs = @module.functions.select { |f| f.name.start_with? '$main' }
+      funcs = @module.functions.select { |f| f.name.start_with? '&main' }
 
       main = @module.functions.add 'main', [], LLVM::Int
 
@@ -180,15 +181,20 @@ module Crystal
       mod.module.functions.delete fun if fun
 
       args_types = args.map { |arg| arg.resolved_type.llvm_type }
-      args_types << block.llvm_type(mod) if block
+      if block
+        args_types << LLVM::Pointer(LLVM::Int8)
+        args_types << block.llvm_type(mod)
+      elsif is_block?
+        args_types << LLVM::Pointer(LLVM::Int8)
+      end
 
       fun = mod.module.functions.add name, args_types, resolved_type.llvm_type
       @code = fun
 
+      define_optimizations fun
+
       entry = fun.basic_blocks.append 'entry'
       mod.builder.position_at_end entry
-
-      @local_variables.each { |name, var| var.alloca(mod) }
 
       args.each_with_index do |arg, i|
         param = fun.params[i]
@@ -196,9 +202,20 @@ module Crystal
         arg.code = mod.builder.alloca args_types[i], param.name
         mod.builder.store param, arg.code
       end
-      fun.params[fun.params.size - 1].name = "&block" if block
 
-      optimize fun
+      if block
+        fun.params[fun.params.size - 2].name = "&context"
+        fun.params[fun.params.size - 1].name = "&block"
+      elsif is_block?
+        fun.params[fun.params.size - 1].name = "&context"
+      end
+
+      if is_block?
+        casted_context = mod.builder.bit_cast fun.params[fun.params.size - 1], context.pointer_type(mod), '&casted_context'
+        loaded_context = mod.builder.load casted_context, '&loaded_context'
+      end
+
+      define_local_variables mod
 
       code = codegen_body(mod, fun)
       if body.resolved_type == mod.nil_class
@@ -207,7 +224,7 @@ module Crystal
         mod.builder.ret code
       end
 
-      #fun.dump
+      # fun.dump
 
       fun.verify
       mod.fpm.run fun
@@ -216,13 +233,21 @@ module Crystal
       fun
     end
 
+    def define_local_variables(mod)
+      @local_variables.each { |name, var| var.alloca(mod) }
+    end
+
     def llvm_type(mod)
       arg_types = args.map { |x| x.resolved_type.llvm_type }
       return_type = resolved_type.llvm_type
       LLVM::Pointer LLVM::Function(arg_types, return_type)
     end
 
-    def optimize(fun)
+    def is_block?
+      !context.nil?
+    end
+
+    def define_optimizations(fun)
     end
 
     def codegen_body(mod, fun)
@@ -260,6 +285,10 @@ module Crystal
         end
 
         if resolved_block
+          context = mod.builder.alloca resolved_block.context.type(mod), '&context'
+          casted_context = mod.builder.bit_cast context, LLVM::Pointer(LLVM::Int8), '&casted_context'
+          resolved_args << casted_context
+
           fun = mod.remember_block { resolved_block.codegen(mod) }
           resolved_args << fun
         end
@@ -391,8 +420,23 @@ module Crystal
       resolved_args = args.map do |arg|
         mod.remember_block { arg.codegen(mod) }
       end
+      resolved_args << fun.params[fun.params.size - 2]
 
       mod.builder.call fun.params[fun.params.size - 1], *resolved_args
+    end
+  end
+
+  class BlockContext
+    def type(mod)
+      @type ||= begin
+                  type = LLVM::Type.struct [], false
+                  mod.module.types.add '$context_type', type
+                  type
+                end
+    end
+
+    def pointer_type(mod)
+      LLVM::Pointer type(mod)
     end
   end
 end

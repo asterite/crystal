@@ -311,6 +311,7 @@ module Crystal
     attr_accessor :args
     attr_accessor :body
     attr_accessor :block
+    attr_accessor :context
     attr_accessor :local_variables
 
     def initialize(name, args, body)
@@ -678,6 +679,7 @@ module Crystal
   class Block < Expression
     attr_accessor :args
     attr_accessor :body
+    attr_accessor :def
 
     def initialize(args, body)
       @args = args
@@ -754,5 +756,8 @@ module Crystal
     def ==(other)
       other.is_a?(BlockCall) && other.block == block && other.args == args
     end
+  end
+
+  class BlockContext
   end
 end
