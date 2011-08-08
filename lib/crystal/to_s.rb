@@ -251,12 +251,20 @@ module Crystal
       node.left.accept self
       @str << " && "
       node.right.accept self
+      false
     end
 
     def visit_or(node)
       node.left.accept self
       @str << " || "
       node.right.accept self
+      false
+    end
+
+    def visit_block_reference(node)
+      @str << "&"
+      node.node.accept self
+      false
     end
 
     def with_indent

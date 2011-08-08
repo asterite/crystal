@@ -379,10 +379,14 @@ module Crystal
 
   class Assign
     def codegen(mod)
-      unless target.resolved.code
-        target.resolved.code = mod.module.globals.add(resolved_type.llvm_type, target.name)
-        target.resolved.code.linkage = :internal
-        target.resolved.code.initializer = LLVM::Constant.undef resolved_type.llvm_type
+      if target.resolved.is_a?(BlockReference)
+        target.resolved.code = target.resolved.codegen_ptr(mod)
+      else
+        unless target.resolved.code
+          target.resolved.code = mod.module.globals.add(resolved_type.llvm_type, target.name)
+          target.resolved.code.linkage = :internal
+          target.resolved.code.initializer = LLVM::Constant.undef resolved_type.llvm_type
+        end
       end
 
       mod.builder.store value.codegen(mod), target.resolved.code
@@ -457,9 +461,13 @@ module Crystal
 
   class BlockReference
     def codegen(mod)
-      index = context.index node
-      ptr = mod.builder.extract_value context.loaded_context, index, "#{node.name}_ptr"
+      ptr = codegen_ptr mod
       mod.builder.load ptr
+    end
+
+    def codegen_ptr(mod)
+      index = context.index node
+      mod.builder.extract_value context.loaded_context, index, "#{node.name}_ptr"
     end
 
     def llvm_type

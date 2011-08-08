@@ -151,7 +151,7 @@ module Crystal
       node.target.resolved = @scope.find_expression(node.target.name)
 
       if node.target.resolved
-        unless node.target.resolved.is_a?(Var)
+        unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference)
           raise_error node, "can't assign to #{node.target}, it is not a variable"
         end
         if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type
@@ -360,7 +360,6 @@ module Crystal
     end
 
     def visit_block_reference(node)
-      node.resolved_type = node.node.resolved_type
       false
     end
 

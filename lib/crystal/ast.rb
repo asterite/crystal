@@ -797,5 +797,9 @@ module Crystal
       visitor.visit_block_reference self
       visitor.end_visit_block_reference self
     end
+
+    def resolved_type
+      node.resolved_type
+    end
   end
 end
