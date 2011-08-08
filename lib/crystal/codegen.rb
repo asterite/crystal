@@ -44,7 +44,7 @@ module Crystal
       @blocks_count += 1
 
       block_def = Def.new "&block#{@blocks_count}", block.args, block.body
-      block_def.context = BlockContext.new
+      block_def.context = BlockContext.new block.scope
       block_def.compile self
       block_def
     end
@@ -213,6 +213,7 @@ module Crystal
       if is_block?
         casted_context = mod.builder.bit_cast fun.params[fun.params.size - 1], context.pointer_type(mod), '&casted_context'
         loaded_context = mod.builder.load casted_context, '&loaded_context'
+        context.loaded_context = loaded_context
       end
 
       define_local_variables mod
@@ -239,6 +240,7 @@ module Crystal
 
     def llvm_type(mod)
       arg_types = args.map { |x| x.resolved_type.llvm_type }
+      arg_types << LLVM::Pointer(LLVM::Int8)
       return_type = resolved_type.llvm_type
       LLVM::Pointer LLVM::Function(arg_types, return_type)
     end
@@ -285,9 +287,8 @@ module Crystal
         end
 
         if resolved_block
-          context = mod.builder.alloca resolved_block.context.type(mod), '&context'
-          casted_context = mod.builder.bit_cast context, LLVM::Pointer(LLVM::Int8), '&casted_context'
-          resolved_args << casted_context
+          context = resolved_block.context.alloca(mod)
+          resolved_args << context
 
           fun = mod.remember_block { resolved_block.codegen(mod) }
           resolved_args << fun
@@ -429,7 +430,7 @@ module Crystal
   class BlockContext
     def type(mod)
       @type ||= begin
-                  type = LLVM::Type.struct [], false
+                  type = LLVM::Type.struct references.values.map(&:llvm_type), false
                   mod.module.types.add '$context_type', type
                   type
                 end
@@ -437,6 +438,32 @@ module Crystal
 
     def pointer_type(mod)
       LLVM::Pointer type(mod)
+    end
+
+    def alloca(mod)
+      context = mod.builder.alloca type(mod), '&context'
+
+      i = 0
+      @references.each do |name, node|
+        pointer = mod.builder.inbounds_gep context, [LLVM::Int32.from_i(0), LLVM::Int32.from_i(i)], "#{name}_ptr"
+        mod.builder.store node.node.code, pointer
+        i += 1
+      end
+
+      casted_context = mod.builder.bit_cast context, LLVM::Pointer(LLVM::Int8), '&casted_context'
+      casted_context
+    end
+  end
+
+  class BlockReference
+    def codegen(mod)
+      index = context.index node
+      ptr = mod.builder.extract_value context.loaded_context, index, "#{node.name}_ptr"
+      mod.builder.load ptr
+    end
+
+    def llvm_type
+      LLVM::Pointer node.resolved_type.llvm_type
     end
   end
 end

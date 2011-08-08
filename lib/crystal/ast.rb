@@ -679,7 +679,7 @@ module Crystal
   class Block < Expression
     attr_accessor :args
     attr_accessor :body
-    attr_accessor :def
+    attr_accessor :scope
 
     def initialize(args, body)
       @args = args
@@ -736,7 +736,6 @@ module Crystal
   class BlockCall < Expression
     attr_accessor :block
     attr_accessor :args
-    attr_accessor :def
 
     def initialize(block, args)
       @block = block
@@ -759,5 +758,44 @@ module Crystal
   end
 
   class BlockContext
+    attr_accessor :scope
+    attr_accessor :references
+    attr_accessor :loaded_context
+
+    def initialize(scope)
+      @scope = scope
+      @references = {}
+    end
+
+    def index(node)
+      @references.keys.index node.name
+    end
+
+    def find_expression(name)
+      result = @references[name]
+      return result if result
+
+      node = @scope.def.local_variables[name]
+      if node
+        node = BlockReference.new self, node
+        @references[name] = node
+      end
+      node
+    end
+  end
+
+  class BlockReference < Expression
+    attr_accessor :node
+    attr_accessor :context
+
+    def initialize(context, node)
+      @context = context
+      @node = node
+    end
+
+    def accept(visitor)
+      visitor.visit_block_reference self
+      visitor.end_visit_block_reference self
+    end
   end
 end

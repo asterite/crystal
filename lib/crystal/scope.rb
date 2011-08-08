@@ -14,6 +14,8 @@ module Crystal
   end
 
   class DefScope < Scope
+    attr_accessor :def
+
     def initialize(scope, a_def)
       @scope = scope
       @def = a_def
@@ -67,5 +69,19 @@ module Crystal
       "Class<#{@class.name}> -> #{@scope.to_s}"
     end
     alias inspect to_s
+  end
+
+  class BlockScope < Scope
+    def initialize(scope, context)
+      @scope = scope
+      @context = context
+    end
+
+    def find_expression(name)
+      node = @context.find_expression name
+      return node if node
+
+      @scope.find_expression name
+    end
   end
 end

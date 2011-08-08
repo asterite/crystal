@@ -35,6 +35,7 @@ module Crystal
       'block',
       'yield',
       'block_call',
+      'block_reference',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

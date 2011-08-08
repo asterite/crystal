@@ -92,8 +92,16 @@ module Crystal
       return false if @scope.is_a?(ClassDefScope)
 
       if node.body
-        with_new_scope DefScope.new(@scope, node) do
-          node.body.accept self
+        if node.context
+          with_new_scope DefScope.new(@scope, node) do
+            with_new_scope BlockScope.new(@scope, node.context) do
+              node.body.accept self
+            end
+          end
+        else
+          with_new_scope DefScope.new(@scope, node) do
+            node.body.accept self
+          end
         end
         node.resolved_type = node.body.resolved_type
       end
@@ -163,6 +171,8 @@ module Crystal
 
     def visit_call(node)
       return if node.resolved_type
+
+      node.block.scope = @scope if node.block
 
       # Solve class method at compile-time
       if node.obj && node.name == :class && node.args.empty?
@@ -346,6 +356,11 @@ module Crystal
       end
       node.block.accept self
       node.resolved_type = node.block.resolved_type
+      false
+    end
+
+    def visit_block_reference(node)
+      node.resolved_type = node.node.resolved_type
       false
     end
 
