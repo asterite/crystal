@@ -127,4 +127,8 @@ describe Parser do
   it_parses_single_node "yield 1", Yield.new([1.int])
   it_parses_single_node "1 ? 2 : 3", If.new(1.int, 2.int, 3.int)
   it_parses_single_node "1 ? a : b", If.new(1.int, "a".ref, "b".ref)
+
+  [:'+', :'-', :'*', :'/'].each do |op|
+    it_parses_single_node "a #{op}= 1", Assign.new("a".ref, Call.new("a".ref, op, [1.int]))
+  end
 end

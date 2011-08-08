@@ -368,6 +368,15 @@ module Crystal
 
           value = parse_expression
           atomic = Assign.new(atomic, value)
+        when :'+=', :'-=', :'*=', :'/='
+          break unless atomic.is_a?(Ref)
+
+          method = @token.type.to_s[0 .. -2].to_sym
+
+          next_token_skip_space_or_newline
+
+          value = parse_expression
+          atomic = Assign.new(atomic, Call.new(atomic, method, [value]))
         else
           break
         end
@@ -492,7 +501,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :"!=", :">", :">=", :'#=>', :"=", :'{', :'?', :':'
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :"!=", :">", :">=", :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/='
           nil
         else
           args = []

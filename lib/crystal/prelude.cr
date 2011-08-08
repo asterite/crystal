@@ -129,7 +129,7 @@ class Int < Number
       n = 0
       while n < self
         yield n
-        n = n + 1
+        n += 1
       end
     end
     self
@@ -140,7 +140,7 @@ class Int < Number
       x = self
       while x <= n
         yield x
-        x = x + 1
+        x += 1
       end
     end
     self
