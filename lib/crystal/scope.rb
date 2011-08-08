@@ -85,11 +85,24 @@ module Crystal
       node = @context.find_expression name
       return node if node
 
-      @scope.find_expression name
+      self.next.find_expression name
+    end
+
+    def next
+      tentative = @scope.parent
+      while true
+        break if tentative.is_a?(DefScope) && tentative.def.name == name
+        tentative = tentative.parent
+      end
+      tentative.parent
+    end
+
+    def name
+      @context.scope.def.name
     end
 
     def to_s
-      "Block<#{@context.scope.def.name}> -> #{@scope.to_s}"
+      "Block<#{name}> -> #{@scope.to_s}"
     end
   end
 

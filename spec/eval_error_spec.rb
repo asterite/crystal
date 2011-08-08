@@ -13,4 +13,5 @@ describe "ast eval" do
   end
 
   it_evals_with_error "def foo x; x + 2; end; x + 1; false + 1"
+  it_evals_with_error "def foo; a = 10; yield 42; end; def bar; foo { |x| a }; end; bar", :focus => true
 end
