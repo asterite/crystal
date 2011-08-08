@@ -93,8 +93,8 @@ module Crystal
 
       if node.body
         if node.context
-          with_new_scope DefScope.new(@scope, node) do
-            with_new_scope BlockScope.new(@scope, node.context) do
+          with_new_scope BlockScope.new(@scope, node.context) do
+            with_new_scope DefScope.new(@scope, node) do
               node.body.accept self
             end
           end

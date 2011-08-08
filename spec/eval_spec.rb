@@ -67,6 +67,7 @@ describe "ast eval" do
   it_evals "1.0", 1.0.float
   it_evals "'a'", Crystal::Char.new(?a.ord)
   it_evals "'a' == 'a'", true.bool
+  it_evals "a = 1; a += 2; a", 3.int
   it_evals "def foo; end", nil
   it_evals "def foo; end; foo", Crystal::Nil.new
   it_evals "def foo; 1; end", nil
@@ -129,6 +130,6 @@ describe "ast eval" do
   it_evals "def foo; yield 11; end; def bar(a); a = a + 10; foo { |x| a + x }; end; bar(21)", 42.int
   it_evals "def foo; yield 42; end; def bar; foo { |x| foo { |y| x } }; end; bar", 42.int
   it_evals "def foo; yield 21; end; def bar; foo { |x| foo { |y| x + y } }; end; bar", 42.int
+  it_evals "def foo; yield 42; end; def bar; x = 10; foo { |x| x }; end; bar", 42.int, :focus => true
   #it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| x + a } }; end; bar", 42.int, :focus => true
-  it_evals "a = 1; a += 2; a", 3.int, :focus => true
 end
