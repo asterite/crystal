@@ -30,13 +30,17 @@ module Crystal
     end
 
     def find_expression(name)
+      local = find_local_expression(name)
+      return local if local
+
+      self.next.find_expression name
+    end
+
+    def find_local_expression(name)
       arg = @def.args.select{|arg| arg.name == name}.first
       return arg if arg
 
-      var = @def.local_variables[name]
-      return var if var
-
-      self.next.find_expression name
+      @def.local_variables[name]
     end
 
     def next
@@ -82,6 +86,24 @@ module Crystal
       return node if node
 
       @scope.find_expression name
+    end
+
+    def to_s
+      "Block<#{@context.scope.def.name}> -> #{@scope.to_s}"
+    end
+  end
+
+  class BlockContext
+    def find_expression(name)
+      result = @references[name]
+      return result if result
+
+      node = @scope.find_local_expression name
+      if node
+        node = BlockReference.new self, node
+        @references[name] = node
+      end
+      node
     end
   end
 end

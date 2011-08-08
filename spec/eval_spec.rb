@@ -126,4 +126,6 @@ describe "ast eval" do
   it_evals "def foo; yield 11; end; def bar; a = 21; a = a + 10; foo { |x| a + x }; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; a = 21; foo { |x| a = x }; end; bar", 42.int
   it_evals "def foo; yield 21; end; def bar; a = 21; foo { |x| a = a + x }; end; bar", 42.int
+  it_evals "def foo; yield 11; end; def bar(a); a = a + 10; foo { |x| a + x }; end; bar(21)", 42.int, :focus => true
+  #it_evals "def foo; yield 42; end; def bar; foo { |x| foo { |y| x } }; end; bar", 42.int
 end

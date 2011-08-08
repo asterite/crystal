@@ -770,18 +770,6 @@ module Crystal
     def index(node)
       @references.keys.index node.name
     end
-
-    def find_expression(name)
-      result = @references[name]
-      return result if result
-
-      node = @scope.def.local_variables[name]
-      if node
-        node = BlockReference.new self, node
-        @references[name] = node
-      end
-      node
-    end
   end
 
   class BlockReference < Expression
