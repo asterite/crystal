@@ -131,5 +131,10 @@ describe "ast eval" do
   it_evals "def foo; yield 42; end; def bar; foo { |x| foo { |y| x } }; end; bar", 42.int
   it_evals "def foo; yield 21; end; def bar; foo { |x| foo { |y| x + y } }; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; x = 10; foo { |x| x }; end; bar", 42.int
-  #it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| x + a } }; end; bar", 42.int, :focus => true
+  it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| x + a } }; end; bar", 42.int
+  it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| a = 50 } }; end; bar", 50.int
+  it_evals "def foo; yield 21; end; def bar; a = 1; a = a + 2; b = 4; b = b + 14; foo { |x| foo { |y| x + a + b} }; end; bar", 42.int
+  it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| foo { |z| a + z} } }; end; bar", 42.int
+  it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| foo { |z| foo { |w| a + w } } } }; end; bar", 42.int
+  it_evals "def foo; yield 42; end; def bar; a = 10; a = a + 2; foo { |x| foo { |y| foo { |z| foo { |w| a = w } } } }; a; end; bar", 42.int
 end

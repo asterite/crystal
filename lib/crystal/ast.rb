@@ -761,14 +761,11 @@ module Crystal
     attr_accessor :scope
     attr_accessor :references
     attr_accessor :loaded_context
+    attr_accessor :casted_context
 
     def initialize(scope)
       @scope = scope
       @references = {}
-    end
-
-    def index(node)
-      @references.keys.index node.name
     end
   end
 

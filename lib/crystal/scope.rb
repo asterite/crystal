@@ -76,6 +76,8 @@ module Crystal
   end
 
   class BlockScope < Scope
+    attr_accessor :context
+
     def initialize(scope, context)
       @scope = scope
       @context = context
@@ -85,7 +87,12 @@ module Crystal
       node = @context.find_expression name
       return node if node
 
-      self.next.find_expression name
+      node = self.next.find_expression name
+      if node.is_a? BlockReference
+        @context.parent = self.next.context
+        node.context = @context
+      end
+      node
     end
 
     def next
@@ -102,11 +109,13 @@ module Crystal
     end
 
     def to_s
-      "Block<#{name}> -> #{@scope.to_s}"
+      "Block<#{name}> -> #{self.next.to_s}"
     end
   end
 
   class BlockContext
+    attr_accessor :parent
+
     def find_expression(name)
       result = @references[name]
       return result if result

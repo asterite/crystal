@@ -213,7 +213,9 @@ module Crystal
       if is_block?
         casted_context = mod.builder.bit_cast fun.params[fun.params.size - 1], context.pointer_type(mod), '&casted_context'
         loaded_context = mod.builder.load casted_context, '&loaded_context'
+
         context.loaded_context = loaded_context
+        context.casted_context = casted_context
       end
 
       define_local_variables mod
@@ -425,16 +427,19 @@ module Crystal
       resolved_args = args.map do |arg|
         mod.remember_block { arg.codegen(mod) }
       end
-      resolved_args << fun.params[fun.params.size - 2]
+      resolved_args << fun.params[-2]
 
-      mod.builder.call fun.params[fun.params.size - 1], *resolved_args
+      mod.builder.call fun.params[-1], *resolved_args
     end
   end
 
   class BlockContext
     def type(mod)
       @type ||= begin
-                  type = LLVM::Type.struct references.values.map(&:llvm_type), false
+                  types = references.values.map(&:llvm_type)
+                  types << LLVM::Pointer(parent.type mod) if parent
+
+                  type = LLVM::Type.struct types, false
                   mod.module.types.add '$context_type', type
                   type
                 end
@@ -454,8 +459,18 @@ module Crystal
         i += 1
       end
 
+      if parent
+        pointer = mod.builder.inbounds_gep context, [LLVM::Int32.from_i(0), LLVM::Int32.from_i(@references.length)], "context_ptr"
+        mod.builder.store parent.casted_context, pointer
+      end
+
       casted_context = mod.builder.bit_cast context, LLVM::Pointer(LLVM::Int8), '&casted_context'
       casted_context
+    end
+
+    def index(node)
+      value = @references.keys.index node.name
+      value ? [self, value] : parent.index(node)
     end
   end
 
@@ -466,8 +481,21 @@ module Crystal
     end
 
     def codegen_ptr(mod)
-      index = context.index node
-      mod.builder.extract_value context.loaded_context, index, "#{node.name}_ptr"
+      where, index = context.index node
+      current = self.context
+      parent_context = context.loaded_context
+
+      while current.object_id != where.object_id
+        parent_context = access_parent mod, parent_context
+        current = current.parent
+      end
+
+      mod.builder.extract_value parent_context, index, "#{node.name}_ptr"
+    end
+
+    def access_parent(mod, parent_context)
+      parent_context_ptr = mod.builder.extract_value parent_context, context.references.length, "parent_context_ptr"
+      mod.builder.load parent_context_ptr, "parent_context"
     end
 
     def llvm_type
