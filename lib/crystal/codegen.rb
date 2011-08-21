@@ -483,18 +483,18 @@ module Crystal
     def codegen_ptr(mod)
       where, index = context.index node
       current = self.context
-      parent_context = context.loaded_context
+      parent_context_ptr = context.loaded_context
 
       while current.object_id != where.object_id
-        parent_context = access_parent mod, parent_context
+        parent_context_ptr = access_parent mod, current, parent_context_ptr
         current = current.parent
       end
 
-      mod.builder.extract_value parent_context, index, "#{node.name}_ptr"
+      mod.builder.extract_value parent_context_ptr, index, "#{node.name}_ptr"
     end
 
-    def access_parent(mod, parent_context)
-      parent_context_ptr = mod.builder.extract_value parent_context, context.references.length, "parent_context_ptr"
+    def access_parent(mod, parent_context, parent_context_ptr)
+      parent_context_ptr = mod.builder.extract_value parent_context_ptr, parent_context.references.length, "parent_context_ptr"
       mod.builder.load parent_context_ptr, "parent_context"
     end
 
