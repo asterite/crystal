@@ -126,6 +126,11 @@ class Int < Number
     C.crystal_shr_int_int self, other
   end
 
+  extern crystal_mod_int_int Int, Int #=> Int
+  def %(other)
+    C.crystal_mod_int_int self, other
+  end
+
   def >=(other)
     If other.class == Int
       C.crystal_let_int_int other, self

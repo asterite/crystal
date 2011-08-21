@@ -54,7 +54,7 @@ module Crystal
 
       superclass = nil
 
-      if @token.type == :'<'
+      if @token.type == :<
         next_token_skip_space_or_newline
         check :IDENT
         superclass = @token.value
@@ -74,7 +74,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :"<<", :"<", :"<=", :"==", :"!=", :">>", :">", :">=", :"+", :"-", :"*", :"/", :"+@", :"-@"
+      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@
 
       name = @token.type == :IDENT ? @token.value : @token.type
       args = []
@@ -250,7 +250,7 @@ module Crystal
     def parse_or
       line_number = @token.line_number
 
-      left = parse_shift
+      left = parse_cmp
       while true
         left.line_number = line_number
         case @token.type
@@ -259,30 +259,8 @@ module Crystal
         when :"||"
           method = @token.type
           next_token_skip_space_or_newline
-          right = parse_shift
-          left = Or.new left, right
-        else
-          return left
-        end
-      end
-    end
-
-    def parse_shift
-      line_number = @token.line_number
-
-      left = parse_cmp
-      while true
-        left.line_number = line_number
-
-        case @token.type
-        when :SPACE
-          next_token
-        when :"<<", :">>"
-          method = @token.type
-
-          next_token_skip_space_or_newline
           right = parse_cmp
-          left = Call.new left, method, [right]
+          left = Or.new left, right
         else
           return left
         end
@@ -292,6 +270,28 @@ module Crystal
     def parse_cmp
       line_number = @token.line_number
 
+      left = parse_shift
+      while true
+        left.line_number = line_number
+
+        case @token.type
+        when :SPACE
+          next_token
+        when :<, :<=, :==, :"!=", :>, :>=
+          method = @token.type
+
+          next_token_skip_space_or_newline
+          right = parse_shift
+          left = Call.new left, method, [right]
+        else
+          return left
+        end
+      end
+    end
+
+    def parse_shift
+      line_number = @token.line_number
+
       left = parse_add_or_sub
       while true
         left.line_number = line_number
@@ -299,7 +299,7 @@ module Crystal
         case @token.type
         when :SPACE
           next_token
-        when :"<", :"<=", :"==", :"!=", :">", :">="
+        when :<<, :>>
           method = @token.type
 
           next_token_skip_space_or_newline
@@ -320,7 +320,7 @@ module Crystal
         case @token.type
         when :SPACE
           next_token
-        when :"+", :"-"
+        when :+, :-
           method = @token.type
           next_token_skip_space_or_newline
           right = parse_mul_or_div
@@ -348,7 +348,7 @@ module Crystal
         case @token.type
         when :SPACE
           next_token
-        when :"*", :"/"
+        when :*, :/, :%
           method = @token.type
           next_token_skip_space_or_newline
           right = parse_atomic_with_method
@@ -372,7 +372,7 @@ module Crystal
           next_token
         when :'.'
           next_token_skip_space_or_newline
-          check :IDENT, :"+", :"-", :"*", :"/", :"<<", :"<", :"<=", :"==", :"!=", :">>", :">", :">="
+          check :IDENT, :+, :-, :*, :/, :%, :<<, :<, :<=, :==, :"!=", :>>, :>, :>=
           name = @token.type == :IDENT ? @token.value : @token.type
           next_token
 
@@ -418,12 +418,12 @@ module Crystal
       when :"!"
         next_token_skip_space_or_newline
         Not.new parse_expression
-      when :"+"
+      when :+
         next_token_skip_space_or_newline
-        Call.new parse_expression, :"+@"
-      when :"-"
+        Call.new parse_expression, :+@
+      when :-
         next_token_skip_space_or_newline
-        Call.new parse_expression, :"-@"
+        Call.new parse_expression, :-@
       when :INT
         node_and_next_token Int.new(@token.value)
       when :FLOAT
@@ -475,9 +475,9 @@ module Crystal
       block_body = nil
 
       next_token_skip_space
-      if @token.type == :'|'
+      if @token.type == :|
         next_token_skip_space_or_newline
-        while @token.type != :'|'
+        while @token.type != :|
           check :IDENT
           block_args << Var.new(@token.value)
           next_token_skip_space_or_newline
@@ -523,7 +523,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<<", :"<", :"<=", :"==", :"!=", :">>", :">", :">=", :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/='
+        when :NEWLINE, :";", :+, :-, :*, :/, :%, :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/='
           nil
         else
           args = []
