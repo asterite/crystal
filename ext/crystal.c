@@ -11,6 +11,8 @@ int crystal_div_int_int(int x, int y) { return x / y; }
 int crystal_lt_int_int(int x, int y) { return x < y; }
 int crystal_let_int_int(int x, int y) { return x <= y; }
 int crystal_eq_int_int(int x, int y) { return x == y; }
+int crystal_shl_int_int(int x, int y) { return (x << y); }
+int crystal_shr_int_int(int x, int y) { return (x >> y); }
 
 long crystal_eq_long_long(long x, long y) { return x == y; }
 

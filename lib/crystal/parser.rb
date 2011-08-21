@@ -74,7 +74,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :"<", :"<=", :"==", :"!=", :">", :">=", :"+", :"-", :"*", :"/", :"+@", :"-@"
+      check :IDENT, :"=", :"<<", :"<", :"<=", :"==", :"!=", :">>", :">", :">=", :"+", :"-", :"*", :"/", :"+@", :"-@"
 
       name = @token.type == :IDENT ? @token.value : @token.type
       args = []
@@ -250,7 +250,7 @@ module Crystal
     def parse_or
       line_number = @token.line_number
 
-      left = parse_cmp
+      left = parse_shift
       while true
         left.line_number = line_number
         case @token.type
@@ -259,8 +259,30 @@ module Crystal
         when :"||"
           method = @token.type
           next_token_skip_space_or_newline
-          right = parse_cmp
+          right = parse_shift
           left = Or.new left, right
+        else
+          return left
+        end
+      end
+    end
+
+    def parse_shift
+      line_number = @token.line_number
+
+      left = parse_cmp
+      while true
+        left.line_number = line_number
+
+        case @token.type
+        when :SPACE
+          next_token
+        when :"<<", :">>"
+          method = @token.type
+
+          next_token_skip_space_or_newline
+          right = parse_cmp
+          left = Call.new left, method, [right]
         else
           return left
         end
@@ -350,7 +372,7 @@ module Crystal
           next_token
         when :'.'
           next_token_skip_space_or_newline
-          check :IDENT, :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :"!=", :">", :">="
+          check :IDENT, :"+", :"-", :"*", :"/", :"<<", :"<", :"<=", :"==", :"!=", :">>", :">", :">="
           name = @token.type == :IDENT ? @token.value : @token.type
           next_token
 
@@ -501,7 +523,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<", :"<=", :"==", :"!=", :">", :">=", :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/='
+        when :NEWLINE, :";", :"+", :"-", :"*", :"/", :"<<", :"<", :"<=", :"==", :"!=", :">>", :">", :">=", :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/='
           nil
         else
           args = []
