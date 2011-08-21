@@ -17,6 +17,21 @@ class Bool
   def ==(other)
     C.crystal_eq_bool self, other
   end
+
+  extern crystal_and_bool_bool Bool, Bool #=> Bool
+  def &(other)
+    C.crystal_and_bool_bool self, other
+  end
+
+  extern crystal_or_bool_bool Bool, Bool #=> Bool
+  def |(other)
+    C.crystal_or_bool_bool self, other
+  end
+
+  extern crystal_xor_bool_bool Bool, Bool #=> Bool
+  def ^(other)
+    C.crystal_xor_bool_bool self, other
+  end
 end
 
 class Number
@@ -137,6 +152,21 @@ class Int < Number
     Elsif other.class == Float
       C.crystal_let_float_int other, self
     End
+  end
+
+  extern crystal_and_int_int Int, Int #=> Int
+  def &(other)
+    C.crystal_and_int_int self, other
+  end
+
+  extern crystal_or_int_int Int, Int #=> Int
+  def |(other)
+    C.crystal_or_int_int self, other
+  end
+
+  extern crystal_xor_int_int Int, Int #=> Int
+  def ^(other)
+    C.crystal_xor_int_int self, other
   end
 
   def times

@@ -74,7 +74,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@
+      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :&, :|, :^
 
       name = @token.type == :IDENT ? @token.value : @token.type
       args = []
@@ -215,7 +215,7 @@ module Crystal
     end
 
     def parse_question_colon
-      cond = parse_and
+      cond = parse_or
       if @token.type == :'?'
         next_token_skip_space_or_newline
         true_val = parse_expression
@@ -227,89 +227,42 @@ module Crystal
       cond
     end
 
-    def parse_and
-      line_number = @token.line_number
+    def self.parse_custom_operator(name, next_operator, node, *operators)
+      class_eval %Q(
+        def parse_#{name}
+          line_number = @token.line_number
 
-      left = parse_or
-      while true
-        left.line_number = line_number
-        case @token.type
-        when :SPACE
-          next_token
-        when :"&&"
-          method = @token.type
-          next_token_skip_space_or_newline
-          right = parse_or
-          left = And.new left, right
-        else
-          return left
+          left = parse_#{next_operator}
+          while true
+            left.line_number = line_number
+
+            case @token.type
+            when :SPACE
+              next_token
+            when #{operators.map{|x| ':"' + x.to_s + '"'}.join ', '}
+              method = @token.type
+
+              next_token_skip_space_or_newline
+              right = parse_#{next_operator}
+              left = #{node}
+            else
+              return left
+            end
+          end
         end
-      end
+      )
     end
 
-    def parse_or
-      line_number = @token.line_number
-
-      left = parse_cmp
-      while true
-        left.line_number = line_number
-        case @token.type
-        when :SPACE
-          next_token
-        when :"||"
-          method = @token.type
-          next_token_skip_space_or_newline
-          right = parse_cmp
-          left = Or.new left, right
-        else
-          return left
-        end
-      end
+    def self.parse_operator(name, next_operator, *operators)
+      parse_custom_operator name, next_operator, "Call.new left, method, [right]", *operators
     end
 
-    def parse_cmp
-      line_number = @token.line_number
-
-      left = parse_shift
-      while true
-        left.line_number = line_number
-
-        case @token.type
-        when :SPACE
-          next_token
-        when :<, :<=, :==, :"!=", :>, :>=
-          method = @token.type
-
-          next_token_skip_space_or_newline
-          right = parse_shift
-          left = Call.new left, method, [right]
-        else
-          return left
-        end
-      end
-    end
-
-    def parse_shift
-      line_number = @token.line_number
-
-      left = parse_add_or_sub
-      while true
-        left.line_number = line_number
-
-        case @token.type
-        when :SPACE
-          next_token
-        when :<<, :>>
-          method = @token.type
-
-          next_token_skip_space_or_newline
-          right = parse_add_or_sub
-          left = Call.new left, method, [right]
-        else
-          return left
-        end
-      end
-    end
+    parse_custom_operator :or, :and, "Or.new left, right", :"||"
+    parse_custom_operator :and, :cmp, "And.new left, right", :"&&"
+    parse_operator :cmp, :logical_or, :<, :<=, :==, :"!=", :>, :>=
+    parse_operator :logical_or, :logical_and, :|, :^
+    parse_operator :logical_and, :shift, :&
+    parse_operator :shift, :add_or_sub, :<<, :>>
 
     def parse_add_or_sub
       line_number = @token.line_number
@@ -339,25 +292,7 @@ module Crystal
       end
     end
 
-    def parse_mul_or_div
-      line_number = @token.line_number
-
-      left = parse_atomic_with_method
-      while true
-        left.line_number = line_number
-        case @token.type
-        when :SPACE
-          next_token
-        when :*, :/, :%
-          method = @token.type
-          next_token_skip_space_or_newline
-          right = parse_atomic_with_method
-          left = Call.new left, method, [right]
-        else
-          return left
-        end
-      end
-    end
+    parse_operator :mul_or_div, :atomic_with_method, :*, :/, :%
 
     def parse_atomic_with_method
       line_number = @token.line_number
@@ -523,7 +458,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :+, :-, :*, :/, :%, :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/='
+        when :NEWLINE, :";", :+, :-, :*, :/, :%, :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/=', :&, :|, :^
           nil
         else
           args = []

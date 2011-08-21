@@ -3,6 +3,9 @@
 long crystal_class_object_id(long x) { return x; }
 
 int crystal_eq_bool(int x, int y) { return x == y; }
+int crystal_and_bool_bool(int x, int y) { return x & y; }
+int crystal_or_bool_bool(int x, int y) { return x | y; }
+int crystal_xor_bool_bool(int x, int y) { return x ^ y; }
 
 int crystal_add_int_int(int x, int y) { return x + y; }
 int crystal_sub_int_int(int x, int y) { return x - y; }
@@ -14,6 +17,9 @@ int crystal_eq_int_int(int x, int y) { return x == y; }
 int crystal_shl_int_int(int x, int y) { return x << y; }
 int crystal_shr_int_int(int x, int y) { return x >> y; }
 int crystal_mod_int_int(int x, int y) { return x % y; }
+int crystal_and_int_int(int x, int y) { return x & y; }
+int crystal_or_int_int(int x, int y) { return x | y; }
+int crystal_xor_int_int(int x, int y) { return x ^ y; }
 
 long crystal_eq_long_long(long x, long y) { return x == y; }
 

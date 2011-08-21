@@ -71,7 +71,7 @@ describe Parser do
   it_parses_single_node "foo + 1", Call.new("foo".ref, :"+", [1.int])
   it_parses_single_node "foo +1", Call.new(nil, "foo", [1.int])
 
-  ['<<', '<', '<=', '==', '>>', '>', '>=', '%'].each do |op|
+  ['<<', '<', '<=', '==', '>>', '>', '>=', '%', '|', '&', '^'].each do |op|
     it_parses_single_node "1 #{op} 2", Call.new(1.int, op.to_sym, [2.int])
     it_parses_single_node "n #{op} 2", Call.new("n".ref, op.to_sym, [2.int])
   end
