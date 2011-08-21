@@ -40,6 +40,7 @@ describe Parser do
   it_parses_single_node "2 * (3 + 4)", Call.new(2.int, :"*", [Call.new(3.int, :"+", [4.int])])
 
   it_parses_single_node "def foo\n1\nend", Def.new("foo", [], [1.int])
+  it_parses_single_node "def downto(n)\n1\nend", Def.new("downto", ["n".var], [1.int])
   it_parses_single_node "def foo ; 1 ; end", Def.new("foo", [], [1.int])
   it_parses_single_node "def foo; end", Def.new("foo", [], nil)
   it_parses_single_node "def foo(var); end", Def.new("foo", ["var".var], nil)

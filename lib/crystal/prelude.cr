@@ -169,6 +169,30 @@ class Int < Number
     C.crystal_xor_int_int self, other
   end
 
+  def round
+    self
+  end
+
+  def to_i
+    self
+  end
+
+  def to_int
+    self
+  end
+
+  def floor
+    self
+  end
+
+  def ceil
+    self
+  end
+
+  def truncate
+    self
+  end
+
   def times
     if self > 0
       n = 0
@@ -186,6 +210,17 @@ class Int < Number
       while x <= n
         yield x
         x += 1
+      end
+    end
+    self
+  end
+
+  def downto(n)
+    if self >= n
+      x = self
+      while x >= n
+        yield x
+        x -= 1
       end
     end
     self
