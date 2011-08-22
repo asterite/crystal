@@ -479,6 +479,11 @@ module Crystal
       value = @references.keys.index node.name
       value ? [self, value] : parent.index(node)
     end
+
+    def access_parent(mod, context_ptr)
+      parent_context_ptr = mod.builder.extract_value context_ptr, references.length, "parent_context_ptr"
+      mod.builder.load parent_context_ptr, "parent_context"
+    end
   end
 
   class BlockReference
@@ -493,16 +498,11 @@ module Crystal
       parent_context_ptr = context.loaded_context
 
       while current.object_id != where.object_id
-        parent_context_ptr = access_parent mod, current, parent_context_ptr
+        parent_context_ptr = current.access_parent mod, parent_context_ptr
         current = current.parent
       end
 
       mod.builder.extract_value parent_context_ptr, index, "#{node.name}_ptr"
-    end
-
-    def access_parent(mod, parent_context, parent_context_ptr)
-      parent_context_ptr = mod.builder.extract_value parent_context_ptr, parent_context.references.length, "parent_context_ptr"
-      mod.builder.load parent_context_ptr, "parent_context"
     end
 
     def llvm_type
