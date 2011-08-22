@@ -114,7 +114,7 @@ module Crystal
     end
 
     def load_prelude
-      prelude_file = File.expand_path('../../../lib/crystal/prelude.cr', __FILE__)
+      prelude_file = File.expand_path('../../../std/prelude.cr', __FILE__)
       self.eval File.read(prelude_file)
     end
   end
