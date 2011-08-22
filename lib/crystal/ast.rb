@@ -496,7 +496,7 @@ module Crystal
     end
   end
 
-  class StaticIf < Expression
+  class StaticIf < If
     attr_accessor :cond
     attr_accessor :then
     attr_accessor :else

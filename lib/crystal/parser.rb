@@ -33,6 +33,10 @@ module Crystal
           return parse_if
         when :If
           return parse_static_if
+        when :unless
+          return parse_unless
+        when :Unless
+          return parse_static_unless
         when :extern
           return parse_extern
         when :while
@@ -181,6 +185,56 @@ module Crystal
       end
 
       node = StaticIf.new cond, a_then, a_else
+      node.line_number = line_number
+      node
+    end
+
+    def parse_unless
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      a_then = parse_expressions
+      skip_statement_end
+
+      a_else = nil
+      if @token.type == :IDENT && @token.value == :else
+        next_token_skip_statement_end
+        a_else = parse_expressions
+      end
+
+      check_ident :end
+      next_token_skip_statement_end
+
+      node = If.new cond, a_else, a_then
+      node.line_number = line_number
+      node
+    end
+
+    def parse_static_unless
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      a_then = parse_expressions
+      skip_statement_end
+
+      a_else = nil
+      if @token.type == :IDENT && @token.value == :Else
+        next_token_skip_statement_end
+        a_else = parse_expressions
+      end
+
+      check_ident :End
+      next_token_skip_statement_end
+
+      node = StaticIf.new cond, a_else, a_then
       node.line_number = line_number
       node
     end

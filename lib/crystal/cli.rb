@@ -11,7 +11,7 @@ def count_openings(string)
   while (token = lexer.next_token).type != :EOF
     if token.type == :IDENT
       case token.value
-      when :class, :def, :do, :if, :If, :while
+      when :class, :def, :do, :if, :If, :unless, :Unless, :while
         openings += 1 if last_token.nil? || last_token != :'.'
       when :end, :End
         openings -= 1

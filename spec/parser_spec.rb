@@ -94,6 +94,11 @@ describe Parser do
 
   it_parses_single_node "If foo; 1; End", StaticIf.new("foo".ref, 1.int)
 
+  it_parses_single_node "unless foo; 1; end", If.new("foo".ref, nil, 1.int)
+  it_parses_single_node "unless foo; 1; else; 2; end", If.new("foo".ref, 2.int, 1.int)
+
+  it_parses_single_node "Unless foo; 1; End", StaticIf.new("foo".ref, nil, 1.int)
+
   it_parses_single_node "foo.bar.baz", Call.new(Call.new("foo".ref, "bar"), "baz")
   it_parses_single_node "-x", Call.new("x".ref, :"-@")
   it_parses_single_node "+x", Call.new("x".ref, :"+@")
