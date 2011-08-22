@@ -76,7 +76,7 @@ describe "ast eval" do
   it_evals "5 & 4", 4.int
   it_evals "4 | 1", 5.int
   it_evals "5 ^ 4", 1.int
-  it_evals "2 ** 4", 16.int
+  it_evals "2 ** 4", 16.float
   it_evals "1.0", 1.0.float
   it_evals "'a'", Crystal::Char.new(?a.ord)
   it_evals "'a' == 'a'", true.bool

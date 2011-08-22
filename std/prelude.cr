@@ -169,9 +169,14 @@ class Int < Number
     C.crystal_xor_int_int self, other
   end
 
-  extern crystal_pow_int_int Int, Int #=> Int
-  def **(other)
-    C.crystal_pow_int_int self, other
+  extern crystal_pow_int_int Int, Int #=> Float
+  extern crystal_pow_int_float Int, Float #=> Float
+  def **(Other)
+    If Other.class == Int
+      C.crystal_pow_int_int self, Other
+    Elsif Other.class == Float
+      C.crystal_pow_int_float self, Other
+    End
   end
 
   def round
@@ -327,6 +332,16 @@ class Float < Number
       C.crystal_let_int_float other, self
     Elsif other.class == Float
       C.crystal_let_float_float other, self
+    End
+  end
+
+  extern crystal_pow_float_int Float, Int #=> Float
+  extern crystal_pow_float_float Float, Float #=> Float
+  def **(other)
+    If other.class == Int
+      C.crystal_pow_float_int self, other
+    Elsif other.class == Float
+      C.crystal_pow_float_float self, other
     End
   end
 end
