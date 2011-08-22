@@ -12,6 +12,7 @@ end
 module Crystal
   class ASTNode
     attr_accessor :code
+    attr_reader :returns
   end
 
   class Module
@@ -130,6 +131,10 @@ module Crystal
         last
       end
     end
+
+    def returns
+      expressions.length > 0 && expressions[-1].is_a?(Return)
+    end
   end
 
   class Nil
@@ -221,10 +226,12 @@ module Crystal
       define_local_variables mod
 
       code = codegen_body(mod, fun)
-      if body.resolved_type == mod.nil_class
-        mod.builder.ret_void
-      else
-        mod.builder.ret code
+      unless body.returns
+        if body.resolved_type == mod.nil_class
+          mod.builder.ret_void
+        else
+          mod.builder.ret code
+        end
       end
 
       # fun.dump
