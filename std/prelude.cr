@@ -171,11 +171,11 @@ class Int < Number
 
   extern crystal_pow_int_int Int, Int #=> Float
   extern crystal_pow_int_float Int, Float #=> Float
-  def **(Other)
-    If Other.class == Int
-      C.crystal_pow_int_int self, Other
-    Elsif Other.class == Float
-      C.crystal_pow_int_float self, Other
+  def **(other)
+    If other.class == Int
+      C.crystal_pow_int_int self, other
+    Elsif other.class == Float
+      C.crystal_pow_int_float self, other
     End
   end
 
