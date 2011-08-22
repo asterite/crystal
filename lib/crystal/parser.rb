@@ -37,6 +37,8 @@ module Crystal
           return parse_extern
         when :while
           return parse_while
+        when :return
+          return parse_return
         end
       end
 
@@ -184,6 +186,8 @@ module Crystal
     end
 
     def parse_while
+      line_number = @token.line_number
+
       next_token_skip_space_or_newline
 
       cond = parse_expression
@@ -195,7 +199,23 @@ module Crystal
       check_ident :end
       next_token_skip_statement_end
 
-      While.new cond, body
+      node = While.new cond, body
+      node.line_number = line_number
+      node
+    end
+
+    def parse_return
+      line_number = @token.line_number
+
+      next_token_skip_space
+
+      node = if @token.type == :EOF || @token.type == :NEWLINE || @token.type == :';'
+               Return.new
+             else
+               Return.new parse_expression
+             end
+      node.line_number = line_number
+      node
     end
 
     def parse_extern

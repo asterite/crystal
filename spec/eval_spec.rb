@@ -151,4 +151,6 @@ describe "ast eval" do
   it_evals "def foo; yield 42; end; def bar; a = 10; a = a + 2; foo { |x| foo { |y| foo { |z| foo { |w| a = w } } } }; a; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; a = 10; foo { |x| foo { |y| foo { |z| a = y } } }; a; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; a = 10; foo { |x| foo { |y| foo { |z| a = x } } }; a; end; bar", 42.int
+  it_evals "def foo; return 1; 2; end; foo", 1.int
+  it_evals "def foo; return; end", nil
 end

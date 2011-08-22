@@ -787,4 +787,30 @@ module Crystal
       node.resolved_type
     end
   end
+
+  class Return < Expression
+    attr_accessor :exp
+
+    def initialize(exp = nil)
+      @exp = exp
+      @exp.parent = self if @exp
+    end
+
+    def accept(visitor)
+      if visitor.visit_return self
+        @exp.accept visitor if @exp
+      end
+      visitor.end_visit_return self
+    end
+
+    def ==(other)
+      other.is_a?(Return) && other.exp == exp
+    end
+
+    def clone
+      ret = Return.new(exp ? exp.clone : nil)
+      ret.line_number = line_number
+      ret
+    end
+  end
 end

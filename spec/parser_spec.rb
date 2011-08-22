@@ -132,4 +132,8 @@ describe Parser do
   [:'+', :'-', :'*', :'/'].each do |op|
     it_parses_single_node "a #{op}= 1", Assign.new("a".ref, Call.new("a".ref, op, [1.int]))
   end
+
+  it_parses_single_node "return", Return.new
+  it_parses_single_node "return;", Return.new
+  it_parses_single_node "return 1", Return.new(1.int)
 end

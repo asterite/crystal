@@ -502,4 +502,14 @@ module Crystal
       LLVM::Pointer node.resolved_type.llvm_type
     end
   end
+
+  class Return
+    def codegen(mod)
+      if exp
+        mod.builder.ret exp.codegen(mod)
+      else
+        mod.builder.ret
+      end
+    end
+  end
 end

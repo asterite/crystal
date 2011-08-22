@@ -45,7 +45,12 @@ module Crystal
       if node.expressions.empty?
         node.resolved_type = @scope.nil_class
       else
-        node.expressions.each { |exp| exp.accept self }
+        return_index = nil
+        node.expressions.each_with_index do |exp, i|
+          exp.accept self
+          break return_index = i if exp.is_a? Return
+        end
+        node.expressions = node.expressions[0 .. return_index] if return_index
         node.resolved_type = node.expressions.last.resolved_type
       end
       false
@@ -360,6 +365,16 @@ module Crystal
     end
 
     def visit_block_reference(node)
+      false
+    end
+
+    def visit_return(node)
+      if node.exp
+        node.exp.accept self
+        node.resolved_type = node.exp.resolved_type
+      else
+        node.resolved_type = @scope.nil_class
+      end
       false
     end
 
