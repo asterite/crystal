@@ -33,6 +33,7 @@ int crystal_lt_float_float(float x, float y) { return x < y; }
 int crystal_let_float_float(float x, float y) { return x <= y; }
 int crystal_eq_float_float(float x, float y) { return x == y; }
 int crystal_pow_float_float(float x, float y) { return (float) pow(x, y); }
+int crystal_to_i_float(float x) { return (float) x; }
 
 float crystal_add_int_float(int x, float y) { return x + y; }
 float crystal_sub_int_float(int x, float y) { return x - y; }

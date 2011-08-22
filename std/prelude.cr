@@ -344,6 +344,11 @@ class Float < Number
       C.crystal_pow_float_float self, other
     End
   end
+
+  extern crystal_to_i_float Float #=> Int
+  def to_i
+    C.crystal_to_i_float self
+  end
 end
 
 extern puts_bool Bool #=> Nil
