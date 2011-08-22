@@ -169,6 +169,11 @@ class Int < Number
     C.crystal_xor_int_int self, other
   end
 
+  extern crystal_pow_int_int Int, Int #=> Int
+  def **(other)
+    C.crystal_pow_int_int self, other
+  end
+
   def round
     self
   end

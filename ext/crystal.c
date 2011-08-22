@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 long crystal_class_object_id(long x) { return x; }
 
@@ -20,6 +21,7 @@ int crystal_mod_int_int(int x, int y) { return x % y; }
 int crystal_and_int_int(int x, int y) { return x & y; }
 int crystal_or_int_int(int x, int y) { return x | y; }
 int crystal_xor_int_int(int x, int y) { return x ^ y; }
+int crystal_pow_int_int(int x, int y) { return (int) pow(x, y); }
 
 long crystal_eq_long_long(long x, long y) { return x == y; }
 

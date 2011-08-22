@@ -76,7 +76,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :&, :|, :^
+      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :&, :|, :^, :**
 
       name = @token.type == :IDENT ? @token.value : @token.type
       args = []
@@ -312,7 +312,8 @@ module Crystal
       end
     end
 
-    parse_operator :mul_or_div, :atomic_with_method, :*, :/, :%
+    parse_operator :mul_or_div, :pow, :*, :/, :%
+    parse_operator :pow, :atomic_with_method, :**
 
     def parse_atomic_with_method
       line_number = @token.line_number
@@ -327,7 +328,7 @@ module Crystal
           next_token
         when :'.'
           next_token_skip_space_or_newline
-          check :IDENT, :+, :-, :*, :/, :%, :<<, :<, :<=, :==, :"!=", :>>, :>, :>=
+          check :IDENT, :+, :-, :*, :/, :%, :|, :&, :^, :**, :<<, :<, :<=, :==, :"!=", :>>, :>, :>=
           name = @token.type == :IDENT ? @token.value : @token.type
           next_token
 
@@ -345,7 +346,7 @@ module Crystal
 
           value = parse_expression
           atomic = Assign.new(atomic, value)
-        when :'+=', :'-=', :'*=', :'/='
+        when :'+=', :'-=', :'*=', :'/=', :'%=', :'|=', :'&=', :'^=', :'**='
           break unless atomic.is_a?(Ref)
 
           method = @token.type.to_s[0 .. -2].to_sym
@@ -478,9 +479,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :NEWLINE, :";", :+, :-, :*, :/, :%, :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :'#=>', :"=", :'{', :'?', :':', :'+=', :'-=', :'*=', :'/=', :&, :|, :^
-          nil
-        else
+        when :CHAR, :INT, :IDENT, :'('
           args = []
           while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :'#=>' && !is_end_token
             args << parse_expression
@@ -491,6 +490,8 @@ module Crystal
           end
           next_token_skip_space unless @token.type == :')' || @token.type == :'#=>' || is_end_token
           args
+        else
+          nil
         end
       else
         nil
