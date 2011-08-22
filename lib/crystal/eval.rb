@@ -59,6 +59,7 @@ module Crystal
 
   class TopLevelDef < Def
     def define_optimizations(fun)
+      super
       fun.linkage = :private
     end
   end

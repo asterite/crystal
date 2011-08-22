@@ -209,10 +209,10 @@ module Crystal
       end
 
       if block
-        fun.params[fun.params.size - 2].name = "&context"
-        fun.params[fun.params.size - 1].name = "&block"
+        fun.params[-2].name = "&context"
+        fun.params[-1].name = "&block"
       elsif is_block?
-        fun.params[fun.params.size - 1].name = "&context"
+        fun.params[-1].name = "&context"
       end
 
       if is_block?
@@ -426,7 +426,7 @@ module Crystal
     end
   end
 
-  class BlockCall
+  class Yield
     def codegen(mod)
       start_block = mod.builder.insert_block
       fun = start_block.parent

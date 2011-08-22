@@ -350,11 +350,7 @@ module Crystal
       false
     end
 
-    def end_visit_yield(node)
-      @scope.yield node
-    end
-
-    def visit_block_call(node)
+    def visit_yield(node)
       node.args.each { |arg| arg.accept self }
       node.args.each_with_index do |arg, i|
         node.block.args[i].resolved_type = arg.resolved_type

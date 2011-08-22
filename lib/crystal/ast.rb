@@ -709,6 +709,7 @@ module Crystal
 
   class Yield < Expression
     attr_accessor :args
+    attr_accessor :block
 
     def initialize(args)
       @args = args
@@ -730,30 +731,6 @@ module Crystal
       call = Yield.new args.map(&:clone)
       call.line_number = line_number
       call
-    end
-  end
-
-  class BlockCall < Expression
-    attr_accessor :block
-    attr_accessor :args
-
-    def initialize(block, args)
-      @block = block
-      @block.parent = self
-      @args = args
-      @args.each { |arg| arg.parent = self }
-    end
-
-    def accept(visitor)
-      if visitor.visit_block_call self
-        block.accept visitor
-        args.each { |arg| arg.accept visitor }
-      end
-      visitor.end_visit_block_call self
-    end
-
-    def ==(other)
-      other.is_a?(BlockCall) && other.block == block && other.args == args
     end
   end
 

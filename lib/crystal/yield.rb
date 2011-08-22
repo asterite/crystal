@@ -23,7 +23,7 @@ module Crystal
     end
 
     def visit_yield(node)
-      node.parent.replace node, BlockCall.new(@block, node.args)
+      node.block = @block
     end
   end
 
