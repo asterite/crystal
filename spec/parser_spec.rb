@@ -82,7 +82,7 @@ describe Parser do
     it_parses_single_node "foo.#{name} 1, 2", Call.new("foo".ref, name, [1.int, 2.int])
   end
 
-  [:'+', :'-', :'*', :'/', :'%', :'|', :'&', :'^', :'**'].each do |op|
+  [:'+', :'-', :'*', :'/', :'%', :'|', :'&', :'^', :'**', :<<, :>>].each do |op|
     it_parses_single_node "a #{op}= 1", Assign.new("a".ref, Call.new("a".ref, op.to_sym, [1.int]))
   end
 

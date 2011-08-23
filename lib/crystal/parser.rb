@@ -342,7 +342,7 @@ module Crystal
 
           value = parse_question_colon
           atomic = Assign.new(atomic, value)
-        when :'+=', :'-=', :'*=', :'/=', :'%=', :'|=', :'&=', :'^=', :'**='
+        when :'+=', :'-=', :'*=', :'/=', :'%=', :'|=', :'&=', :'^=', :'**=', :'<<=', :'>>='
           break unless atomic.is_a?(Ref)
 
           method = @token.type.to_s[0 .. -2].to_sym
