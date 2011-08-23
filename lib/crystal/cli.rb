@@ -9,10 +9,11 @@ def count_openings(string)
   lexer = Crystal::Lexer.new string
   last_token = nil
   while (token = lexer.next_token).type != :EOF
-    if token.type == :IDENT
+    case token.type
+    when :IDENT
       case token.value
       when :class, :def, :do, :if, :If, :unless, :Unless, :while
-        openings += 1 if last_token.nil? || last_token != :'.'
+        openings += 1 if last_token.nil? || last_token == :';'
       when :end, :End
         openings -= 1
       end

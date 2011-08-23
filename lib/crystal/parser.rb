@@ -285,17 +285,88 @@ module Crystal
     end
 
     def parse_primary_expression
-      parse_question_colon
+      parse_modified_expression
+    end
+
+    def parse_modified_expression
+      line_number = @token.line_number
+
+      atomic = parse_op_assign
+
+      while true
+        atomic.line_number = line_number
+
+        case @token.type
+        when :SPACE
+          next_token
+        when :IDENT
+          case @token.value
+          when :if
+            next_token_skip_statement_end
+            exp = parse_op_assign
+            atomic = If.new(exp, atomic)
+          when :unless
+            next_token_skip_statement_end
+            exp = parse_op_assign
+            atomic = If.new(exp, nil, atomic)
+          when :while
+            next_token_skip_statement_end
+            exp = parse_op_assign
+            atomic = While.new(exp, atomic)
+          else
+            break
+          end
+        else
+          break
+        end
+      end
+
+      atomic
+    end
+
+    def parse_op_assign
+      line_number = @token.line_number
+
+      atomic = parse_question_colon
+
+      while true
+        atomic.line_number = line_number
+
+        case @token.type
+        when :SPACE
+          next_token
+        when :'='
+          break unless atomic.is_a?(Ref)
+
+          next_token_skip_space_or_newline
+
+          value = parse_question_colon
+          atomic = Assign.new(atomic, value)
+        when :'+=', :'-=', :'*=', :'/=', :'%=', :'|=', :'&=', :'^=', :'**='
+          break unless atomic.is_a?(Ref)
+
+          method = @token.type.to_s[0 .. -2].to_sym
+
+          next_token_skip_space_or_newline
+
+          value = parse_question_colon
+          atomic = Assign.new(atomic, Call.new(atomic, method, [value]))
+        else
+          break
+        end
+      end
+
+      atomic
     end
 
     def parse_question_colon
       cond = parse_or
-      if @token.type == :'?'
+      while @token.type == :'?'
         next_token_skip_space_or_newline
-        true_val = parse_expression
+        true_val = parse_or
         check :':'
         next_token_skip_space_or_newline
-        false_val = parse_expression
+        false_val = parse_or
         cond = If.new(cond, true_val, false_val)
       end
       cond
@@ -332,8 +403,9 @@ module Crystal
     end
 
     parse_custom_operator :or, :and, "Or.new left, right", :"||"
-    parse_custom_operator :and, :cmp, "And.new left, right", :"&&"
-    parse_operator :cmp, :logical_or, :<, :<=, :==, :"!=", :>, :>=
+    parse_custom_operator :and, :equality, "And.new left, right", :"&&"
+    parse_operator :equality, :cmp, :<, :<=, :>, :>=
+    parse_operator :cmp, :logical_or, :==, :"!="
     parse_operator :logical_or, :logical_and, :|, :^
     parse_operator :logical_and, :shift, :&
     parse_operator :shift, :add_or_sub, :<<, :>>
@@ -393,22 +465,6 @@ module Crystal
           else
             atomic = args ? (Call.new atomic, name, args) : (Call.new atomic, name)
           end
-        when :'='
-          break unless atomic.is_a?(Ref)
-
-          next_token_skip_space_or_newline
-
-          value = parse_expression
-          atomic = Assign.new(atomic, value)
-        when :'+=', :'-=', :'*=', :'/=', :'%=', :'|=', :'&=', :'^=', :'**='
-          break unless atomic.is_a?(Ref)
-
-          method = @token.type.to_s[0 .. -2].to_sym
-
-          next_token_skip_space_or_newline
-
-          value = parse_expression
-          atomic = Assign.new(atomic, Call.new(atomic, method, [value]))
         else
           break
         end
@@ -534,16 +590,22 @@ module Crystal
         next_token
         case @token.type
         when :CHAR, :INT, :IDENT, :'('
-          args = []
-          while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :'#=>' && !is_end_token
-            args << parse_expression
-            skip_space
-            if @token.type == :","
-              next_token_skip_space_or_newline
+          case @token.value
+          when :if, :unless, :while
+            nil
+          else
+            args = []
+            while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :'#=>' && !is_end_token
+              args << parse_op_assign
+              skip_space
+              if @token.type == :","
+                next_token_skip_space_or_newline
+              else
+                break
+              end
             end
+            args
           end
-          next_token_skip_space unless @token.type == :')' || @token.type == :'#=>' || is_end_token
-          args
         else
           nil
         end
