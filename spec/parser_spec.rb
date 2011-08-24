@@ -63,6 +63,7 @@ describe Parser do
   it_parses_single_node "foo 1, 2", Call.new(nil, "foo", [1.int, 2.int])
   it_parses_single_node "foo (1 + 2), 3", Call.new(nil, "foo", [Call.new(1.int, :"+", [2.int]), 3.int])
   it_parses_single_node "foo(1 + 2)", Call.new(nil, "foo", [Call.new(1.int, :"+", [2.int])])
+  it_parses_single_node "foo -1.0, -2.0", Call.new(nil, "foo", [-1.float, -2.float]), :focus => true
 
   it_parses_single_node "foo", "foo".ref
   it_parses_single_node "foo + 1", Call.new("foo".ref, :"+", [1.int])

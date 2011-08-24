@@ -589,7 +589,7 @@ module Crystal
       when :SPACE
         next_token
         case @token.type
-        when :CHAR, :INT, :IDENT, :'('
+        when :CHAR, :INT, :FLOAT, :IDENT, :'('
           case @token.value
           when :if, :unless, :while
             nil
