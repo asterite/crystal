@@ -20,6 +20,7 @@ def assert_equal(expected, actual)
     print '='
     print ' '
     print actual
+    print '\n'
   end
 end
 
