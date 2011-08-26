@@ -20,58 +20,6 @@ describe "ast eval" do
 
   it_evals "true", true.bool
   it_evals "5", 5.int
-  it_evals "1.0 - 2", -1.0.float
-  it_evals "4 / 2", 2.int
-  it_evals "4.0 / 2", 2.0.float
-  it_evals "4 / 2.0", 2.0.float
-  it_evals "4 * 2", 8.int
-  it_evals "4 * 2.0", 8.0.float
-  it_evals "4.0 * 2", 8.0.float
-  it_evals "2 * (3 + 4)", 14.int
-  it_evals "8 < 4", false.bool
-  it_evals "8.0 < 4", false.bool
-  it_evals "8 < 4.0", false.bool
-  it_evals "4 < 8", true.bool
-  it_evals "8 <= 7", false.bool
-  it_evals "8 <= 8", true.bool
-  it_evals "8.0 <= 7", false.bool
-  it_evals "8 <= 7.0", false.bool
-  it_evals "8 > 4", true.bool
-  it_evals "4 > 8", false.bool
-  it_evals "8.0 > 4", true.bool
-  it_evals "8 > 4.0", true.bool
-  it_evals "8 >= 9", false.bool
-  it_evals "8 >= 8", true.bool
-  it_evals "8.0 >= 9", false.bool
-  it_evals "8 >= 9.0", false.bool
-  it_evals "8 == 8", true.bool
-  it_evals "8 == 9", false.bool
-  it_evals "8 != 8", false.bool
-  it_evals "8 == 8", true.bool
-  it_evals "8.0 == 9", false.bool
-  it_evals "8 == 9.0", false.bool
-  it_evals "true == false", false.bool
-  it_evals "true == true", true.bool
-  it_evals "!true", false.bool
-  it_evals "+ 1", 1.int
-  it_evals "- 1", -1.int
-  it_evals "false && true", false.bool
-  it_evals "true && true", true.bool
-  it_evals "false || false", false.bool
-  it_evals "false || true", true.bool
-  it_evals "1 << 3", 8.int
-  it_evals "4 >> 1", 2.int
-  it_evals "10 % 6", 4.int
-  it_evals "false & true", false.bool
-  it_evals "true & true", true.bool
-  it_evals "false | false", false.bool
-  it_evals "false | true", true.bool
-  it_evals "true ^ true", false.bool
-  it_evals "false ^ true", true.bool
-  it_evals "5 & 4", 4.int
-  it_evals "4 | 1", 5.int
-  it_evals "5 ^ 4", 1.int
-  it_evals "2 ** 4", 16.float
   it_evals "1.0", 1.0.float
   it_evals "'a'", Crystal::Char.new(?a.ord)
   it_evals "'a' == 'a'", true.bool
