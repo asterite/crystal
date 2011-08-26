@@ -567,6 +567,22 @@ module Crystal
     end
   end
 
+  class Break
+    def codegen(mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      casted_result = mod.builder.bit_cast fun.params[-1], LLVM::Pointer(LLVM::Int2), 'casted_result_ptr'
+      mod.builder.store LLVM::Int2.from_i(1), casted_result
+
+      if exp
+        mod.builder.ret exp.codegen(mod)
+      else
+        mod.builder.ret_void
+      end
+    end
+  end
+
   class Next
     def codegen(mod)
       if exp

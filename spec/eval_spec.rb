@@ -103,5 +103,6 @@ describe "ast eval" do
   it_evals "def foo; return; end", nil
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| return x }; end; bar", 1.int
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x; 10 }; end; bar", 2.int
-  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x if x == 1; 10 }; end; bar", 10.int, :focus => true
+  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x if x == 1; 10 }; end; bar", 10.int
+  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| break x; 10 }; end; bar", 1.int
 end
