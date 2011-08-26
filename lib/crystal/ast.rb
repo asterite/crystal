@@ -3,6 +3,10 @@ module Crystal
     attr_accessor :line_number
     attr_accessor :parent
     attr_accessor :compile_time_value
+
+    def returns?
+      false
+    end
   end
 
   class Module < ASTNode
@@ -59,6 +63,10 @@ module Crystal
       exps = Expressions.new expressions.map(&:clone)
       exps.line_number = line_number
       exps
+    end
+
+    def returns?
+      expressions.length > 0 && expressions[-1].returns?
     end
   end
 
@@ -361,6 +369,10 @@ module Crystal
         end
       end
     end
+
+    def is_block?
+      !!context
+    end
   end
 
   class Ref < Expression
@@ -493,6 +505,12 @@ module Crystal
       a_if = If.new cond.clone, self.then.clone, self.else.clone
       a_if.line_number = line_number
       a_if
+    end
+
+    def replace(node, replacement)
+      return @cond = replacement if @cond.equal? node
+      @then.replace node, replacement
+      @else.replace node, replacement
     end
   end
 
@@ -712,8 +730,8 @@ module Crystal
     attr_accessor :block
 
     def initialize(args)
-      @args = args
-      @args.each { |arg| arg.parent = self } if @args
+      @args = args || []
+      @args.each { |arg| arg.parent = self }
     end
 
     def accept(visitor)
@@ -767,6 +785,7 @@ module Crystal
 
   class Return < Expression
     attr_accessor :exp
+    attr_accessor :in_block
 
     def initialize(exp = nil)
       @exp = exp
@@ -788,6 +807,40 @@ module Crystal
       ret = Return.new(exp ? exp.clone : nil)
       ret.line_number = line_number
       ret
+    end
+
+    def returns?
+      true
+    end
+  end
+
+  class Next < Expression
+    attr_accessor :exp
+
+    def initialize(exp = nil)
+      @exp = exp
+      @exp.parent = self if @exp
+    end
+
+    def accept(visitor)
+      if visitor.visit_next self
+        @exp.accept visitor if @exp
+      end
+      visitor.end_visit_next self
+    end
+
+    def ==(other)
+      other.is_a?(Next) && other.exp == exp
+    end
+
+    def clone
+      ret = Next.new(exp ? exp.clone : nil)
+      ret.line_number = line_number
+      ret
+    end
+
+    def returns?
+      true
     end
   end
 end

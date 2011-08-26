@@ -48,7 +48,7 @@ module Crystal
         return_index = nil
         node.expressions.each_with_index do |exp, i|
           exp.accept self
-          break return_index = i if exp.is_a? Return
+          break return_index = i if exp.returns?
         end
         node.expressions = node.expressions[0 .. return_index] if return_index
         node.resolved_type = node.expressions.last.resolved_type
@@ -365,6 +365,17 @@ module Crystal
     end
 
     def visit_return(node)
+      if node.exp
+        node.exp.accept self
+        node.resolved_type = node.exp.resolved_type
+      else
+        node.resolved_type = @scope.nil_class
+      end
+      node.in_block = @scope.is_block?
+      false
+    end
+
+    def visit_next(node)
       if node.exp
         node.exp.accept self
         node.resolved_type = node.exp.resolved_type

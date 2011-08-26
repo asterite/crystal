@@ -8,6 +8,10 @@ module Crystal
       @scope
     end
 
+    def is_block?
+      false
+    end
+
     def method_missing(name, *args)
       @scope.send name, *args
     end
@@ -47,6 +51,10 @@ module Crystal
       tentative = @scope
       tentative = tentative.parent while tentative.is_a? DefScope
       tentative
+    end
+
+    def is_block?
+      @def.is_block?
     end
 
     def to_s

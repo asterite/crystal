@@ -276,6 +276,15 @@ module Crystal
       false
     end
 
+    def visit_next(node)
+      @str << "next"
+      if node.exp
+        @str << " "
+        node.exp.accept self
+      end
+      false
+    end
+
     def with_indent
       @indent += 1
       yield

@@ -93,6 +93,9 @@ describe "ast eval" do
   it_evals "if true; 2; end", 2.int
   it_evals "if false; 3; end", 0.int
   it_evals "if false; 1; else; 3; end", 3.int
+  it_evals "if false; 3.0; end", 0.0.float
+  it_evals "if false; 'a'; end", Crystal::Char.new(0)
+  it_evals "if false; nil; end", Crystal::Nil.new
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1.int
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24.int
   ["Bool.class", "Int.class", "Class"].each do |string|
@@ -152,6 +155,10 @@ describe "ast eval" do
   it_evals "def foo; yield 42; end; def bar; a = 10; a = a + 2; foo { |x| foo { |y| foo { |z| foo { |w| a = w } } } }; a; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; a = 10; foo { |x| foo { |y| foo { |z| a = y } } }; a; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; a = 10; foo { |x| foo { |y| foo { |z| a = x } } }; a; end; bar", 42.int
+  it_evals "def foo; return 1; end; foo", 1.int
   it_evals "def foo; return 1; 2; end; foo", 1.int
   it_evals "def foo; return; end", nil
+  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| return x }; end; bar", 1.int
+  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x; 10 }; end; bar", 2.int
+  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x if x == 1; 10 }; end; bar", 10.int, :focus => true
 end

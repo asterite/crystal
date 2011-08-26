@@ -89,6 +89,10 @@ module Crystal
     def llvm_cast(value)
       Nil.new
     end
+
+    def codegen_default(mod)
+      nil
+    end
   end
 
   class BoolClass < Class
@@ -99,6 +103,10 @@ module Crystal
     def llvm_cast(value)
       Bool.new value.to_b
     end
+
+    def codegen_default(mod)
+      LLVM::Int1.from_i 0
+    end
   end
 
   class IntClass < Class
@@ -108,6 +116,10 @@ module Crystal
 
     def llvm_cast(value)
       Int.new(value.to_i LLVM::Int32.type)
+    end
+
+    def codegen_default(mod)
+      LLVM::Int 0
     end
   end
 
@@ -129,6 +141,10 @@ module Crystal
     def llvm_cast(value)
       Float.new(value.to_f LLVM::Float.type)
     end
+
+    def codegen_default(mod)
+      LLVM::Float 0.0
+    end
   end
 
   class CharClass < Class
@@ -138,6 +154,10 @@ module Crystal
 
     def llvm_cast(value)
       Char.new(value.to_i LLVM::Int8.type)
+    end
+
+    def codegen_default(mod)
+      LLVM::Int8.from_i 0
     end
   end
 end

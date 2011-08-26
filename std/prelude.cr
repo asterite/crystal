@@ -384,3 +384,7 @@ def print x
     C.print_float x
   End
 end
+
+def loop
+  yield while true
+end

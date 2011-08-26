@@ -23,265 +23,7 @@ module Crystal
     end
 
     def parse_expression
-      if @token.type == :IDENT
-        case @token.value
-        when :class
-          return parse_class
-        when :def
-          return parse_def
-        when :if
-          return parse_if
-        when :If
-          return parse_static_if
-        when :unless
-          return parse_unless
-        when :Unless
-          return parse_static_unless
-        when :extern
-          return parse_extern
-        when :while
-          return parse_while
-        when :return
-          return parse_return
-        end
-      end
-
       parse_primary_expression
-    end
-
-    def parse_class
-      line_number = @token.line_number
-
-      next_token_skip_space_or_newline
-      check :IDENT
-
-      name = @token.value
-      next_token_skip_space
-
-      superclass = nil
-
-      if @token.type == :<
-        next_token_skip_space_or_newline
-        check :IDENT
-        superclass = @token.value
-        next_token
-      end
-      skip_statement_end
-
-      body = parse_expressions
-
-      check_ident :end
-      next_token_skip_statement_end
-
-      class_def = ClassDef.new name, body, superclass
-      class_def.line_number = line_number
-      class_def
-    end
-
-    def parse_def
-      next_token_skip_space_or_newline
-      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :&, :|, :^, :**
-
-      name = @token.type == :IDENT ? @token.value : @token.type
-      args = []
-
-      next_token_skip_space
-
-      case @token.type
-      when :'('
-        next_token_skip_space_or_newline
-        while @token.type != :')'
-          check_ident
-          args << Var.new(@token.value)
-          next_token_skip_space_or_newline
-          if @token.type == :','
-            next_token_skip_space_or_newline
-          end
-        end
-        next_token_skip_statement_end
-      when :IDENT
-        while @token.type != :NEWLINE && @token.type != :";"
-          check_ident
-          args << Var.new(@token.value)
-          next_token_skip_space
-          if @token.type == :','
-            next_token_skip_space_or_newline
-          end
-        end
-        next_token_skip_statement_end
-      else
-        skip_statement_end
-      end
-
-      if @token.type == :IDENT && @token.value == :end
-        body = nil
-      else
-        body = parse_expressions
-        skip_statement_end
-        check_ident :end
-      end
-
-      next_token_skip_statement_end
-      Def.new name, args, body
-    end
-
-    def parse_if(check_end = true)
-      line_number = @token.line_number
-
-      next_token_skip_space_or_newline
-
-      cond = parse_expression
-      skip_statement_end
-
-      a_then = parse_expressions
-      skip_statement_end
-
-      a_else = nil
-      if @token.type == :IDENT
-        case @token.value
-        when :else
-          next_token_skip_statement_end
-          a_else = parse_expressions
-        when :elsif
-          a_else = parse_if false
-        end
-      end
-
-      if check_end
-        check_ident :end
-        next_token_skip_statement_end
-      end
-
-      node = If.new cond, a_then, a_else
-      node.line_number = line_number
-      node
-    end
-
-    def parse_static_if(check_end = true)
-      line_number = @token.line_number
-
-      next_token_skip_space_or_newline
-
-      cond = parse_expression
-      skip_statement_end
-
-      a_then = parse_expressions
-      skip_statement_end
-
-      a_else = nil
-      if @token.type == :IDENT
-        case @token.value
-        when :Else
-          next_token_skip_statement_end
-          a_else = parse_expressions
-        when :Elsif
-          a_else = parse_static_if false
-        end
-      end
-
-      if check_end
-        check_ident :End
-        next_token_skip_statement_end
-      end
-
-      node = StaticIf.new cond, a_then, a_else
-      node.line_number = line_number
-      node
-    end
-
-    def parse_unless
-      line_number = @token.line_number
-
-      next_token_skip_space_or_newline
-
-      cond = parse_expression
-      skip_statement_end
-
-      a_then = parse_expressions
-      skip_statement_end
-
-      a_else = nil
-      if @token.type == :IDENT && @token.value == :else
-        next_token_skip_statement_end
-        a_else = parse_expressions
-      end
-
-      check_ident :end
-      next_token_skip_statement_end
-
-      node = If.new cond, a_else, a_then
-      node.line_number = line_number
-      node
-    end
-
-    def parse_static_unless
-      line_number = @token.line_number
-
-      next_token_skip_space_or_newline
-
-      cond = parse_expression
-      skip_statement_end
-
-      a_then = parse_expressions
-      skip_statement_end
-
-      a_else = nil
-      if @token.type == :IDENT && @token.value == :Else
-        next_token_skip_statement_end
-        a_else = parse_expressions
-      end
-
-      check_ident :End
-      next_token_skip_statement_end
-
-      node = StaticIf.new cond, a_else, a_then
-      node.line_number = line_number
-      node
-    end
-
-    def parse_while
-      line_number = @token.line_number
-
-      next_token_skip_space_or_newline
-
-      cond = parse_expression
-      skip_statement_end
-
-      body = parse_expressions
-      skip_statement_end
-
-      check_ident :end
-      next_token_skip_statement_end
-
-      node = While.new cond, body
-      node.line_number = line_number
-      node
-    end
-
-    def parse_return
-      line_number = @token.line_number
-
-      next_token_skip_space
-
-      node = if @token.type == :EOF || @token.type == :NEWLINE || @token.type == :';'
-               Return.new
-             else
-               Return.new parse_expression
-             end
-      node.line_number = line_number
-      node
-    end
-
-    def parse_extern
-      next_token_skip_space_or_newline
-      check :IDENT
-      name = @token.value
-      next_token
-      args_types = parse_args
-      check :'#=>'
-      next_token_skip_space
-      return_type = parse_expression
-      Prototype.new name, (args_types || []), return_type
     end
 
     def parse_primary_expression
@@ -506,6 +248,26 @@ module Crystal
           node_and_next_token Bool.new(true)
         when :yield
           parse_yield
+        when :class
+          parse_class
+        when :def
+          parse_def
+        when :if
+          parse_if
+        when :If
+          parse_static_if
+        when :unless
+          parse_unless
+        when :Unless
+          parse_static_unless
+        when :extern
+          parse_extern
+        when :while
+          parse_while
+        when :return
+          parse_return
+        when :next
+          parse_next
         else
           parse_ref_or_call
         end
@@ -612,6 +374,245 @@ module Crystal
       else
         nil
       end
+    end
+
+    def parse_class
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+      check :IDENT
+
+      name = @token.value
+      next_token_skip_space
+
+      superclass = nil
+
+      if @token.type == :<
+        next_token_skip_space_or_newline
+        check :IDENT
+        superclass = @token.value
+        next_token
+      end
+      skip_statement_end
+
+      body = parse_expressions
+
+      check_ident :end
+      next_token_skip_statement_end
+
+      class_def = ClassDef.new name, body, superclass
+      class_def.line_number = line_number
+      class_def
+    end
+
+    def parse_def
+      next_token_skip_space_or_newline
+      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :&, :|, :^, :**
+
+      name = @token.type == :IDENT ? @token.value : @token.type
+      args = []
+
+      next_token_skip_space
+
+      case @token.type
+      when :'('
+        next_token_skip_space_or_newline
+        while @token.type != :')'
+          check_ident
+          args << Var.new(@token.value)
+          next_token_skip_space_or_newline
+          if @token.type == :','
+            next_token_skip_space_or_newline
+          end
+        end
+        next_token_skip_statement_end
+      when :IDENT
+        while @token.type != :NEWLINE && @token.type != :";"
+          check_ident
+          args << Var.new(@token.value)
+          next_token_skip_space
+          if @token.type == :','
+            next_token_skip_space_or_newline
+          end
+        end
+        next_token_skip_statement_end
+      else
+        skip_statement_end
+      end
+
+      if @token.type == :IDENT && @token.value == :end
+        body = nil
+      else
+        body = parse_expressions
+        skip_statement_end
+        check_ident :end
+      end
+
+      next_token_skip_statement_end
+      Def.new name, args, body
+    end
+
+    def parse_if(check_end = true)
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      a_then = parse_expressions
+      skip_statement_end
+
+      a_else = nil
+      if @token.type == :IDENT
+        case @token.value
+        when :else
+          next_token_skip_statement_end
+          a_else = parse_expressions
+        when :elsif
+          a_else = parse_if false
+        end
+      end
+
+      if check_end
+        check_ident :end
+        next_token_skip_statement_end
+      end
+
+      node = If.new cond, a_then, a_else
+      node.line_number = line_number
+      node
+    end
+
+    def parse_static_if(check_end = true)
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      a_then = parse_expressions
+      skip_statement_end
+
+      a_else = nil
+      if @token.type == :IDENT
+        case @token.value
+        when :Else
+          next_token_skip_statement_end
+          a_else = parse_expressions
+        when :Elsif
+          a_else = parse_static_if false
+        end
+      end
+
+      if check_end
+        check_ident :End
+        next_token_skip_statement_end
+      end
+
+      node = StaticIf.new cond, a_then, a_else
+      node.line_number = line_number
+      node
+    end
+
+    def parse_unless
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      a_then = parse_expressions
+      skip_statement_end
+
+      a_else = nil
+      if @token.type == :IDENT && @token.value == :else
+        next_token_skip_statement_end
+        a_else = parse_expressions
+      end
+
+      check_ident :end
+      next_token_skip_statement_end
+
+      node = If.new cond, a_else, a_then
+      node.line_number = line_number
+      node
+    end
+
+    def parse_static_unless
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      a_then = parse_expressions
+      skip_statement_end
+
+      a_else = nil
+      if @token.type == :IDENT && @token.value == :Else
+        next_token_skip_statement_end
+        a_else = parse_expressions
+      end
+
+      check_ident :End
+      next_token_skip_statement_end
+
+      node = StaticIf.new cond, a_else, a_then
+      node.line_number = line_number
+      node
+    end
+
+    def parse_while
+      line_number = @token.line_number
+
+      next_token_skip_space_or_newline
+
+      cond = parse_expression
+      skip_statement_end
+
+      body = parse_expressions
+      skip_statement_end
+
+      check_ident :end
+      next_token_skip_statement_end
+
+      node = While.new cond, body
+      node.line_number = line_number
+      node
+    end
+
+    ['return', 'next'].each do |keyword|
+      class_eval %Q(
+        def parse_#{keyword}
+          line_number = @token.line_number
+
+          next_token_skip_space
+
+          node = if @token.type == :EOF || @token.type == :NEWLINE || @token.type == :';' || @token.value == :if || @token.value == :unless || @token.value == :while || @token.value == :until
+                   #{keyword.capitalize}.new
+                 else
+                   #{keyword.capitalize}.new parse_op_assign
+                 end
+          node.line_number = line_number
+          node
+        end
+      )
+    end
+
+    def parse_extern
+      next_token_skip_space_or_newline
+      check :IDENT
+      name = @token.value
+      next_token
+      args_types = parse_args
+      check :'#=>'
+      next_token_skip_space
+      return_type = parse_expression
+      Prototype.new name, (args_types || []), return_type
     end
 
     def node_and_next_token(node)

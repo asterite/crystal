@@ -12,7 +12,6 @@ end
 module Crystal
   class ASTNode
     attr_accessor :code
-    attr_reader :returns
   end
 
   class Module
@@ -121,19 +120,11 @@ module Crystal
 
   class Expressions
     def codegen(mod)
-      if expressions.empty?
-        LLVM::Int 0
-      else
-        last = nil
-        expressions.each do |exp|
-          last = exp.codegen mod
-        end
-        last
+      last = nil
+      expressions.each do |exp|
+        last = exp.codegen mod
       end
-    end
-
-    def returns
-      expressions.length > 0 && expressions[-1].is_a?(Return)
+      last
     end
   end
 
@@ -226,7 +217,7 @@ module Crystal
       define_local_variables mod
 
       code = codegen_body(mod, fun)
-      unless body.returns
+      unless body.returns?
         if body.resolved_type == mod.nil_class
           mod.builder.ret_void
         else
@@ -334,27 +325,45 @@ module Crystal
       then_block = fun.basic_blocks.append 'then'
       mod.builder.position_at_end then_block
       then_code = self.then.codegen mod
+      then_code = self.else.resolved_type.codegen_default mod if !then_code && self.else
       new_then_block = mod.builder.insert_block
 
       else_block = fun.basic_blocks.append 'else'
       mod.builder.position_at_end else_block
       else_code = self.else.codegen mod
+      else_code = self.then.resolved_type.codegen_default mod if !else_code && self.then
       new_else_block = mod.builder.insert_block
 
       merge_block = fun.basic_blocks.append 'merge'
       mod.builder.position_at_end merge_block
-      phi = mod.builder.phi resolved_type.llvm_type, {new_then_block => then_code, new_else_block => else_code}, 'iftmp'
+
+      phi = nil
+
+      if resolved_type != mod.nil_class
+        branches = {}
+        branches[new_then_block] = then_code unless self.then.returns?
+        branches[new_else_block] = else_code unless self.else.returns?
+        phi = mod.builder.phi resolved_type.llvm_type, branches, 'iftmp'
+      end
 
       mod.builder.position_at_end start_block
       mod.builder.cond cond_code, then_block, else_block
 
-      mod.builder.position_at_end new_then_block
-      mod.builder.br merge_block
+      unless self.then.returns?
+        mod.builder.position_at_end new_then_block
+        mod.builder.br merge_block
+      end
 
-      mod.builder.position_at_end new_else_block
-      mod.builder.br merge_block
+      unless self.else.returns?
+        mod.builder.position_at_end new_else_block
+        mod.builder.br merge_block
+      end
 
-      mod.builder.position_at_end merge_block
+      if resolved_type == mod.nil_class
+        phi = mod.builder.position_at_end merge_block
+      else
+        mod.builder.position_at_end merge_block
+      end
 
       phi
     end
@@ -431,19 +440,46 @@ module Crystal
       start_block = mod.builder.insert_block
       fun = start_block.parent
 
+      casted_result = mod.builder.bit_cast fun.params[-2], LLVM::Pointer(LLVM::Int2), 'casted_result_ptr'
+      mod.builder.store LLVM::Int2.from_i(0), casted_result
+
       resolved_args = args.map do |arg|
         mod.remember_block { arg.codegen(mod) }
       end
       resolved_args << fun.params[-2]
+      resolved_args << 'yield_result'
 
-      mod.builder.call fun.params[-1], *resolved_args
+      yield_result = mod.builder.call fun.params[-1], *resolved_args
+
+      normal_block = fun.basic_blocks.append 'normal'
+      mod.builder.position_at_end normal_block
+
+      return_block = fun.basic_blocks.append 'return'
+      mod.builder.position_at_end return_block
+      mod.builder.ret yield_result
+
+      mod.builder.position_at_end start_block
+
+      casted_result = mod.builder.bit_cast fun.params[-2], LLVM::Pointer(LLVM::Int2), 'casted_result_ptr'
+      loaded_result = mod.builder.load casted_result
+      cond_code = mod.builder.icmp(:eq, loaded_result, LLVM::Int2.from_i(0), 'context_result')
+      mod.builder.cond cond_code, normal_block, return_block
+
+      mod.builder.position_at_end normal_block
+      yield_result
     end
   end
 
   class BlockContext
+    # The type of the context is:
+    #  - A return value (to distinguish between return, next, break,  normal)
+    #  - Pointers to the referenced variables outside of the block
+    #  - Pointer to the parent block's context, if accessed
     def type(mod)
       @type ||= begin
-                  types = references.values.map(&:llvm_type)
+                  types = []
+                  types << LLVM::Int2
+                  types += references.values.map(&:llvm_type)
                   types << LLVM::Pointer(parent.type mod) if parent
 
                   type = LLVM::Type.struct types, false
@@ -459,15 +495,15 @@ module Crystal
     def alloca(mod)
       context = mod.builder.alloca type(mod), '&context'
 
-      i = 0
-      @references.each do |name, node|
+      i = 1
+      references.each do |name, node|
         pointer = mod.builder.inbounds_gep context, [LLVM::Int32.from_i(0), LLVM::Int32.from_i(i)], "#{name}_ptr"
         mod.builder.store node.node.code, pointer
         i += 1
       end
 
       if parent
-        pointer = mod.builder.inbounds_gep context, [LLVM::Int32.from_i(0), LLVM::Int32.from_i(@references.length)], "context_ptr"
+        pointer = mod.builder.inbounds_gep context, [LLVM::Int32.from_i(0), LLVM::Int32.from_i(parent_index)], "context_ptr"
         mod.builder.store parent.casted_context, pointer
       end
 
@@ -476,12 +512,16 @@ module Crystal
     end
 
     def index(node)
-      value = @references.keys.index node.name
-      value ? [self, value] : parent.index(node)
+      value = references.keys.index node.name
+      value ? [self, value + 1] : parent.index(node)
+    end
+
+    def parent_index
+      references.length + 1
     end
 
     def access_parent(mod, context_ptr)
-      parent_context_ptr = mod.builder.extract_value context_ptr, references.length, "parent_context_ptr"
+      parent_context_ptr = mod.builder.extract_value context_ptr, parent_index, "parent_context_ptr"
       mod.builder.load parent_context_ptr, "parent_context"
     end
   end
@@ -512,11 +552,32 @@ module Crystal
 
   class Return
     def codegen(mod)
+      if in_block
+        start_block = mod.builder.insert_block
+        fun = start_block.parent
+
+        casted_result = mod.builder.bit_cast fun.params[-1], LLVM::Pointer(LLVM::Int2), 'casted_result_ptr'
+        mod.builder.store LLVM::Int2.from_i(2), casted_result
+      end
       if exp
         mod.builder.ret exp.codegen(mod)
       else
-        mod.builder.ret
+        mod.builder.ret_void
       end
+    end
+  end
+
+  class Next
+    def codegen(mod)
+      if exp
+        mod.builder.ret exp.codegen(mod)
+      else
+        mod.builder.ret_void
+      end
+    end
+
+    def returns?
+      true
     end
   end
 end
