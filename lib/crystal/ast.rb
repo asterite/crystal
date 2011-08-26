@@ -843,4 +843,34 @@ module Crystal
       true
     end
   end
+
+  class Break < Expression
+    attr_accessor :exp
+
+    def initialize(exp = nil)
+      @exp = exp
+      @exp.parent = self if @exp
+    end
+
+    def accept(visitor)
+      if visitor.visit_next self
+        @exp.accept visitor if @exp
+      end
+      visitor.end_visit_next self
+    end
+
+    def ==(other)
+      other.is_a?(Break) && other.exp == exp
+    end
+
+    def clone
+      ret = Break.new(exp ? exp.clone : nil)
+      ret.line_number = line_number
+      ret
+    end
+
+    def returns?
+      true
+    end
+  end
 end

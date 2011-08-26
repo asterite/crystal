@@ -38,6 +38,7 @@ module Crystal
       'block_reference',
       'return',
       'next',
+      'break',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

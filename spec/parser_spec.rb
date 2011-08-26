@@ -149,6 +149,10 @@ describe Parser do
   it_parses_single_node "next;", Next.new
   it_parses_single_node "next 1", Next.new(1.int)
 
+  it_parses_single_node "break", Break.new
+  it_parses_single_node "break;", Break.new
+  it_parses_single_node "break 1", Break.new(1.int)
+
   it_parses_single_node "1 if 3", If.new(3.int, 1.int)
   it_parses_single_node "1 unless 3", If.new(3.int, nil, 1.int)
   it_parses_single_node "1 while 3", While.new(3.int, 1.int)
@@ -160,4 +164,6 @@ describe Parser do
   it_parses_single_node "next if true", If.new(true.bool, Next.new)
   it_parses_single_node "return 1 if true", If.new(true.bool, Return.new(1.int))
   it_parses_single_node "return if true", If.new(true.bool, Return.new)
+  it_parses_single_node "break 1 if true", If.new(true.bool, Break.new(1.int))
+  it_parses_single_node "break if true", If.new(true.bool, Break.new)
 end

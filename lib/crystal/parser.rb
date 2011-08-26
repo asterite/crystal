@@ -268,6 +268,8 @@ module Crystal
           parse_return
         when :next
           parse_next
+        when :break
+          parse_break
         else
           parse_ref_or_call
         end
@@ -585,7 +587,7 @@ module Crystal
       node
     end
 
-    ['return', 'next'].each do |keyword|
+    ['return', 'next', 'break'].each do |keyword|
       class_eval %Q(
         def parse_#{keyword}
           line_number = @token.line_number
