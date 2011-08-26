@@ -65,4 +65,19 @@ describe Lexer do
   it_lexes_char "'\\n'", ?\n.ord
   it_lexes_char "'\\t'", ?\t.ord
   it_lexes_operators "=", "<", "<=", ">", ">=", "+", "-", "*", "/", "(", ")", "==", "!=", "!", ",", '.', '#=>', "+@", "-@", "&&", "||", "|", "{", "}", '?', ':', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '**=', '<<', '>>', '%', '&', '|', '^', '**', '<<=', '>>='
+
+  it "lexes comment and token" do
+    lexer = Lexer.new "# comment\n1"
+    token = lexer.next_token
+    token.type.should eq(:NEWLINE)
+    token = lexer.next_token
+    token.type.should eq(:INT)
+    token.value.should eq("1")
+  end
+
+  it "lexes comment at the end" do
+    lexer = Lexer.new "# comment"
+    token = lexer.next_token
+    token.type.should eq(:EOF)
+  end
 end
