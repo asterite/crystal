@@ -9,4 +9,8 @@ filename = ARGV[0]
 file = File.read filename
 
 mod = Crystal::Module.new
-mod.eval file
+begin
+  mod.eval file
+rescue => ex
+  puts ex
+end

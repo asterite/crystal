@@ -203,6 +203,11 @@ class Int < Number
     self
   end
 
+  extern crystal_to_f_int Int #=> Float
+  def to_f
+    C.crystal_to_f_int self
+  end
+
   def times
     if self > 0
       n = 0
