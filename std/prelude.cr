@@ -52,34 +52,8 @@ class Number
   end
 end
 
-extern crystal_add_int_int Int, Int #=> Int
-extern crystal_add_float_float Float, Float #=> Float
-extern crystal_sub_int_int Int, Int #=> Int
-extern crystal_mul_int_int Int, Int #=> Int
-extern crystal_div_int_int Int, Int #=> Int
-extern crystal_lt_int_int Int, Int #=> Bool
-extern crystal_let_int_int Int, Int #=> Bool
-extern crystal_eq_int_int Int, Int #=> Bool
-extern crystal_shl_int_int Int, Int #=> Int
-extern crystal_shr_int_int Int, Int #=> Int
-extern crystal_mod_int_int Int, Int #=> Int
-extern crystal_and_int_int Int, Int #=> Int
-extern crystal_or_int_int Int, Int #=> Int
-extern crystal_xor_int_int Int, Int #=> Int
-extern crystal_pow_int_int Int, Int #=> Float
-extern crystal_to_f_int Int #=> Float
-extern crystal_eq_char_char Char, Char #=> Bool
-extern crystal_eq_long_long Long, Long #=> Bool
-extern crystal_sub_float_float Float, Float #=> Float
-extern crystal_mul_float_float Float, Float #=> Float
-extern crystal_div_float_float Float, Float #=> Float
-extern crystal_lt_float_float Float, Float #=> Bool
-extern crystal_let_float_float Float, Float #=> Bool
-extern crystal_eq_float_float Float, Float #=> Bool
-extern crystal_pow_float_float Float, Float #=> Float
-extern crystal_to_i_float Float #=> Int
-
 class Int < Number
+  extern crystal_add_int_int Int, Int #=> Int
   def +(other)
     If other.class == Int
       C.crystal_add_int_int self, other
@@ -88,6 +62,7 @@ class Int < Number
     End
   end
 
+  extern crystal_sub_int_int Int, Int #=> Int
   def -(other)
     If other.class == Int
       C.crystal_sub_int_int self, other
@@ -96,6 +71,7 @@ class Int < Number
     End
   end
 
+  extern crystal_mul_int_int Int, Int #=> Int
   def *(other)
     If other.class == Int
       C.crystal_mul_int_int self, other
@@ -104,6 +80,7 @@ class Int < Number
     End
   end
 
+  extern crystal_div_int_int Int, Int #=> Int
   def /(other)
     If other.class == Int
       C.crystal_div_int_int self, other
@@ -112,6 +89,7 @@ class Int < Number
     End
   end
 
+  extern crystal_lt_int_int Int, Int #=> Bool
   def <(other)
     If other.class == Int
       C.crystal_lt_int_int self, other
@@ -120,6 +98,7 @@ class Int < Number
     End
   end
 
+  extern crystal_let_int_int Int, Int #=> Bool
   def <=(other)
     If other.class == Int
       C.crystal_let_int_int self, other
@@ -128,6 +107,7 @@ class Int < Number
     End
   end
 
+  extern crystal_eq_int_int Int, Int #=> Bool
   def ==(other)
     If other.class == Int
       C.crystal_eq_int_int self, other
@@ -152,30 +132,37 @@ class Int < Number
     End
   end
 
+  extern crystal_shl_int_int Int, Int #=> Int
   def <<(other)
     C.crystal_shl_int_int self, other
   end
 
+  extern crystal_shr_int_int Int, Int #=> Int
   def >>(other)
     C.crystal_shr_int_int self, other
   end
 
+  extern crystal_mod_int_int Int, Int #=> Int
   def %(other)
     C.crystal_mod_int_int self, other
   end
 
+  extern crystal_and_int_int Int, Int #=> Int
   def &(other)
     C.crystal_and_int_int self, other
   end
 
+  extern crystal_or_int_int Int, Int #=> Int
   def |(other)
     C.crystal_or_int_int self, other
   end
 
+  extern crystal_xor_int_int Int, Int #=> Int
   def ^(other)
     C.crystal_xor_int_int self, other
   end
 
+  extern crystal_pow_int_int Int, Int #=> Float
   def **(other)
     If other.class == Int
       C.crystal_pow_int_int self, other
@@ -208,6 +195,7 @@ class Int < Number
     self
   end
 
+  extern crystal_to_f_int Int #=> Float
   def to_f
     C.crystal_to_f_int self
   end
@@ -247,42 +235,51 @@ class Int < Number
 end
 
 class Char
+  extern crystal_eq_char_char Char, Char #=> Bool
   def ==(other)
     C.crystal_eq_char_char self, other
   end
 end
 
 class Long
+  extern crystal_eq_long_long Long, Long #=> Bool
   def ==(other)
     C.crystal_eq_long_long self, other
   end
 end
 
 class Float < Number
+  extern crystal_add_float_float Float, Float #=> Float
   def +(other)
     C.crystal_add_float_float self, other.to_f
   end
 
+  extern crystal_sub_float_float Float, Float #=> Float
   def -(other)
     C.crystal_sub_float_float self, other.to_f
   end
 
+  extern crystal_mul_float_float Float, Float #=> Float
   def *(other)
     C.crystal_mul_float_float self, other.to_f
   end
 
+  extern crystal_div_float_float Float, Float #=> Float
   def /(other)
     C.crystal_div_float_float self, other.to_f
   end
 
+  extern crystal_lt_float_float Float, Float #=> Bool
   def <(other)
     C.crystal_lt_float_float self, other.to_f
   end
 
+  extern crystal_let_float_float Float, Float #=> Bool
   def <=(other)
     C.crystal_let_float_float self, other.to_f
   end
 
+  extern crystal_eq_float_float Float, Float #=> Bool
   def ==(other)
     C.crystal_eq_float_float self, other.to_f
   end
@@ -295,10 +292,12 @@ class Float < Number
     C.crystal_let_float_float other.to_f, self
   end
 
+  extern crystal_pow_float_float Float, Float #=> Float
   def **(other)
     C.crystal_pow_float_float self, other.to_f
   end
 
+  extern crystal_to_i_float Float #=> Int
   def to_i
     C.crystal_to_i_float self
   end
