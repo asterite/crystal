@@ -15,6 +15,10 @@ module Crystal
       self.accept visitor
       visitor.count
     end
+
+    def check_break_and_next_type(type)
+      self.accept CheckBreakAndNextType.new(type)
+    end
   end
 
   class ReplaceYieldVisitor < Visitor
@@ -38,6 +42,22 @@ module Crystal
 
     def visit_yield(node)
       @count = node.args.length
+    end
+  end
+
+  class CheckBreakAndNextType < Visitor
+    def initialize(type)
+      @type = type
+    end
+
+    def visit_break(node)
+      node.raise_error "Can't break with type #{node.resolved_type}, must break with #{@type}" if node.exp && node.resolved_type != @type
+      true
+    end
+
+    def visit_next(node)
+      node.raise_error "Can't next with type #{node.resolved_type}, must next with #{@type}" if node.exp && node.resolved_type != @type
+      true
     end
   end
 end

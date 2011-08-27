@@ -14,4 +14,6 @@ describe "ast eval" do
 
   it_evals_with_error "def foo x; x + 2; end; x + 1; false + 1"
   it_evals_with_error "def foo; a = 10; yield 42; end; def bar; foo { |x| a }; end; bar"
+  it_evals_with_error "def bar; a = 10.times { |x| break 1.0 if x > 5 }; a; end; bar"
+  it_evals_with_error "def bar; a = 10.times { |x| next 1.0 if x > 5 }; a; end; bar"
 end

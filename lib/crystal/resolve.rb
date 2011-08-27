@@ -117,10 +117,10 @@ module Crystal
     def visit_class_def(node)
       exp = @scope.find_expression node.name
       if exp
-        raise_error node, "can only extend from Class type" unless exp.class <= Crystal::Class
+        node.raise_error "can only extend from Class type" unless exp.class <= Crystal::Class
       else
         superclass = if node.superclass
-                       @scope.find_expression(node.superclass) or raise_error node, "unknown class '#{node.superclass}'"
+                       @scope.find_expression(node.superclass) or node.raise_error "unknown class '#{node.superclass}'"
                      else
                        @scope.object_class
                      end
@@ -137,7 +137,7 @@ module Crystal
     def visit_ref(node)
       return if node.resolved_type
 
-      exp = @scope.find_expression(node.name) or raise_error node, "undefined local variable or method '#{node.name}'"
+      exp = @scope.find_expression(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
       if exp.is_a?(Def) || exp.is_a?(Prototype)
         call = Call.new(nil, exp.name)
         call.accept self
@@ -157,10 +157,10 @@ module Crystal
 
       if node.target.resolved
         unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference)
-          raise_error node, "can't assign to #{node.target}, it is not a variable"
+          node.raise_error "can't assign to #{node.target}, it is not a variable"
         end
         if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type
-          raise_error node, "can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
+          node.raise_error "can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
         end
       else
         var = Var.new(node.target.name, node.value.resolved_type)
@@ -211,14 +211,14 @@ module Crystal
           # Special case: rewrite a != b as !(a == b)
           return new_not_equals(node) if node.name == :'!='
 
-          raise_error node, "undefined method '#{node.name}' for #{resolved_type}"
+          node.raise_error "undefined method '#{node.name}' for #{resolved_type}"
         end
 
         @scope.add_expression exp
       end
 
       if !exp.args_length_is(node.args_length + 1) # With self
-        raise_error node, "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
+        node.raise_error "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
       end
 
       node.args = [node.obj] + node.args
@@ -230,11 +230,11 @@ module Crystal
     def resolve_function_call(node)
       node.args.each { |arg| arg.accept self }
 
-      exp = @scope.find_expression(node.name) or raise_error node, "undefined method '#{node.name}'"
+      exp = @scope.find_expression(node.name) or node.raise_error "undefined method '#{node.name}'"
 
       if exp.is_a?(Prototype) || exp.is_a?(Def)
         if !exp.args_length_is(node.args_length)
-          raise_error node, "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
+          node.raise_error "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
         end
       end
 
@@ -244,7 +244,7 @@ module Crystal
         exp.arg_types.each_with_index do |expected_type, i|
           actual_type = node.args[i].resolved_type
           unless actual_type.subclass_of? expected_type
-            raise_error node, "argument number #{i + 1} of C.#{exp.name} must be an #{expected_type}, not #{actual_type}"
+            node.raise_error "argument number #{i + 1} of C.#{exp.name} must be an #{expected_type}, not #{actual_type}"
           end
         end
 
@@ -260,7 +260,7 @@ module Crystal
           node.resolved_type = exp.resolved_type
           return false
         else
-          raise_error node, "undefined method #{node.name}"
+          node.raise_error "undefined method #{node.name}"
         end
       end
 
@@ -271,7 +271,7 @@ module Crystal
       node.resolved_type = instance.resolved_type
 
       if node.resolved_type == UnknownType
-        raise_error node, "can't deduce the type of #{instance.name}"
+        node.raise_error "can't deduce the type of #{instance.name}"
       end
 
       # Resolve any expressions with unknown types
@@ -284,6 +284,10 @@ module Crystal
       end
     end
 
+    def end_visit_call(node)
+      node.check_break_and_next_type node.resolved_type
+    end
+
     def new_not_equals(node)
       node.name = :'=='
       node.resolved_type = nil
@@ -294,7 +298,7 @@ module Crystal
 
     def visit_if(node)
       node.cond.accept self
-      raise_error node, "if condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
+      node.raise_error "if condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
 
       node.then.accept self
       node.else.accept self
@@ -304,8 +308,8 @@ module Crystal
 
     def visit_static_if(node)
       node.cond.accept self
-      raise_error node, "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
-      raise_error node, "can't evaluate If at compile-time" unless node.cond.can_be_evaluated_at_compile_time?
+      node.raise_error "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
+      node.raise_error "can't evaluate If at compile-time" unless node.cond.can_be_evaluated_at_compile_time?
 
       cond_value = @scope.eval_anon node.cond
       if cond_value.value
@@ -327,7 +331,7 @@ module Crystal
 
     def visit_not(node)
       node.exp.accept self
-      raise_error node, "! condition must be Bool" unless node.exp.resolved_type == @scope.bool_class
+      node.raise_error "! condition must be Bool" unless node.exp.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
       false
     end
@@ -335,8 +339,8 @@ module Crystal
     def visit_and(node)
       node.left.accept self
       node.right.accept self
-      raise_error node, "left && condition must be Bool" unless node.left.resolved_type == @scope.bool_class
-      raise_error node, "right && condition must be Bool" unless node.right.resolved_type == @scope.bool_class
+      node.raise_error "left && condition must be Bool" unless node.left.resolved_type == @scope.bool_class
+      node.raise_error "right && condition must be Bool" unless node.right.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
       false
     end
@@ -344,8 +348,8 @@ module Crystal
     def visit_or(node)
       node.left.accept self
       node.right.accept self
-      raise_error node, "left || condition must be Bool" unless node.left.resolved_type == @scope.bool_class
-      raise_error node, "right || condition must be Bool" unless node.right.resolved_type == @scope.bool_class
+      node.raise_error "left || condition must be Bool" unless node.left.resolved_type == @scope.bool_class
+      node.raise_error "right || condition must be Bool" unless node.right.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
       false
     end
@@ -399,7 +403,7 @@ module Crystal
       return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.nil_class
       return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.nil_class
       return type1 if type1 == type2
-      raise_error node, "if branches have different types: #{type1} and #{type2}"
+      node.raise_error "if branches have different types: #{type1} and #{type2}"
     end
 
     def with_new_scope(scope)
@@ -407,10 +411,6 @@ module Crystal
       @scope = scope
       yield
       @scope = old_scope
-    end
-
-    def raise_error(node, message)
-      raise "Error on line #{node.line_number}: #{message}"
     end
   end
 end

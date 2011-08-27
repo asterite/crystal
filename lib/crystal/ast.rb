@@ -4,6 +4,10 @@ module Crystal
     attr_accessor :parent
     attr_accessor :compile_time_value
 
+    def raise_error(message)
+      raise "Error on line #{line_number}: #{message}"
+    end
+
     def returns?
       false
     end
@@ -854,10 +858,10 @@ module Crystal
     end
 
     def accept(visitor)
-      if visitor.visit_next self
+      if visitor.visit_break self
         @exp.accept visitor if @exp
       end
-      visitor.end_visit_next self
+      visitor.end_visit_break self
     end
 
     def ==(other)
