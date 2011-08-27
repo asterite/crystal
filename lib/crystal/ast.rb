@@ -727,6 +727,7 @@ module Crystal
 
   class Yield < Expression
     attr_accessor :args
+    attr_accessor :def
     attr_accessor :block
 
     def initialize(args)

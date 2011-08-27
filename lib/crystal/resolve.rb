@@ -385,6 +385,16 @@ module Crystal
       false
     end
 
+    def visit_break(node)
+      if node.exp
+        node.exp.accept self
+        node.resolved_type = node.exp.resolved_type
+      else
+        node.resolved_type = @scope.nil_class
+      end
+      false
+    end
+
     def merge_types(node, type1, type2)
       return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.nil_class
       return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.nil_class

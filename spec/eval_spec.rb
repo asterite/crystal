@@ -5,6 +5,7 @@ describe "ast eval" do
     it "evals #{string}", options do
       mod = Crystal::Module.new
       value = mod.eval string
+      #mod.dump
       value.should eq(expected_value)
     end
   end
@@ -105,4 +106,5 @@ describe "ast eval" do
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x; 10 }; end; bar", 2.int
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x if x == 1; 10 }; end; bar", 10.int
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| break x; 10 }; end; bar", 1.int
+  #it_evals "def foo; yield 2; yield 3; end; def bar; foo { |x| return 1.0 if x == 2; 1 }; 2.0; end; bar", 1.0.float, :focus => true
 end

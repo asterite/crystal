@@ -5,8 +5,8 @@ module Crystal
     attr_accessor :resolved
     attr_accessor :resolved_type
 
-    def replace_yield(block)
-      visitor = ReplaceYieldVisitor.new block
+    def replace_yield(a_def, block)
+      visitor = ReplaceYieldVisitor.new a_def, block
       self.accept visitor
     end
 
@@ -18,11 +18,13 @@ module Crystal
   end
 
   class ReplaceYieldVisitor < Visitor
-    def initialize(block)
+    def initialize(a_def, block)
+      @def = a_def
       @block = block
     end
 
     def visit_yield(node)
+      node.def = @def
       node.block = @block
     end
   end

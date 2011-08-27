@@ -35,7 +35,7 @@ module Crystal
         end
 
         block = scope.define_block node.block
-        instance.replace_yield block
+        instance.replace_yield node, block
         instance.accept resolver
 
         scope.remove_expression instance
