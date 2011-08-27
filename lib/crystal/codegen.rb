@@ -176,13 +176,7 @@ module Crystal
       fun = mod.module.functions.named name
       mod.module.functions.delete fun if fun
 
-      args_types = args.map { |arg| arg.resolved_type.llvm_type }
-      if block
-        args_types << LLVM::Pointer(LLVM::Int8)
-        args_types << block.llvm_type(mod)
-      elsif is_block?
-        args_types << LLVM::Pointer(LLVM::Int8)
-      end
+      args_types = define_args_types mod
 
       fun = mod.module.functions.add name, args_types, resolved_type.llvm_type
       @code = fun
@@ -192,29 +186,10 @@ module Crystal
       entry = fun.basic_blocks.append 'entry'
       mod.builder.position_at_end entry
 
-      args.each_with_index do |arg, i|
-        param = fun.params[i]
-        param.name = arg.name
-        arg.code = mod.builder.alloca args_types[i], param.name
-        mod.builder.store param, arg.code
-      end
-
-      if block
-        fun.params[-2].name = "&context"
-        fun.params[-1].name = "&block"
-      elsif is_block?
-        fun.params[-1].name = "&context"
-      end
-
-      if is_block?
-        casted_context = mod.builder.bit_cast fun.params[fun.params.size - 1], context.pointer_type(mod), '&casted_context'
-        loaded_context = mod.builder.load casted_context, '&loaded_context'
-
-        context.loaded_context = loaded_context
-        context.casted_context = casted_context
-      end
+      define_args args_types, mod
 
       define_local_variables mod
+      load_context(mod) if is_block?
 
       code = codegen_body(mod, fun)
       mod.builder.ret(body.resolved_type == mod.nil_class ? nil : code) unless body.returns?
@@ -232,6 +207,33 @@ module Crystal
       @local_variables.each { |name, var| var.alloca(mod) }
     end
 
+    def define_args_types(mod)
+      args_types = args.map { |arg| arg.resolved_type.llvm_type }
+      if block
+        args_types << LLVM::Pointer(LLVM::Int8)
+        args_types << block.llvm_type(mod)
+      elsif is_block?
+        args_types << LLVM::Pointer(LLVM::Int8)
+      end
+      args_types
+    end
+
+    def define_args(args_types, mod)
+      args.each_with_index do |arg, i|
+        param = @code.params[i]
+        param.name = arg.name
+        arg.code = mod.builder.alloca args_types[i], param.name
+        mod.builder.store param, arg.code
+      end
+
+      if block
+        @code.params[-2].name = "&context"
+        @code.params[-1].name = "&block"
+      elsif is_block?
+        @code.params[-1].name = "&context"
+      end
+    end
+
     def llvm_type(mod)
       arg_types = args.map { |x| x.resolved_type.llvm_type }
       arg_types << LLVM::Pointer(LLVM::Int8)
@@ -241,6 +243,11 @@ module Crystal
 
     def is_block?
       !context.nil?
+    end
+
+    def load_context(mod)
+      context.casted_context = mod.builder.bit_cast @code.params[@code.params.size - 1], context.pointer_type(mod), '&casted_context'
+      context.loaded_context = mod.builder.load context.casted_context, '&loaded_context'
     end
 
     def define_optimizations(fun)
@@ -267,8 +274,6 @@ module Crystal
   class Call
     def codegen(mod)
       case resolved
-      when Class
-        LLVM::Int64.from_i resolved.object_id
       when Var
         # Case when the call is "foo -1" but foo is an arg, not a call
         call = Call.new(resolved, :'+', [args[0]])
@@ -276,16 +281,14 @@ module Crystal
         call.codegen mod
       else
         resolved_code = mod.remember_block { resolved.codegen mod }
-        resolved_args = self.args.map do |arg|
-          mod.remember_block { arg.codegen(mod) }
-        end
+        resolved_args = self.args.map { |arg| mod.remember_block { arg.codegen(mod) } }
 
         if resolved_block
-          context = resolved_block.context.alloca(mod)
+          context = resolved_block.context.alloca mod
           resolved_args << context
 
-          fun = mod.remember_block { resolved_block.codegen(mod) }
-          resolved_args << fun
+          fun_pointer = mod.remember_block { resolved_block.codegen mod }
+          resolved_args << fun_pointer
         end
         resolved_args.push('calltmp') if resolved.resolved_type != mod.nil_class
 
@@ -304,7 +307,7 @@ module Crystal
     end
 
     def alloca(mod)
-      @code = mod.builder.alloca(resolved_type.llvm_type, name)
+      @code = mod.builder.alloca resolved_type.llvm_type, name
     end
   end
 
@@ -389,7 +392,7 @@ module Crystal
 
   class Assign
     def codegen(mod)
-      if target.resolved.is_a?(BlockReference)
+      if target.resolved.is_a? BlockReference
         target.resolved.code = target.resolved.codegen_ptr(mod)
       else
         unless target.resolved.code
@@ -406,71 +409,71 @@ module Crystal
 
   class Not
     def codegen(mod)
-      exp_code = exp.codegen(mod)
-      mod.builder.not exp_code, 'nottmp'
+      mod.builder.not exp.codegen(mod), 'not_tmp'
     end
   end
 
   class And
     def codegen(mod)
-      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'
-      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'rightandtmp'
-      mod.builder.and left_code, right_code, 'andtmp'
+      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'left_and_tmp'
+      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'right_and_tmp'
+      mod.builder.and left_code, right_code, 'and_tmp'
     end
   end
 
   class Or
     def codegen(mod)
-      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'leftandtmp'
-      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'rightandtmp'
-      mod.builder.or left_code, right_code, 'andtmp'
+      left_code = mod.builder.icmp :ne, left.codegen(mod), LLVM::Int1.from_i(0), 'left_or_tmp'
+      right_code = mod.builder.icmp :ne, right.codegen(mod), LLVM::Int1.from_i(0), 'right_or_tmp'
+      mod.builder.or left_code, right_code, 'or_tmp'
     end
   end
 
   class Yield
-    ExitType = LLVM::Int2
-    ExitPointerType = LLVM::Pointer(LLVM::Int2)
+    ExitType = LLVM::Int32
+    ExitPointerType = LLVM::Pointer(LLVM::Int32)
 
-    ExitNormal = LLVM::Int2.from_i 0
-    ExitBreak = LLVM::Int2.from_i 1
-    ExitReturn = LLVM::Int2.from_i 2
+    ExitNormal = LLVM::Int32.from_i 0
+    ExitBreak = LLVM::Int32.from_i 1
+    ExitReturn = LLVM::Int32.from_i 2
 
     def codegen(mod)
       start_block = mod.builder.insert_block
       fun = start_block.parent
 
-      casted_result = mod.builder.bit_cast fun.params[-2], ExitPointerType, 'casted_result_ptr'
-      mod.builder.store ExitNormal, casted_result
-
-      resolved_args = args.map do |arg|
-        mod.remember_block { arg.codegen(mod) }
-      end
-      resolved_args << fun.params[-2]
-      resolved_args << 'yield_result' unless resolved_type == mod.nil_class
-
-      yield_result = mod.builder.call fun.params[-1], *resolved_args
-
       normal_block = fun.basic_blocks.append 'normal'
-      mod.builder.position_at_end normal_block
-
+      break_block = fun.basic_blocks.append 'break'
       return_block = fun.basic_blocks.append 'return'
-      mod.builder.position_at_end return_block
-
-      if resolved_type == mod.nil_class
-        mod.builder.ret self.def.resolved_type.codegen_default(mod)
-      else
-        mod.builder.ret yield_result
-      end
 
       mod.builder.position_at_end start_block
 
-      casted_result = mod.builder.bit_cast fun.params[-2], ExitPointerType, 'casted_result_ptr'
+      casted_result = clear_context_exit_flag fun, mod
+      yield_result = mod.builder.call fun.params[-1], *(codegen_args fun, mod)
+
       loaded_result = mod.builder.load casted_result
-      cond_code = mod.builder.icmp(:eq, loaded_result, ExitNormal, 'context_result')
-      mod.builder.cond cond_code, normal_block, return_block
+      mod.builder.switch loaded_result, normal_block, {ExitBreak => break_block, ExitReturn => return_block}
+
+      mod.builder.position_at_end break_block
+      mod.builder.ret(resolved_type == mod.nil_class ? self.def.resolved_type.codegen_default(mod) : yield_result)
+
+      mod.builder.position_at_end return_block
+      mod.builder.ret(resolved_type == mod.nil_class ? self.def.resolved_type.codegen_default(mod) : yield_result)
 
       mod.builder.position_at_end normal_block
       yield_result
+    end
+
+    def clear_context_exit_flag(fun, mod)
+      casted_result = mod.builder.bit_cast fun.params[-2], ExitPointerType, 'casted_result_ptr'
+      mod.builder.store ExitNormal, casted_result
+      casted_result
+    end
+
+    def codegen_args(fun, mod)
+      resolved_args = args.map { |arg| mod.remember_block { arg.codegen(mod) } }
+      resolved_args << fun.params[-2]
+      resolved_args << 'yield_result' unless resolved_type == mod.nil_class
+      resolved_args
     end
   end
 
