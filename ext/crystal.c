@@ -36,20 +36,6 @@ int crystal_eq_float_float(float x, float y) { return x == y; }
 int crystal_pow_float_float(float x, float y) { return (float) pow(x, y); }
 int crystal_to_i_float(float x) { return (float) x; }
 
-float crystal_add_int_float(int x, float y) { return x + y; }
-float crystal_sub_int_float(int x, float y) { return x - y; }
-float crystal_sub_float_int(float x, int y) { return x - y; }
-float crystal_mul_int_float(int x, float y) { return x * y; }
-float crystal_div_int_float(int x, float y) { return x / y; }
-float crystal_div_float_int(float x, int y) { return x / y; }
-int crystal_lt_float_int(float x, int y) { return x < y; }
-int crystal_lt_int_float(int x, float y) { return x < y; }
-int crystal_let_float_int(float x, int y) { return x <= y; }
-int crystal_let_int_float(int x, float y) { return x <= y; }
-int crystal_eq_int_float(int x, float y) { return x == y; }
-float crystal_pow_int_float(int x, float y) { return (float) pow(x, y); }
-float crystal_pow_float_int(float x, int y) { return (float) pow(x, y); }
-
 char crystal_eq_char_char(char x, char y) { return x == y; }
 
 void puts_bool(int x) {
