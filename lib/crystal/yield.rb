@@ -30,6 +30,7 @@ module Crystal
     def visit_yield(node)
       node.def = @def
       node.block = @block
+      true
     end
   end
 

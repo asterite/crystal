@@ -325,6 +325,7 @@ module Crystal
     attr_accessor :block
     attr_accessor :context
     attr_accessor :local_variables
+    attr_accessor :yield_types
 
     def initialize(name, args, body)
       @name = name

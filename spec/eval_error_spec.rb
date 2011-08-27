@@ -6,8 +6,9 @@ describe "ast eval" do
       mod = Crystal::Module.new
       begin
         mod.eval string
-        fail
+        fail "Expected to fail"
       rescue => ex
+        raise ex if ex.message == "Expected to fail"
       end
     end
   end
@@ -16,4 +17,6 @@ describe "ast eval" do
   it_evals_with_error "def foo; a = 10; yield 42; end; def bar; foo { |x| a }; end; bar"
   it_evals_with_error "def bar; a = 10.times { |x| break 1.0 if x > 5 }; a; end; bar"
   it_evals_with_error "def bar; a = 10.times { |x| next 1.0 if x > 5 }; a; end; bar"
+  it_evals_with_error "def foo; yield 1; end; foo"
+  it_evals_with_error "def foo; yield 1; yield 1.0; end; foo {|x| }", :focus => true
 end

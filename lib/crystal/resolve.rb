@@ -355,12 +355,18 @@ module Crystal
     end
 
     def visit_yield(node)
+      raise "expected to be invoked with a block" unless node.block
+
       node.args.each { |arg| arg.accept self }
-      node.args.each_with_index do |arg, i|
-        node.block.args[i].resolved_type = arg.resolved_type
-      end
+      node.args.each_with_index { |arg, i| node.block.args[i].resolved_type = arg.resolved_type }
       node.block.accept self
       node.resolved_type = node.block.resolved_type
+
+      args_types = node.args.map(&:resolved_type)
+
+      node.raise_error "Expected to yield with types #{@scope.def.yield_types}, not with #{args_types}" if @scope.def.yield_types && @scope.def.yield_types != args_types
+      @scope.def.yield_types = args_types
+
       false
     end
 
