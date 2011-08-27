@@ -74,9 +74,9 @@ void puts_float(float x) {
 
 void print_bool(int x) {
   if (x == 0) {
-    printf("true");
-  } else {
     printf("false");
+  } else {
+    printf("true");
   }
 }
 
