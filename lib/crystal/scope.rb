@@ -165,4 +165,9 @@ module Crystal
       @return_def.resolved_type
     end
   end
+
+  class Module
+    def returns!(a_def)
+    end
+  end
 end
