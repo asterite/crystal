@@ -468,7 +468,6 @@ module Crystal
 
       normal_block = fun.basic_blocks.append 'normal'
       break_block = fun.basic_blocks.append 'break'
-      return_block = fun.basic_blocks.append 'return'
 
       mod.builder.position_at_end start_block
 
@@ -476,12 +475,9 @@ module Crystal
       yield_result = mod.builder.call fun.params[-1], *(codegen_args fun, mod)
 
       loaded_result = mod.builder.load casted_result
-      mod.builder.switch loaded_result, normal_block, {ExitBreak => break_block, ExitReturn => return_block}
+      mod.builder.switch loaded_result, break_block, {ExitNormal => normal_block}
 
       mod.builder.position_at_end break_block
-      mod.builder.ret(resolved_type != self.def.resolved_type ? self.def.resolved_type.codegen_default(mod) : yield_result)
-
-      mod.builder.position_at_end return_block
       mod.builder.ret(resolved_type != self.def.resolved_type ? self.def.resolved_type.codegen_default(mod) : yield_result)
 
       mod.builder.position_at_end normal_block
