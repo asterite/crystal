@@ -291,34 +291,33 @@ module Crystal
         resolved_args.push('calltmp') if resolved.resolved_type != mod.nil_class
 
         call_result = mod.builder.call resolved_code, *resolved_args
-        if resolved_block && resolved_block.context.returns?
-          start_block = mod.builder.insert_block
-          fun = start_block.parent
-
-          normal_block = fun.basic_blocks.append 'normal'
-          return_block = fun.basic_blocks.append 'return'
-
-          mod.builder.position_at_end start_block
-          context = mod.builder.load context_ptr, 'context'
-          exit_flag = mod.builder.extract_value context, 0, 'exit_flag'
-
-          mod.builder.switch exit_flag, normal_block, {Yield::ExitReturn => return_block}
-
-          mod.builder.position_at_end return_block
-          return_value = mod.builder.extract_value context, resolved_block.context.return_index, 'return_value'
-
-          if parent_context = parent_def.context
-            parent_context.return_in_block return_value, fun, mod
-          end
-
-          mod.builder.ret return_value
-
-          mod.builder.position_at_end normal_block
-          call_result
-        else
-          call_result
-        end
+        check_block_return context_ptr, mod if resolved_block && resolved_block.context.returns?
+        call_result
       end
+    end
+
+    def check_block_return(context_ptr, mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      normal_block = fun.basic_blocks.append 'normal'
+      return_block = fun.basic_blocks.append 'return'
+
+      context = mod.builder.load context_ptr, 'context'
+      exit_flag = mod.builder.extract_value context, 0, 'exit_flag'
+
+      mod.builder.switch exit_flag, normal_block, {Yield::ExitReturn => return_block}
+
+      mod.builder.position_at_end return_block
+      return_value = mod.builder.extract_value context, resolved_block.context.return_index, 'return_value'
+
+      if parent_context = parent_def.context
+        parent_context.return_from_block return_value, fun, mod
+      end
+
+      mod.builder.ret return_value
+
+      mod.builder.position_at_end normal_block
     end
   end
 
@@ -469,8 +468,6 @@ module Crystal
       normal_block = fun.basic_blocks.append 'normal'
       break_block = fun.basic_blocks.append 'break'
 
-      mod.builder.position_at_end start_block
-
       casted_result = clear_context_exit_flag fun, mod
       yield_result = mod.builder.call fun.params[-1], *(codegen_args fun, mod)
 
@@ -560,7 +557,7 @@ module Crystal
       mod.builder.load parent_context_ptr, "parent_context"
     end
 
-    def return_in_block(code, fun, mod)
+    def return_from_block(code, fun, mod)
       context_ptr = mod.builder.bit_cast fun.params[-1], pointer_type(mod), 'context_ptr'
 
       exit_flag_ptr = mod.builder.inbounds_gep context_ptr, [LLVM::Int32.from_i(0),  LLVM::Int32.from_i(0)], "exit_flag_ptr"
@@ -603,7 +600,7 @@ module Crystal
         start_block = mod.builder.insert_block
         fun = start_block.parent
 
-        context.return_in_block(exp ? exp.codegen(mod) : nil, fun, mod)
+        context.return_from_block(exp ? exp.codegen(mod) : nil, fun, mod)
 
         mod.builder.ret(exp && exp.resolved_type == block.resolved_type ? exp.codegen(mod) : block.resolved_type.codegen_default(mod))
       else
