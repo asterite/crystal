@@ -11,6 +11,12 @@ module Crystal
     def returns?
       false
     end
+
+    def parent_def
+      candidate = parent
+      candidate = candidate.parent until candidate.is_a? Def
+      candidate
+    end
   end
 
   class Module < ASTNode

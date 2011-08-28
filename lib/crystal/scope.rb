@@ -126,7 +126,7 @@ module Crystal
 
     def returns!(a_def)
       @context.returns!(a_def)
-      parent.returns!(a_def)
+      self.next.returns!(a_def)
     end
 
     def def_not_block

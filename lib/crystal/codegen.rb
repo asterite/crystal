@@ -306,6 +306,11 @@ module Crystal
 
           mod.builder.position_at_end return_block
           return_value = mod.builder.extract_value context, resolved_block.context.return_index, 'return_value'
+
+          if parent_context = parent_def.context
+            parent_context.return_in_block return_value, fun, mod
+          end
+
           mod.builder.ret return_value
 
           mod.builder.position_at_end normal_block
@@ -558,6 +563,18 @@ module Crystal
       parent_context_ptr = mod.builder.extract_value context_ptr, parent_index, "parent_context_ptr"
       mod.builder.load parent_context_ptr, "parent_context"
     end
+
+    def return_in_block(code, fun, mod)
+      context_ptr = mod.builder.bit_cast fun.params[-1], pointer_type(mod), 'context_ptr'
+
+      exit_flag_ptr = mod.builder.inbounds_gep context_ptr, [LLVM::Int32.from_i(0),  LLVM::Int32.from_i(0)], "exit_flag_ptr"
+      mod.builder.store Yield::ExitReturn, exit_flag_ptr
+
+      if code
+        return_ptr = mod.builder.inbounds_gep context_ptr, [LLVM::Int32.from_i(0),  LLVM::Int32.from_i(return_index)], "return_ptr"
+        mod.builder.store code, return_ptr
+      end
+    end
   end
 
   class BlockReference
@@ -590,19 +607,9 @@ module Crystal
         start_block = mod.builder.insert_block
         fun = start_block.parent
 
-        context_ptr = mod.builder.bit_cast fun.params[-1], context.pointer_type(mod), 'context_ptr'
+        context.return_in_block(exp ? exp.codegen(mod) : nil, fun, mod)
 
-        exit_flag_ptr = mod.builder.inbounds_gep context_ptr, [LLVM::Int32.from_i(0),  LLVM::Int32.from_i(0)], "exit_flag_ptr"
-        mod.builder.store Yield::ExitReturn, exit_flag_ptr
-
-        if exp
-          return_ptr = mod.builder.inbounds_gep context_ptr, [LLVM::Int32.from_i(0),  LLVM::Int32.from_i(context.return_index)], "return_ptr"
-          mod.builder.store exp.codegen(mod), return_ptr
-
-          mod.builder.ret block.resolved_type.codegen_default(mod)
-        else
-          mod.builder.ret(exp.resolved_type == block.resolved_type ? exp.codegen(mod) : block.resolved_type.codegen_default(mod))
-        end
+        mod.builder.ret(exp && exp.resolved_type == block.resolved_type ? exp.codegen(mod) : block.resolved_type.codegen_default(mod))
       else
         mod.builder.ret(exp ? exp.codegen(mod) : nil)
       end
