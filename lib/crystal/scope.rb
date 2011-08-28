@@ -57,6 +57,14 @@ module Crystal
       @def.is_block?
     end
 
+    def returns!(a_def)
+      parent.returns! a_def if is_block?
+    end
+
+    def def_not_block
+      self.next.def_not_block
+    end
+
     def to_s
       "Def<#{@def.name}> -> #{@scope.to_s}"
     end
@@ -116,6 +124,15 @@ module Crystal
       @context.scope.def.name
     end
 
+    def returns!(a_def)
+      @context.returns!(a_def)
+      parent.returns!(a_def)
+    end
+
+    def def_not_block
+      @context.scope.def
+    end
+
     def to_s
       "Block<#{name}> -> #{self.next.to_s}"
     end
@@ -134,6 +151,18 @@ module Crystal
         @references[name] = node
       end
       node
+    end
+
+    def returns!(a_def)
+      @return_def = a_def
+    end
+
+    def returns?
+      !!@return_def
+    end
+
+    def return_type
+      @return_def.resolved_type
     end
   end
 end

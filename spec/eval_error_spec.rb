@@ -19,4 +19,5 @@ describe "ast eval" do
   it_evals_with_error "def bar; a = 10.times { |x| next 1.0 if x > 5 }; a; end; bar"
   it_evals_with_error "def foo; yield 1; end; foo"
   it_evals_with_error "def foo; yield 1; yield 1.0; end; foo {|x| }"
+  it_evals_with_error "def foo; yield 2; yield 3; end; def bar; foo { |x| return 1.0 if x == 2; 1 }; 1; end; bar", :focus => true
 end

@@ -791,7 +791,9 @@ module Crystal
 
   class Return < Expression
     attr_accessor :exp
-    attr_accessor :in_block
+    attr_accessor :def
+    attr_accessor :block
+    attr_accessor :context
 
     def initialize(exp = nil)
       @exp = exp
@@ -817,6 +819,10 @@ module Crystal
 
     def returns?
       true
+    end
+
+    def in_block?
+      !!@def
     end
   end
 

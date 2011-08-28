@@ -109,5 +109,6 @@ describe "ast eval" do
   it_evals "a = 0; def bar; 10.times { |x| a += x; break if x > 5 }; end; bar", 0.int
   it_evals "def bar; a = 10.times { |x| break if x > 5 }; a; end; bar", 0.int
   it_evals "def bar; a = 10.times { |x| break 5 if x > 5 }; a; end; bar", 5.int
-  it_evals "def foo; yield 2; yield 3; end; def bar; foo { |x| return 1.0 if x == 2; 1 }; 2.0; end; bar", 1.0.float, :focus => true
+  it_evals "def foo; yield 2; yield 3; end; def bar; foo { |x| return 1.0 if x == 2; 1 }; 2.0; end; bar", 1.0.float
+  it_evals "def foo; yield 2; 'a'; end; def bar; foo { |x| 1 }; end; bar", Crystal::Char.new(?a.ord)
 end

@@ -114,6 +114,10 @@ module Crystal
       false
     end
 
+    def end_visit_def(node)
+      node.check_return_type node.resolved_type unless node.is_block?
+    end
+
     def visit_class_def(node)
       exp = @scope.find_expression node.name
       if exp
@@ -381,7 +385,13 @@ module Crystal
       else
         node.resolved_type = @scope.nil_class
       end
-      node.in_block = @scope.is_block?
+      if @scope.is_block?
+        def_not_block = @scope.def_not_block
+        @scope.returns! def_not_block
+        node.def = def_not_block
+        node.block = @scope.def
+        node.context = @scope.parent.context
+      end
       false
     end
 

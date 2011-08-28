@@ -19,6 +19,10 @@ module Crystal
     def check_break_and_next_type(type)
       self.accept CheckBreakAndNextType.new(type)
     end
+
+    def check_return_type(type)
+      self.accept CheckReturnType.new(type)
+    end
   end
 
   class ReplaceYieldVisitor < Visitor
@@ -58,6 +62,17 @@ module Crystal
 
     def visit_next(node)
       node.raise_error "Can't next with type #{node.resolved_type}, must next with #{@type}" if node.exp && node.resolved_type != @type
+      true
+    end
+  end
+
+  class CheckReturnType < Visitor
+    def initialize(type)
+      @type = type
+    end
+
+    def visit_return(node)
+      node.raise_error "Can't return with type #{node.resolved_type}, must return with #{@type}" if node.exp && node.resolved_type != @type
       true
     end
   end

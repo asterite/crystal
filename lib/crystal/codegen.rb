@@ -194,8 +194,6 @@ module Crystal
       code = codegen_body(mod, fun)
       mod.builder.ret(body.resolved_type == mod.nil_class ? nil : code) unless body.returns?
 
-      #mod.dump
-
       fun.verify
       mod.fpm.run fun
 
@@ -246,7 +244,7 @@ module Crystal
     end
 
     def load_context(mod)
-      context.casted_context = mod.builder.bit_cast @code.params[@code.params.size - 1], context.pointer_type(mod), '&casted_context'
+      context.casted_context = mod.builder.bit_cast @code.params[-1], context.pointer_type(mod), '&casted_context'
       context.loaded_context = mod.builder.load context.casted_context, '&loaded_context'
     end
 
@@ -284,15 +282,37 @@ module Crystal
         resolved_args = self.args.map { |arg| mod.remember_block { arg.codegen(mod) } }
 
         if resolved_block
-          context = resolved_block.context.alloca mod
-          resolved_args << context
+          context_ptr, casted_context_ptr = resolved_block.context.alloca mod
+          resolved_args << casted_context_ptr
 
           fun_pointer = mod.remember_block { resolved_block.codegen mod }
           resolved_args << fun_pointer
         end
         resolved_args.push('calltmp') if resolved.resolved_type != mod.nil_class
 
-        mod.builder.call resolved_code, *resolved_args
+        call_result = mod.builder.call resolved_code, *resolved_args
+        if resolved_block && resolved_block.context.returns?
+          start_block = mod.builder.insert_block
+          fun = start_block.parent
+
+          normal_block = fun.basic_blocks.append 'normal'
+          return_block = fun.basic_blocks.append 'return'
+
+          mod.builder.position_at_end start_block
+          context = mod.builder.load context_ptr, 'context'
+          exit_flag = mod.builder.extract_value context, 0, 'exit_flag'
+
+          mod.builder.switch exit_flag, normal_block, {Yield::ExitReturn => return_block}
+
+          mod.builder.position_at_end return_block
+          return_value = mod.builder.extract_value context, resolved_block.context.return_index, 'return_value'
+          mod.builder.ret return_value
+
+          mod.builder.position_at_end normal_block
+          call_result
+        else
+          call_result
+        end
       end
     end
   end
@@ -454,12 +474,13 @@ module Crystal
       mod.builder.switch loaded_result, normal_block, {ExitBreak => break_block, ExitReturn => return_block}
 
       mod.builder.position_at_end break_block
-      mod.builder.ret(resolved_type == mod.nil_class ? self.def.resolved_type.codegen_default(mod) : yield_result)
+      mod.builder.ret(resolved_type != self.def.resolved_type ? self.def.resolved_type.codegen_default(mod) : yield_result)
 
       mod.builder.position_at_end return_block
-      mod.builder.ret(resolved_type == mod.nil_class ? self.def.resolved_type.codegen_default(mod) : yield_result)
+      mod.builder.ret(resolved_type != self.def.resolved_type ? self.def.resolved_type.codegen_default(mod) : yield_result)
 
       mod.builder.position_at_end normal_block
+
       yield_result
     end
 
@@ -477,6 +498,11 @@ module Crystal
     end
   end
 
+  # A context stores the following:
+  #  - A flag to indicate if the block issued a break, next or return
+  #  - Pointers to the variables referenced in the immediately superior context
+  #  - Pointer to the parent context, if needed
+  #  - Return value, if needed
   class BlockContext
     def type(mod)
       @type ||= begin
@@ -484,6 +510,7 @@ module Crystal
                   types << Yield::ExitType
                   types += references.values.map(&:llvm_type)
                   types << LLVM::Pointer(parent.type mod) if parent
+                  types << return_type.llvm_type if returns?
 
                   type = LLVM::Type.struct types, false
                   mod.module.types.add '$context_type', type
@@ -511,7 +538,7 @@ module Crystal
       end
 
       casted_context = mod.builder.bit_cast context, LLVM::Pointer(LLVM::Int8), '&casted_context'
-      casted_context
+      [context, casted_context]
     end
 
     def index(node)
@@ -521,6 +548,10 @@ module Crystal
 
     def parent_index
       references.length + 1
+    end
+
+    def return_index
+      references.length + (parent ? 2 : 1)
     end
 
     def access_parent(mod, context_ptr)
@@ -555,15 +586,26 @@ module Crystal
 
   class Return
     def codegen(mod)
-      if in_block
+      if in_block?
         start_block = mod.builder.insert_block
         fun = start_block.parent
 
-        casted_result = mod.builder.bit_cast fun.params[-1], Yield::ExitPointerType, 'casted_result_ptr'
-        mod.builder.store Yield::ExitReturn, casted_result
-      end
+        context_ptr = mod.builder.bit_cast fun.params[-1], context.pointer_type(mod), 'context_ptr'
 
-      mod.builder.ret(exp ? exp.codegen(mod) : nil)
+        exit_flag_ptr = mod.builder.inbounds_gep context_ptr, [LLVM::Int32.from_i(0),  LLVM::Int32.from_i(0)], "exit_flag_ptr"
+        mod.builder.store Yield::ExitReturn, exit_flag_ptr
+
+        if exp
+          return_ptr = mod.builder.inbounds_gep context_ptr, [LLVM::Int32.from_i(0),  LLVM::Int32.from_i(context.return_index)], "return_ptr"
+          mod.builder.store exp.codegen(mod), return_ptr
+
+          mod.builder.ret block.resolved_type.codegen_default(mod)
+        else
+          mod.builder.ret(exp.resolved_type == block.resolved_type ? exp.codegen(mod) : block.resolved_type.codegen_default(mod))
+        end
+      else
+        mod.builder.ret(exp ? exp.codegen(mod) : nil)
+      end
     end
   end
 
