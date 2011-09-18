@@ -26,6 +26,7 @@ module Crystal
         instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
         args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
         instance = Def.new instance_name, instance_args, body.clone
+        instance.obj = node.obj
       end
 
       if node.block

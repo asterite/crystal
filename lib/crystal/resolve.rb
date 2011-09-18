@@ -141,13 +141,28 @@ module Crystal
     def visit_ref(node)
       return if node.resolved_type
 
-      exp = @scope.find_expression(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
-      if exp.is_a?(Def) || exp.is_a?(Prototype)
-        call = Call.new(nil, exp.name)
-        call.accept self
-        exp = call.resolved
-      else
-        exp.accept self
+      exp = nil
+      self_var = @scope.find_expression 'self'
+
+      if self_var
+        exp = self_var.resolved_type.find_method node.name
+        if exp
+          call = Call.new(@scope.def.obj, node.name)
+          call.accept self
+          exp = call.resolved
+        end
+      end
+
+      unless exp
+        exp = @scope.find_expression(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
+
+        if exp.is_a?(Def) || exp.is_a?(Prototype)
+          call = Call.new(nil, exp.name)
+          call.accept self
+          exp = call.resolved
+        else
+          exp.accept self
+        end
       end
 
       node.resolved = exp
@@ -180,6 +195,9 @@ module Crystal
 
     def visit_call(node)
       return if node.resolved_type
+
+      self_var = @scope.find_expression 'self'
+      node.obj = self_var if !node.obj && self_var && self_var.resolved_type.find_method(node.name)
 
       node.block.scope = @scope if node.block
 
@@ -227,7 +245,6 @@ module Crystal
 
       node.args = [node.obj] + node.args
       node.name = exp.name
-      node.obj = nil
       nil
     end
 

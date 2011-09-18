@@ -66,7 +66,7 @@ module Crystal
     end
 
     def to_s
-      "Def<#{@def.name}> -> #{@scope.to_s}"
+      "Def<#{@def.name}(#{@def.args.map &:name})> -> #{@scope.to_s}"
     end
     alias inspect to_s
   end

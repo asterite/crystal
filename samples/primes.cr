@@ -5,7 +5,7 @@ class Int
 
   def prime?
     2.upto(self - 1) do |x|
-      return false if self.divisible_by? x
+      return false if divisible_by?(x)
     end
     true
   end
