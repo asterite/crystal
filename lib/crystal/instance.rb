@@ -50,11 +50,11 @@ module Crystal
 
         scope.add_expression instance
       else
-        begin
+        #begin
           instance.accept resolver
-        rescue => ex
-          raise_error "#{node.name} #{ex.message}"
-        end
+        #rescue => ex
+          #raise_error "#{node.name} #{ex.message}"
+        #end
       end
       instance
     end

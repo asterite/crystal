@@ -112,39 +112,8 @@ module Crystal
     attr_accessor :name
     attr_accessor :type
 
-    def initialize(name, superclass = nil, type = nil)
-      @name = name
-      @superclass = superclass
-      @type = type
-      @methods = {}
-    end
-
     def compile_time_value
       self
-    end
-
-    def subclass_of?(other)
-      self == other || @superclass == other
-    end
-
-    def find_method(name)
-      method = @methods[name]
-      if method
-        method.dup
-      else
-        @superclass ? @superclass.find_method(name) : nil
-      end
-    end
-
-    def define_method(name, method)
-      @methods[name] = method
-    end
-
-    def define_static_method(name, method)
-      unless @type
-        @type = Class.new("Class", nil, self)
-        @type.define_method name, method
-      end
     end
 
     def accept(visitor)
@@ -329,17 +298,20 @@ module Crystal
     attr_accessor :name
     attr_accessor :args
     attr_accessor :body
+    attr_accessor :receiver
     attr_accessor :block
     attr_accessor :context
     attr_accessor :local_variables
     attr_accessor :yield_types
 
-    def initialize(name, args, body)
+    def initialize(name, args, body, receiver = nil)
       @name = name
       @args = args
       @args.each { |arg| arg.parent = self } if @args
       @body = Expressions.from body
       @body.parent = self
+      @receiver = receiver
+      @receiver.parent = self if @receiver
       @local_variables = {}
     end
 
@@ -364,7 +336,7 @@ module Crystal
     end
 
     def ==(other)
-      other.is_a?(Def) && other.name == name && other.args == args && other.body == body
+      other.is_a?(Def) && other.name == name && other.args == args && other.body == body && other.receiver == receiver
     end
 
     def clone

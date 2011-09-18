@@ -114,5 +114,8 @@ describe "ast eval" do
   it_evals "class Int; def foo; 1; end; def bar; foo; end; end; 5.bar", 1.int
   it_evals "def foo; 1; end; class Int; def bar; foo; end; end; 5.bar", 1.int
   it_evals "class Int; def foo(x); x; end; def bar(x); foo(x); end; end; 5.bar(1)", 1.int
-  it_evals "def foo(x); x; end; class Int; def bar(x); foo(x); end; end; 5.bar(1)", 1.int, :focus => true
+  it_evals "def foo(x); x; end; class Int; def bar(x); foo(x); end; end; 5.bar(1)", 1.int
+  it_evals "def Int.foo; 1; end; Int.foo", 1.int
+  it_evals "def Int.foo; 1; end; 1 + 2", 3.int
+  it_evals "def Int.foo(x); x + 2; end; Int.foo(1)", 3.int
 end

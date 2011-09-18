@@ -27,7 +27,16 @@ module Crystal
 
   class Def
     def compile(mod)
-      mod.add_expression self
+      if receiver
+        receiver.resolve mod
+        name = self.name
+        self.name = "#{receiver.resolved.name}::#{name}"
+        self.args.insert 0, Var.new("self")
+        self.args_length = self.args.length - 1
+        receiver.resolved.define_static_method name, self, mod.class_class
+      else
+        mod.add_expression self
+      end
       nil
     end
 

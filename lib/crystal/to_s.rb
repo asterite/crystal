@@ -131,6 +131,10 @@ module Crystal
 
     def visit_def(node)
       @str << "def "
+      if node.receiver
+        node.receiver.accept self
+        @str << "."
+      end
       @str << node.name.to_s
       if node.args.length > 0 || node.block
         @str << "("

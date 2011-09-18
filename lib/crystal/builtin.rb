@@ -29,7 +29,6 @@ module Crystal
 
     def define_class_class
       @class_class = Class.new "Class", @object_class
-      @class_class.define_static_method :class, Def.new("Class#class", [Var.new("self")], @class_class)
       define_class @class_class
     end
 
