@@ -40,6 +40,13 @@ module Crystal
       self.next.find_expression name
     end
 
+    def find_variable(name)
+      local = find_local_expression(name)
+      return local if local
+
+      self.next.find_variable name
+    end
+
     def find_local_expression(name)
       arg = @def.args.select{|arg| arg.name == name}.first
       return arg if arg
@@ -83,6 +90,13 @@ module Crystal
       node.args.insert 0, Var.new("self")
       node.args_length = node.args.length - 1
       @class.define_method name, node
+    end
+
+    def find_expression(name)
+      if name == 'self'
+        return @class
+      end
+      super
     end
 
     def to_s
@@ -167,6 +181,10 @@ module Crystal
   end
 
   class Module
+    def find_variable(name)
+      nil
+    end
+
     def returns!(a_def)
     end
   end

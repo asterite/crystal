@@ -142,7 +142,7 @@ module Crystal
       return if node.resolved_type
 
       exp = nil
-      self_var = @scope.find_expression 'self'
+      self_var = @scope.find_variable 'self'
 
       if self_var
         exp = self_var.resolved_type.find_method node.name
@@ -196,7 +196,7 @@ module Crystal
     def visit_call(node)
       return if node.resolved_type
 
-      self_var = @scope.find_expression 'self'
+      self_var = @scope.find_variable 'self'
       node.obj = self_var if !node.obj && self_var && self_var.resolved_type.find_method(node.name)
 
       node.block.scope = @scope if node.block
