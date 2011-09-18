@@ -171,6 +171,11 @@ class Int < Number
     End
   end
 
+  extern crystal_complement_int Int #=> Int
+  def ~@
+    C.crystal_complement_int self
+  end
+
   def round
     self
   end

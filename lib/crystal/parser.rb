@@ -232,6 +232,9 @@ module Crystal
       when :-
         next_token_skip_space_or_newline
         Call.new parse_expression, :-@
+      when :~
+        next_token_skip_space_or_newline
+        Call.new parse_expression, :'~@'
       when :INT
         node_and_next_token Int.new(@token.value)
       when :FLOAT
@@ -409,7 +412,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :&, :|, :^, :**
+      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :'~@', :&, :|, :^, :**
 
       name = @token.type == :IDENT ? @token.value : @token.type
       args = []

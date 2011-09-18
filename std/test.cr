@@ -39,6 +39,7 @@ assert_false false | false
 assert_true false | true
 assert_false true ^ true
 assert_true false ^ true
+assert_equal -2, ~1
 
 # Test op Int
 assert_equal 1, + 1

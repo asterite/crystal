@@ -23,6 +23,7 @@ int crystal_or_int_int(int x, int y) { return x | y; }
 int crystal_xor_int_int(int x, int y) { return x ^ y; }
 float crystal_pow_int_int(int x, int y) { return (float) pow(x, y); }
 float crystal_to_f_int(int x) { return (float) x; }
+int crystal_complement_int(int x) { return ~x; }
 
 long crystal_eq_long_long(long x, long y) { return x == y; }
 
