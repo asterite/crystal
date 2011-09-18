@@ -111,6 +111,7 @@ module Crystal
   class Class < Expression
     attr_accessor :name
     attr_accessor :type
+    attr_accessor :superclass
 
     def compile_time_value
       self

@@ -57,7 +57,7 @@ module Crystal
     end
 
     def visit_class(node)
-      node.resolved_type = node.type || @scope.class_class
+      node.resolved_type = node.type(@scope.class_class)
     end
 
     def visit_nil(node)
