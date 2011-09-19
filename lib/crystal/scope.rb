@@ -93,10 +93,7 @@ module Crystal
     end
 
     def find_expression(name)
-      if name == 'self'
-        return @class
-      end
-      super
+      name == 'self' ? @class : super
     end
 
     def to_s

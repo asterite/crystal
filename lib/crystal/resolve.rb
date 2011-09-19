@@ -197,7 +197,7 @@ module Crystal
       return if node.resolved_type
 
       self_var = @scope.find_variable 'self'
-      node.obj = self_var if !node.obj && self_var && self_var.resolved_type.find_method(node.name)
+      node.obj = Ref.new('self') if !node.obj && self_var && self_var.resolved_type.find_method(node.name)
 
       node.block.scope = @scope if node.block
 
