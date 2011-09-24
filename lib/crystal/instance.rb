@@ -35,16 +35,20 @@ module Crystal
           node.block.args << Var.new('%missing')
         end
 
-        instance.block = scope.define_block node.block
-        instance.replace_yield node, instance.block
+        block = scope.define_block node.block
+        instance.block = block
+        instance.replace_yield node, block
         instance.accept resolver
 
         scope.remove_expression instance
 
-        instance.name = instance_name name, args_types_signature, args_values_signature, instance.block.resolved_type
+        instance.name = instance_name name, args_types_signature, args_values_signature, block.resolved_type
 
         existing_instance = scope.find_expression instance.name
-        instance = existing_instance if existing_instance
+        if existing_instance
+          instance = existing_instance
+          instance.block = block
+        end
 
         scope.add_expression instance
       else

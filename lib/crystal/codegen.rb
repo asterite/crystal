@@ -309,7 +309,8 @@ module Crystal
       mod.builder.switch exit_flag, normal_block, {Yield::ExitReturn => return_block}
 
       mod.builder.position_at_end return_block
-      if parent_def.resolved_type == resolved_block.resolved_type
+
+      if parent_def.resolved_type == resolved_block.context.return_type
         return_value = mod.builder.extract_value context, resolved_block.context.return_index, 'return_value'
 
         if parent_context = parent_def.context
