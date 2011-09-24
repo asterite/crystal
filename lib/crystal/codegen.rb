@@ -309,13 +309,17 @@ module Crystal
       mod.builder.switch exit_flag, normal_block, {Yield::ExitReturn => return_block}
 
       mod.builder.position_at_end return_block
-      return_value = mod.builder.extract_value context, resolved_block.context.return_index, 'return_value'
+      if parent_def.resolved_type == resolved_block.resolved_type
+        return_value = mod.builder.extract_value context, resolved_block.context.return_index, 'return_value'
 
-      if parent_context = parent_def.context
-        parent_context.return_from_block return_value, fun, mod
+        if parent_context = parent_def.context
+          parent_context.return_from_block return_value, fun, mod
+        end
+
+        mod.builder.ret return_value
+      else
+        mod.builder.ret parent_def.resolved_type.codegen_default(mod)
       end
-
-      mod.builder.ret return_value
 
       mod.builder.position_at_end normal_block
     end

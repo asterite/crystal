@@ -41,7 +41,6 @@ describe "ast eval" do
   it_evals "if false; nil; end", Crystal::Nil.new
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1.int
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24.int
-  it_evals_class "Bool.class", "Class", :focus => true
   ["Bool.class", "Int.class", "Class"].each do |string|
     it_evals_class string, "Class"
   end
