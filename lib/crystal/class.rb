@@ -38,6 +38,7 @@ module Crystal
       @class = a_class
       @class_class = class_class
       @methods = {}
+      @methods['new'] = Def.new "#{@class}::new", [Var.new('self')], New.new(@class, self)
     end
 
     def find_method(name)

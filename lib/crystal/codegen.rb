@@ -631,4 +631,10 @@ module Crystal
       mod.builder.ret(exp ? exp.codegen(mod) : nil)
     end
   end
+
+  class New
+    def codegen(mod)
+      LLVM::Int64.from_i object_id
+    end
+  end
 end

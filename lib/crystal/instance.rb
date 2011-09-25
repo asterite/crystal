@@ -1,8 +1,6 @@
 module Crystal
   class Def
     def instantiate(resolver, scope, node)
-      return self if resolved_type
-
       args_types = node.args.map &:resolved_type
       args_types_signature = args_types.join ', '
       args_values = []

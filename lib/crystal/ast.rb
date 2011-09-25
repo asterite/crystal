@@ -360,6 +360,32 @@ module Crystal
     end
   end
 
+  class New < Expression
+    attr_reader :metaclass
+
+    def initialize(a_class, metaclass)
+      @class = a_class
+      @metaclass = metaclass
+    end
+
+    def klass
+      @class
+    end
+
+    def accept(visitor)
+      visitor.visit_new self
+      visitor.end_visit_new self
+    end
+
+    def ==(other)
+      other.is_a?(New) && other.klass == klass
+    end
+
+    def clone
+      New.new klass, metaclass
+    end
+  end
+
   class Ref < Expression
     attr_accessor :name
 

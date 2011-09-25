@@ -120,4 +120,5 @@ describe "ast eval" do
   it_evals "def Int.foo(x); x + 2; end; Int.foo(1)", 3.int
   it_evals "class Int; def self.foo(x); x + 2; end; end; Int.foo(1)", 3.int
   it_evals "def Number.foo; 1; end; Int.foo", 1.int
+  it_evals "class Foo; def bar; 1; end; end; foo = Foo.new; foo.bar", 1.int
 end
