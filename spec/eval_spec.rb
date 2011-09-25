@@ -50,7 +50,7 @@ describe "ast eval" do
   ["1.class", "Int"].each do |string|
     it_evals_class string, "Int"
   end
-  it_evals "extern puts_int Int #=> Nil; C.puts_int 1", Crystal::Nil.new
+  it_evals "extern puts_int Int : Nil; C.puts_int 1", Crystal::Nil.new
   it_evals "class Int; end", nil
   it_evals "class Int; def foo; 2; end; end; 1.foo", 2.int
   it_evals "class Int; def foo(bar); bar; end; end; 1.foo 2", 2.int

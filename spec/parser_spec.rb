@@ -111,8 +111,8 @@ describe Parser do
   it_parses_single_node "true", true.bool
   it_parses_single_node "false", false.bool
 
-  it_parses_single_node "extern foo(Int, Int) #=> Bool", Prototype.new("foo", ["Int".ref, "Int".ref], "Bool".ref)
-  it_parses_single_node "extern foo Int, Int #=> Bool", Prototype.new("foo", ["Int".ref, "Int".ref], "Bool".ref)
+  it_parses_single_node "extern foo(Int, Int) : Bool", Prototype.new("foo", ["Int".ref, "Int".ref], "Bool".ref)
+  it_parses_single_node "extern foo Int, Int : Bool", Prototype.new("foo", ["Int".ref, "Int".ref], "Bool".ref)
 
   it_parses_single_node "class Foo; end", ClassDef.new("Foo")
   it_parses_single_node "class Foo\nend", ClassDef.new("Foo")

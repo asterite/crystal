@@ -362,7 +362,7 @@ module Crystal
             nil
           else
             args = []
-            while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :'#=>' && !is_end_token
+            while @token.type != :NEWLINE && @token.type != :";" && @token.type != :EOF && @token.type != :')' && @token.type != :':' && !is_end_token
               args << parse_op_assign
               skip_space
               if @token.type == :","
@@ -623,7 +623,7 @@ module Crystal
       name = @token.value
       next_token
       args_types = parse_args
-      check :'#=>'
+      check :':'
       next_token_skip_space
       return_type = parse_expression
       Prototype.new name, (args_types || []), return_type
