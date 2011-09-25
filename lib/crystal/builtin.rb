@@ -66,7 +66,7 @@ module Crystal
   end
 
   class Class
-    def llvm_type
+    def llvm_type(mod)
       LLVM::Int64
     end
 
@@ -79,22 +79,22 @@ module Crystal
       ObjectSpace._id2ref object_id
     end
 
-    def instance_llvm_type
-      LLVM::Type.struct [], false
+    def instance_llvm_type(mod)
+      @instance_llvm_type ||= begin
+                                type = LLVM::Type.struct @vars.values.map { |x| x.type.resolved.llvm_type(mod) }, false
+                                mod.module.types.add "#{@name}", type
+                                type
+                              end
     end
   end
 
   class Instance
-    def llvm_type
-      LLVM::Pointer(@class.instance_llvm_type)
+    def llvm_type(mod)
+      LLVM::Pointer(@class.instance_llvm_type(mod))
     end
 
-    def reference_llvm_type
-      @class.instance_llvm_type
-    end
-
-    def find_method(name)
-      @class.find_method name
+    def reference_llvm_type(mod)
+      @class.instance_llvm_type(mod)
     end
 
     def llvm_cast(value)
@@ -103,7 +103,7 @@ module Crystal
   end
 
   class NilClass < Class
-    def llvm_type
+    def llvm_type(mod)
       LLVM::Type.void
     end
 
@@ -117,7 +117,7 @@ module Crystal
   end
 
   class BoolClass < Class
-    def llvm_type
+    def llvm_type(mod)
       LLVM::Int1
     end
 
@@ -131,7 +131,7 @@ module Crystal
   end
 
   class IntClass < Class
-    def llvm_type
+    def llvm_type(mod)
       LLVM::Int32
     end
 
@@ -145,7 +145,7 @@ module Crystal
   end
 
   class LongClass < Class
-    def llvm_type
+    def llvm_type(mod)
       LLVM::Int64
     end
 
@@ -155,7 +155,7 @@ module Crystal
   end
 
   class FloatClass < Class
-    def llvm_type
+    def llvm_type(mod)
       LLVM::Float
     end
 
@@ -169,7 +169,7 @@ module Crystal
   end
 
   class CharClass < Class
-    def llvm_type
+    def llvm_type(mod)
       LLVM::Int8
     end
 

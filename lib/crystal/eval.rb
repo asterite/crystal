@@ -53,6 +53,17 @@ module Crystal
     end
   end
 
+  class Decl
+    def compile(mod)
+      resolve mod
+    end
+
+    def eval(mod)
+      compile mod
+      nil
+    end
+  end
+
   class Prototype
     def compile(mod)
       resolve mod

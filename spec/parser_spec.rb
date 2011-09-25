@@ -168,4 +168,7 @@ describe Parser do
   it_parses_single_node "return if true", If.new(true.bool, Return.new)
   it_parses_single_node "break 1 if true", If.new(true.bool, Break.new(1.int))
   it_parses_single_node "break if true", If.new(true.bool, Break.new)
+
+  it_parses_single_node "foo : Int", Decl.new("foo", Ref.new("Int"))
+  it_parses_single_node "@foo : Int", Decl.new("@foo", Ref.new("Int"))
 end

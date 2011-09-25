@@ -164,7 +164,7 @@ module Crystal
                   fun = mod.module.functions.named name
                   mod.module.functions.delete fun if fun
 
-                  mod.module.functions.add(name, arg_types.map(&:llvm_type), resolved_type.llvm_type)
+                  mod.module.functions.add(name, arg_types.map { |x| x.llvm_type(mod) }, resolved_type.llvm_type(mod))
                 end
     end
   end
@@ -178,7 +178,7 @@ module Crystal
 
       args_types = define_args_types mod
 
-      fun = mod.module.functions.add name, args_types, resolved_type.llvm_type
+      fun = mod.module.functions.add name, args_types, resolved_type.llvm_type(mod)
       @code = fun
 
       define_optimizations fun
@@ -206,7 +206,7 @@ module Crystal
     end
 
     def define_args_types(mod)
-      args_types = args.map { |arg| arg.resolved_type.llvm_type }
+      args_types = args.map { |arg| arg.resolved_type.llvm_type(mod) }
       if block
         args_types << LLVM::Pointer(LLVM::Int8)
         args_types << block.llvm_type(mod)
@@ -233,9 +233,9 @@ module Crystal
     end
 
     def llvm_type(mod)
-      arg_types = args.map { |x| x.resolved_type.llvm_type }
+      arg_types = args.map { |x| x.resolved_type.llvm_type(mod) }
       arg_types << LLVM::Pointer(LLVM::Int8)
-      return_type = resolved_type.llvm_type
+      return_type = resolved_type.llvm_type(mod)
       LLVM::Pointer LLVM::Function(arg_types, return_type)
     end
 
@@ -336,7 +336,7 @@ module Crystal
     end
 
     def alloca(mod)
-      @code = mod.builder.alloca resolved_type.llvm_type, name
+      @code = mod.builder.alloca resolved_type.llvm_type(mod), name
     end
   end
 
@@ -368,7 +368,7 @@ module Crystal
         branches = {}
         branches[new_then_block] = then_code unless self.then.returns?
         branches[new_else_block] = else_code unless self.else.returns?
-        phi = mod.builder.phi resolved_type.llvm_type, branches, 'iftmp'
+        phi = mod.builder.phi resolved_type.llvm_type(mod), branches, 'iftmp'
       end
 
       mod.builder.position_at_end start_block
@@ -421,13 +421,13 @@ module Crystal
 
   class Assign
     def codegen(mod)
-      if target.resolved.is_a? BlockReference
+      if target.resolved.is_a?(BlockReference) || target.resolved.is_a?(Decl)
         target.resolved.code = target.resolved.codegen_ptr(mod)
       else
         unless target.resolved.code
-          target.resolved.code = mod.module.globals.add(resolved_type.llvm_type, target.name)
+          target.resolved.code = mod.module.globals.add(resolved_type.llvm_type(mod), target.name)
           target.resolved.code.linkage = :internal
-          target.resolved.code.initializer = LLVM::Constant.undef resolved_type.llvm_type
+          target.resolved.code.initializer = LLVM::Constant.undef resolved_type.llvm_type(mod)
         end
       end
 
@@ -511,9 +511,9 @@ module Crystal
       @type ||= begin
                   types = []
                   types << Yield::ExitType
-                  types += references.values.map(&:llvm_type)
+                  types += references.values.map { |x| x.llvm_type(mod) }
                   types << LLVM::Pointer(parent.type mod) if parent
-                  types << return_type.llvm_type if returns?
+                  types << return_type.llvm_type(mod) if returns?
 
                   type = LLVM::Type.struct types, false
                   mod.module.types.add '$context_type', type
@@ -594,8 +594,8 @@ module Crystal
       mod.builder.extract_value parent_context_ptr, index, "#{node.name}_ptr"
     end
 
-    def llvm_type
-      LLVM::Pointer node.resolved_type.llvm_type
+    def llvm_type(mod)
+      LLVM::Pointer node.resolved_type.llvm_type(mod)
     end
   end
 
@@ -634,7 +634,24 @@ module Crystal
 
   class New
     def codegen(mod)
-      mod.builder.alloca resolved_type.reference_llvm_type, 'something'
+      mod.builder.alloca resolved_type.reference_llvm_type(mod), 'something'
+    end
+  end
+
+  class Decl
+    def codegen(mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      instance = mod.builder.load fun.params[0]
+      mod.builder.extract_value instance, index, name
+    end
+
+    def codegen_ptr(mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      mod.builder.inbounds_gep fun.params[0], [LLVM::Int32.from_i(0), LLVM::Int32.from_i(index)]
     end
   end
 end

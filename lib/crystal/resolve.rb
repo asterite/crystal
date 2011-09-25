@@ -144,12 +144,20 @@ module Crystal
       exp = nil
       self_var = @scope.find_variable 'self'
 
-      if self_var
-        exp = self_var.resolved_type.find_method node.name
-        if exp
-          call = Call.new(@scope.def.obj, node.name)
-          call.accept self
-          exp = call.resolved
+      if node.local_var?
+        if self_var
+          exp = self_var.resolved_type.find_variable(node.name) or node.raise_error "undeclared instance variable #{node.name}"
+        else
+          node.raise_error "can't reference instance variable #{node.name} outside a class"
+        end
+      else
+        if self_var
+          exp = self_var.resolved_type.find_method node.name
+          if exp
+            call = Call.new(@scope.def.obj, node.name)
+            call.accept self
+            exp = call.resolved
+          end
         end
       end
 
@@ -172,10 +180,20 @@ module Crystal
 
     def visit_assign(node)
       node.value.accept self
-      node.target.resolved = @scope.find_expression(node.target.name)
+
+      if node.target.local_var?
+        self_var = @scope.find_variable 'self'
+        if self_var
+          node.target.resolved = self_var.resolved_type.find_variable(node.target.name)  or node.raise_error "undeclared instance variable #{node.target.name}"
+        else
+          node.raise_error "can't assign to instance variable #{node.target.name} outside a class"
+        end
+      else
+        node.target.resolved = @scope.find_expression(node.target.name)
+      end
 
       if node.target.resolved
-        unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference)
+        unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference) || node.target.resolved.is_a?(Decl)
           node.raise_error "can't assign to #{node.target}, it is not a variable"
         end
         if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type
@@ -434,6 +452,14 @@ module Crystal
 
     def visit_new(node)
       node.resolved_type = Instance.new node.klass
+    end
+
+    def visit_decl(node)
+      node.type.accept self
+      node.resolved_type = node.type.resolved
+
+      @scope.declare node
+      false
     end
 
     def merge_types(node, type1, type2)

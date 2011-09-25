@@ -412,6 +412,10 @@ module Crystal
       @name = name
     end
 
+    def local_var?
+      @name.start_with? '@'
+    end
+
     def accept(visitor)
       visitor.visit_ref self
       visitor.end_visit_ref self
@@ -908,6 +912,35 @@ module Crystal
 
     def returns?
       true
+    end
+  end
+
+  class Decl < Expression
+    attr_accessor :name
+    attr_accessor :type
+    attr_accessor :index
+
+    def initialize(name, type)
+      @name = name
+      @type = type
+      @type.parent = self
+    end
+
+    def accept(visitor)
+      if visitor.visit_decl self
+        @type.accept visitor
+      end
+      visitor.end_visit_decl self
+    end
+
+    def ==(other)
+      other.is_a?(Decl) && other.name == name && other.type == type
+    end
+
+    def clone
+      ret = Decl.new(name, type.clone)
+      ret.line_number = line_number
+      ret
     end
   end
 end

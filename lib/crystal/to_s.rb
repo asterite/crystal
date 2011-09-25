@@ -308,6 +308,13 @@ module Crystal
       false
     end
 
+    def visit_decl(node)
+      @str << node.name
+      @str << " : "
+      node.type.accept self
+      false
+    end
+
     def with_indent
       @indent += 1
       yield

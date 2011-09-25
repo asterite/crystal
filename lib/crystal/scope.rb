@@ -96,6 +96,10 @@ module Crystal
       name == 'self' ? @class : super
     end
 
+    def declare(node)
+      @class.declare node
+    end
+
     def to_s
       "Class<#{@class.name}> -> #{@scope.to_s}"
     end

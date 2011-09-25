@@ -5,6 +5,7 @@ module Crystal
       @superclass = superclass
       @type = type
       @methods = {}
+      @vars = {}
     end
 
     def type(class_class)
@@ -30,6 +31,15 @@ module Crystal
 
     def define_static_method(name, method, class_class)
       type(class_class).define_method name, method
+    end
+
+    def declare(node)
+      node.index = @vars.length
+      @vars[node.name] = node
+    end
+
+    def find_variable(name)
+      @vars[name]
     end
   end
 
@@ -58,8 +68,8 @@ module Crystal
       @class_class.subclass_of? other
     end
 
-    def llvm_type
-      @class_class.llvm_type
+    def llvm_type(mod)
+      @class_class.llvm_type(mod)
     end
 
     def name
@@ -72,6 +82,16 @@ module Crystal
 
     def to_s
       name
+    end
+  end
+
+  class Instance
+    def find_method(name)
+      @class.find_method name
+    end
+
+    def find_variable(name)
+      @class.find_variable name
     end
   end
 end
