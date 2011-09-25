@@ -24,6 +24,12 @@ describe Lexer do
     end
   end
 
+  def self.it_lexes_instance_variables(*args)
+    args.each do |arg|
+      it_lexes arg, :VAR, arg[1 .. -1]
+    end
+  end
+
   def self.it_lexes_keywords(*args)
     args.each do |arg|
       it_lexes arg, :IDENT, arg.to_sym
@@ -59,6 +65,7 @@ describe Lexer do
   it_lexes "\n\n\n", :NEWLINE
   it_lexes_keywords "def", "if", "If", "else", "Else", "elsif", "Elsif", "end", "End", "true", "false", "extern", "class", "while", "nil", "do", "yield", "return", "unless", "Unless", "next", "break"
   it_lexes_idents "ident", "something", "with_underscores", "with_1", "foo?", "bar!"
+  it_lexes_instance_variables "@ident", "@something", "@with_underscores", "@with_1", "@foo?", "@bar!"
   it_lexes_ints "1", ["1hello", "1"], "+1", "-1"
   it_lexes_floats "1.0", ["1.0hello", "1.0"], "+1.0", "-1.0"
   it_lexes_char "'a'", ?a.ord
