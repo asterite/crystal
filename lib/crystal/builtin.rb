@@ -78,6 +78,28 @@ module Crystal
       object_id = value.to_i LLVM::Int64.type
       ObjectSpace._id2ref object_id
     end
+
+    def instance_llvm_type
+      LLVM::Type.struct [], false
+    end
+  end
+
+  class Instance
+    def llvm_type
+      LLVM::Pointer(@class.instance_llvm_type)
+    end
+
+    def reference_llvm_type
+      @class.instance_llvm_type
+    end
+
+    def find_method(name)
+      @class.find_method name
+    end
+
+    def llvm_cast(value)
+      "#<#{@class.name}:0x#{value.to_ptr.address.to_s 16}>"
+    end
   end
 
   class NilClass < Class

@@ -634,7 +634,7 @@ module Crystal
 
   class New
     def codegen(mod)
-      LLVM::Int64.from_i object_id
+      mod.builder.alloca resolved_type.reference_llvm_type, 'something'
     end
   end
 end

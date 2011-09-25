@@ -433,7 +433,7 @@ module Crystal
     end
 
     def visit_new(node)
-      node.resolved_type = node.klass
+      node.resolved_type = Instance.new node.klass
     end
 
     def merge_types(node, type1, type2)
