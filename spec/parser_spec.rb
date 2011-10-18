@@ -174,4 +174,5 @@ describe Parser do
 
   it_parses_single_node "Int[]", Call.new("Int".ref, :[])
   it_parses_single_node "def []; end", Def.new(:[], [], nil)
+  it_parses_single_node "def self.[]; end", Def.new(:[], [], nil, "self".ref)
 end
