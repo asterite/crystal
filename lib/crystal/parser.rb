@@ -212,6 +212,9 @@ module Crystal
           else
             atomic = args ? (Call.new atomic, name, args) : (Call.new atomic, name)
           end
+        when :[]
+          next_token_skip_space
+          atomic = Call.new atomic, :[]
         else
           break
         end
@@ -428,7 +431,7 @@ module Crystal
 
     def parse_def
       next_token_skip_space_or_newline
-      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :'~@', :&, :|, :^, :**
+      check :IDENT, :"=", :<<, :<, :<=, :==, :"!=", :>>, :>, :>=, :+, :-, :*, :/, :%, :+@, :-@, :'~@', :&, :|, :^, :**, :[]
 
       receiver = nil
       name = @token.type == :IDENT ? @token.value : @token.type

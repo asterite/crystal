@@ -171,4 +171,7 @@ describe Parser do
 
   it_parses_single_node "foo : Int", Decl.new("foo", Ref.new("Int"))
   it_parses_single_node "@foo : Int", Decl.new("@foo", Ref.new("Int"))
+
+  it_parses_single_node "Int[]", Call.new("Int".ref, :[])
+  it_parses_single_node "def []; end", Def.new(:[], [], nil)
 end

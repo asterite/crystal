@@ -17,6 +17,7 @@ module Crystal
     end
 
     def visit_ref(node)
+      return if node.resolved.is_a? Def
       @result = false unless node.resolved && node.resolved.compile_time_value
     end
   end

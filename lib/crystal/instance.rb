@@ -7,7 +7,7 @@ module Crystal
       args_values_signature = ""
       args.each_with_index do |arg, i|
         if arg.constant?
-          raise "Argument #{arg} must be known at compile time" unless node.args[i].can_be_evaluated_at_compile_time?
+          node.raise_error "Argument #{arg} must be known at compile time" unless node.args[i].can_be_evaluated_at_compile_time?
           arg_value = scope.eval_anon node.args[i]
           args_values_signature << ", " unless args_values_signature.empty?
           args_values_signature << arg_value.to_s

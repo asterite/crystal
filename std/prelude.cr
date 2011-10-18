@@ -327,6 +327,7 @@ def puts x
   Elsif x.class == Float
     C.puts_float x
   End
+  x
 end
 
 extern print_bool Bool : Nil
