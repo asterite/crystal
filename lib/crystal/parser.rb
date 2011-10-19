@@ -79,12 +79,19 @@ module Crystal
         when :SPACE
           next_token
         when :'='
-          break unless atomic.is_a?(Ref)
+          if atomic.is_a?(Call) && atomic.name == :'[ ]'
+            next_token_skip_space_or_newline
 
-          next_token_skip_space_or_newline
+            atomic.name = :'[]='
+            atomic.args << parse_expression
+          else
+            break unless atomic.is_a?(Ref)
 
-          value = parse_question_colon
-          atomic = Assign.new(atomic, value)
+            next_token_skip_space_or_newline
+
+            value = parse_question_colon
+            atomic = Assign.new(atomic, value)
+          end
         when :'+=', :'-=', :'*=', :'/=', :'%=', :'|=', :'&=', :'^=', :'**=', :'<<=', :'>>='
           break unless atomic.is_a?(Ref)
 
@@ -215,6 +222,24 @@ module Crystal
         when :[]
           next_token_skip_space
           atomic = Call.new atomic, :[]
+        when :'['
+          next_token_skip_space_or_newline
+          args = []
+          while true
+            args << parse_expression
+            case @token.type
+            when :','
+              next_token_skip_space_or_newline
+              if @token.type == :']'
+                next_token_skip_space
+                break
+              end
+            when :']'
+              next_token_skip_space
+              break
+            end
+          end
+          atomic = Call.new atomic, :'[ ]', args
         else
           break
         end
@@ -482,6 +507,9 @@ module Crystal
       end
 
       next_token_skip_statement_end
+
+      name = :'[ ]' if name == :[] && args && args.length > 0
+
       Def.new name, args, body, receiver
     end
 
@@ -671,7 +699,7 @@ module Crystal
     end
 
     def is_end_token
-      return true if @token.type == :'}'
+      return true if @token.type == :'}' || @token.type == :']'
       return false unless @token.type == :IDENT
 
       case @token.value

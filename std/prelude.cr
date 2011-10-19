@@ -171,6 +171,11 @@ class Int < Number
     End
   end
 
+  extern crystal_bracket_int Int, Int : Int
+  def [](bit)
+    C.crystal_bracket_int self, bit
+  end
+
   extern crystal_complement_int Int : Int
   def ~@
     C.crystal_complement_int self

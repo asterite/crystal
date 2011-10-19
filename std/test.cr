@@ -69,6 +69,7 @@ assert_equal 4, 12 & 5
 assert_equal 5, 4 | 1
 assert_equal 1, 5 ^ 4
 assert_equal 16, 2 ** 4
+assert_equal 0, 5[1]
 
 # Test Int op Float
 assert_equal 3.0, 1 + 2.0

@@ -65,7 +65,14 @@ module Crystal
 
     def visit_call(node)
       node.obj.accept self if node.obj
-      if node.obj && node.name.is_a?(Symbol) && node.args.length == 1
+      if node.obj && node.name == :'[ ]'
+        @str << "["
+        node.args.each_with_index do |arg, i|
+          @str << ", " if i > 0
+          arg.accept self
+        end
+        @str << "]"
+      elsif node.obj && node.name.is_a?(Symbol) && node.args.length == 1
         @str << " "
         @str << node.name.to_s
         @str << " "

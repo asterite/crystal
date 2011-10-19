@@ -175,4 +175,12 @@ describe Parser do
   it_parses_single_node "Int[]", Call.new("Int".ref, :[])
   it_parses_single_node "def []; end", Def.new(:[], [], nil)
   it_parses_single_node "def self.[]; end", Def.new(:[], [], nil, "self".ref)
+
+  it_parses_single_node "Int[8]", Call.new("Int".ref, :'[ ]', [8.int])
+  it_parses_single_node "Int[8, 4]", Call.new("Int".ref, :'[ ]', [8.int, 4.int])
+  it_parses_single_node "Int[8, 4,]", Call.new("Int".ref, :'[ ]', [8.int, 4.int])
+
+  it_parses_single_node "def [](x); end", Def.new(:'[ ]', ["x".var], nil)
+
+  it_parses_single_node "foo[0] = 1", Call.new("foo".ref, :[]=, [0.int, 1.int])
 end
