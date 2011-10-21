@@ -13,7 +13,18 @@ It has a syntax strongly inspired by Ruby:
 *   Constants start with Capital Letters
 *   Functions can be evaluated at compile time as long as they are assigned to a Constant.
 
-Examples:
+How to run it in your machine
+-----------------------------
+
+Clone, run bundle, but ruby-llvm should be version 2.9.2. Now, that
+version was not released and is not in RubyGems, you can get it from
+here: [http://jvoorhis.com/ruby-llvm/ruby-llvm-2.9.2.gem](http://jvoorhis.com/ruby-llvm/ruby-llvm-2.9.2.gem)
+
+The only problem is... the native extensions doesn't seem to compile
+anymore. So if anyone finds a solution for this: very, very welcome! :-)
+
+Examples
+--------
 
 Hello World
 
