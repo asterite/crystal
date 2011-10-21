@@ -23,6 +23,12 @@ here: [http://jvoorhis.com/ruby-llvm/ruby-llvm-2.9.2.gem](http://jvoorhis.com/ru
 The only problem is... the native extensions don't seem to compile
 anymore. So if anyone finds a solution for this: very, very welcome! :-)
 
+Then you'll have three "executables":
+
+*   ruby lib/crystal/cli.rb => the command line interface
+*   ruby lib/crystal/interpret.rb => to interpret a given file.cr
+*   ruby lib/crystal/compile.rb => to compile a given file.cr down to machine down
+
 Examples
 --------
 
