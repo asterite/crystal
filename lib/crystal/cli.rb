@@ -1,5 +1,6 @@
 require(File.expand_path("../../../lib/crystal",  __FILE__))
 require 'readline'
+require(File.expand_path("../../../lib/crystal/core_ext/readline",  __FILE__))
 
 mod = Crystal::Module.new
 result = nil
@@ -30,6 +31,8 @@ end
 
 buffer = ""
 openings = 0
+
+Readline.read_history
 
 loop do
   line = Readline.readline "crystal > #{ '  ' * openings }", true
