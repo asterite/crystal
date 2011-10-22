@@ -1,4 +1,5 @@
 require(File.expand_path("../../../lib/crystal",  __FILE__))
+require 'readline'
 
 mod = Crystal::Module.new
 result = nil
@@ -31,15 +32,13 @@ buffer = ""
 openings = 0
 
 loop do
-  print "crystal > "
-  print ("  " * openings)
-  line = gets
+  line = Readline.readline "crystal > #{ '  ' * openings }", true
   next if line.strip.empty?
 
   break if line.strip == "exit" || line.strip == "quit"
   next mod.dump if line.strip == "dump"
 
-  buffer << line
+  buffer << line << "\n"
   openings = count_openings buffer
 
   if openings == 0
