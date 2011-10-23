@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+require(File.expand_path("../../lib/crystal",  __FILE__))
+
+if ARGV.length != 1
+  puts "Usage: compile [programfile]"
+  exit
+end
+
+file = ARGV[0]
+filename = file[0 .. -4]
+lib_filename = File.expand_path("../../ext/crystal.o",  __FILE__)
+
+dump_exec = File.expand_path("../dump",  __FILE__)
+
+`ruby #{dump_exec} #{file} 2> #{filename}.ll`
+`llvmc -v -O3 #{lib_filename} #{filename}.ll -o #{filename}`

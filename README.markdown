@@ -23,11 +23,13 @@ here: [http://jvoorhis.com/ruby-llvm/ruby-llvm-2.9.2.gem](http://jvoorhis.com/ru
 The only problem is... the native extensions don't seem to compile
 anymore. So if anyone finds a solution for this: very, very welcome! :-)
 
-Then you'll have three "executables":
+Then you'll have five executables:
 
-*   ruby lib/crystal/cli.rb => the command line interface
-*   ruby lib/crystal/interpret.rb => to interpret a given file.cr
-*   ruby lib/crystal/compile.rb => to compile a given file.cr down to machine down
+*   bin/compile => compiles a given file.cr down to machine down
+*   bin/dump => shows the unoptimized llvm file for a a given file.cr
+*   bin/icr => interactive crystal shell
+*   bin/interpret => interprets a given file.cr
+*   bin/ll => shows the optimized llvm file for a given file.ll
 
 Examples
 --------

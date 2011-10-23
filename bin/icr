@@ -1,6 +1,6 @@
-require(File.expand_path("../../../lib/crystal",  __FILE__))
+#!/usr/bin/env ruby
+require(File.expand_path("../../lib/crystal",  __FILE__))
 require 'readline'
-require(File.expand_path("../../../lib/crystal/core_ext/readline",  __FILE__))
 
 mod = Crystal::Module.new
 result = nil
@@ -31,6 +31,27 @@ end
 
 buffer = ""
 openings = 0
+
+module Readline
+  LOG = "#{ENV['HOME']}/.crystal-history"
+
+  class << self
+    alias :old_readline :readline
+    def readline(*args)
+      line = old_readline(*args)
+      File.open(LOG, 'ab') {|file| file << "#{line}\n"} rescue nil
+      line
+    end
+
+    def read_history
+      if File.exists? LOG
+        File.readlines(LOG).each do |line|
+          HISTORY.push line
+        end
+      end
+    end
+  end
+end
 
 Readline.read_history
 

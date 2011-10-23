@@ -1,7 +1,8 @@
-require(File.expand_path("../../../lib/crystal",  __FILE__))
+#!/usr/bin/env ruby
+require(File.expand_path("../../lib/crystal",  __FILE__))
 
 if ARGV.length != 1
-  puts "Usage: interpret FILE"
+  puts "Usage: interpret [programfile]"
   exit
 end
 
