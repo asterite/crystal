@@ -379,32 +379,6 @@ module Crystal
     end
   end
 
-  class New < Expression
-    attr_reader :metaclass
-
-    def initialize(a_class, metaclass)
-      @class = a_class
-      @metaclass = metaclass
-    end
-
-    def klass
-      @class
-    end
-
-    def accept(visitor)
-      visitor.visit_new self
-      visitor.end_visit_new self
-    end
-
-    def ==(other)
-      other.is_a?(New) && other.klass == klass
-    end
-
-    def clone
-      New.new klass, metaclass
-    end
-  end
-
   class Ref < Expression
     attr_accessor :name
 
@@ -912,35 +886,6 @@ module Crystal
 
     def returns?
       true
-    end
-  end
-
-  class Decl < Expression
-    attr_accessor :name
-    attr_accessor :type
-    attr_accessor :index
-
-    def initialize(name, type)
-      @name = name
-      @type = type
-      @type.parent = self
-    end
-
-    def accept(visitor)
-      if visitor.visit_decl self
-        @type.accept visitor
-      end
-      visitor.end_visit_decl self
-    end
-
-    def ==(other)
-      other.is_a?(Decl) && other.name == name && other.type == type
-    end
-
-    def clone
-      ret = Decl.new(name, type.clone)
-      ret.line_number = line_number
-      ret
     end
   end
 end

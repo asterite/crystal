@@ -193,7 +193,7 @@ module Crystal
       end
 
       if node.target.resolved
-        unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference) || node.target.resolved.is_a?(Decl)
+        unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference)
           node.raise_error "can't assign to #{node.target}, it is not a variable"
         end
         if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type

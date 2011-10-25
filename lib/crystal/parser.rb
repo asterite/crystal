@@ -7,7 +7,6 @@ module Crystal
     def initialize(str)
       super
       next_token_skip_statement_end
-      @decl_count = 0
     end
 
     def parse
@@ -112,16 +111,12 @@ module Crystal
     def parse_question_colon
       cond = parse_or
       while @token.type == :'?'
-        @decl_count += 1
-
         next_token_skip_space_or_newline
         true_val = parse_or
         check :':'
         next_token_skip_space_or_newline
         false_val = parse_or
         cond = If.new(cond, true_val, false_val)
-
-        @decl_count -= 1
       end
       cond
     end
@@ -319,16 +314,6 @@ module Crystal
       next_token
 
       args = parse_args
-
-      if @decl_count == 0 && args == nil && @token.type == :':'
-        next_token_skip_space_or_newline
-
-        @decl_count += 1
-        type = parse_expression
-        @decl_count -= 1
-
-        return Decl.new name, type
-      end
 
       block = parse_block
 
@@ -665,7 +650,6 @@ module Crystal
     end
 
     def parse_extern
-      @decl_count += 1
       next_token_skip_space_or_newline
       check :IDENT
       name = @token.value
@@ -674,7 +658,6 @@ module Crystal
       check :':'
       next_token_skip_space
       return_type = parse_expression
-      @decl_count -= 1
 
       Prototype.new name, (args_types || []), return_type
     end

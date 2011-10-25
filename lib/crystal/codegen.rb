@@ -421,7 +421,7 @@ module Crystal
 
   class Assign
     def codegen(mod)
-      if target.resolved.is_a?(BlockReference) || target.resolved.is_a?(Decl)
+      if target.resolved.is_a?(BlockReference)
         target.resolved.code = target.resolved.codegen_ptr(mod)
       else
         unless target.resolved.code
@@ -629,29 +629,6 @@ module Crystal
   class Next
     def codegen(mod)
       mod.builder.ret(exp ? exp.codegen(mod) : nil)
-    end
-  end
-
-  class New
-    def codegen(mod)
-      mod.builder.alloca resolved_type.reference_llvm_type(mod), 'something'
-    end
-  end
-
-  class Decl
-    def codegen(mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
-
-      instance = mod.builder.load fun.params[0]
-      mod.builder.extract_value instance, index, name
-    end
-
-    def codegen_ptr(mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
-
-      mod.builder.inbounds_gep fun.params[0], [LLVM::Int32.from_i(0), LLVM::Int32.from_i(index)]
     end
   end
 end
