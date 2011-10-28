@@ -2,7 +2,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     diff-lcs (1.1.2)
-    ffi (1.0.9)
+    ffi (1.0.10)
     rspec (2.6.0)
       rspec-core (~> 2.6.0)
       rspec-expectations (~> 2.6.0)
@@ -11,7 +11,7 @@ GEM
     rspec-expectations (2.6.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.6.0)
-    ruby-llvm (2.9.1)
+    waj-ruby-llvm (2.9.2)
       ffi (>= 1.0.0)
 
 PLATFORMS
@@ -19,4 +19,4 @@ PLATFORMS
 
 DEPENDENCIES
   rspec
-  ruby-llvm
+  waj-ruby-llvm

@@ -1,4 +1,4 @@
 source :rubygems
 
-gem 'ruby-llvm'
+gem 'waj-ruby-llvm'
 gem 'rspec'
