@@ -1,68 +1,68 @@
 module Crystal
   class ASTNode
-    def compile(mod)
-      mod.define_at_top_level self
+    def compile(scope)
+      scope.define_at_top_level self
     end
 
-    def eval(mod)
-      fun = compile mod
-      mod.run fun
+    def eval(scope)
+      fun = compile scope
+      scope.run fun
     end
   end
 
   class Expressions
-    def compile(mod)
+    def compile(scope)
       last = nil
       expressions.each do |exp|
-        last = exp.compile mod
+        last = exp.compile scope
         yield last if block_given? && last
       end
       last
     end
 
-    def eval(mod)
-      expressions.each { |exp| exp.eval mod }
+    def eval(scope)
+      expressions.each { |exp| exp.eval scope }
     end
   end
 
   class Def
-    def compile(mod)
+    def compile(scope)
       if receiver
-        receiver.resolve mod
+        receiver.resolve scope
         name = self.name
         self.name = "#{receiver.resolved.name}::#{name}"
         self.args.insert 0, Var.new("self")
         self.args_length = self.args.length - 1
-        receiver.resolved.define_static_method name, self, mod.class_class
+        receiver.resolved.define_static_method name, self, scope.class_class
       else
-        mod.add_expression self
+        scope.add_expression self
       end
       nil
     end
 
-    def eval(mod)
-      compile mod
+    def eval(scope)
+      compile scope
       nil
     end
   end
 
   class ClassDef
-    def compile(mod)
-      resolve mod
+    def compile(scope)
+      resolve scope
       nil
     end
   end
 
   class Prototype
-    def compile(mod)
-      resolve mod
-      codegen mod
-      mod.add_c_expression self
+    def compile(scope)
+      resolve scope
+      codegen scope
+      scope.add_c_expression self
       nil
     end
 
-    def eval(mod)
-      compile mod
+    def eval(scope)
+      compile scope
     end
   end
 
