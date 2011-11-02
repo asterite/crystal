@@ -320,7 +320,7 @@ module Crystal
       if block
         Call.new nil, name, args, block
       else
-        args && args.length > 0 ? Call.new(nil, name, args) : Ref.new(name)
+        args ? Call.new(nil, name, args) : Ref.new(name)
       end
     end
 
