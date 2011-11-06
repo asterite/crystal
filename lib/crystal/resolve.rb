@@ -203,7 +203,7 @@ module Crystal
           # Check if it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
           if node.args_length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
             exp = @scope.find_local_var node.name
-            if exp.is_a? Var
+            if exp
               node.resolved = exp
               node.resolved_type = exp.resolved_type
               return false
