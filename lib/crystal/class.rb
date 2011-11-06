@@ -69,7 +69,8 @@ module Crystal
     end
 
     def name
-      @class.name
+      "Class"
+      #@class.name
     end
 
     def resolved_type
@@ -77,7 +78,7 @@ module Crystal
     end
 
     def to_s
-      name
+      "#{@class.name}:Class"
     end
   end
 end

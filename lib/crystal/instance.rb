@@ -64,7 +64,7 @@ module Crystal
     def instance_name(name, args_types, args_values, block_type = nil)
       i = ""
       if obj
-        i << obj.name
+        i << obj.to_s
         i << (obj.is_a?(Metaclass) ? '::' : '#')
       end
       i << name.to_s
