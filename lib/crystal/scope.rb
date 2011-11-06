@@ -17,6 +17,28 @@ module Crystal
     end
   end
 
+  class Module
+    def define_method(method)
+      @methods[method.name] = method
+    end
+
+    def find_class(name)
+      @classes[name]
+    end
+
+    def find_method(name)
+      @methods[name]
+    end
+
+    def add_local_var(var)
+      @local_vars[var.name] = var
+    end
+
+    def find_local_var(name)
+      @local_vars[name]
+    end
+  end
+
   class DefScope < Scope
     attr_accessor :def
 
@@ -25,24 +47,22 @@ module Crystal
       @def = a_def
     end
 
-    def add_expression(node)
-      if @def.is_a?(TopLevelDef) || node.is_a?(Def) || node.is_a?(Prototype)
-        @scope.add_expression node
+    def add_local_var(var)
+      if @def.is_a?(TopLevelDef)
+        @scope.add_local_var var
       else
-        @def.local_variables[node.name] = node
+        @def.local_vars[var.name] = var
       end
     end
 
-    def find_expression(name)
-      exp = find_local_expression(name)
-      return exp if exp
-
-      if @def.obj
-        exp = @def.obj.find_method name
-        return exp if exp
+    def find_local_var(name)
+      if @def.is_a?(TopLevelDef)
+        @scope.find_local_var name
+      else
+        exp = find_local_var_non_recursive name
+        exp = self.next.find_local_var(name) if !exp && is_block?
+        exp
       end
-
-      self.next.find_expression name
     end
 
     def find_method(name)
@@ -54,11 +74,8 @@ module Crystal
       self.next.find_method(name)
     end
 
-    def find_local_expression(name)
-      arg = @def.args.select{|arg| arg.name == name}.first
-      return arg if arg
-
-      @def.local_variables[name]
+    def find_local_var_non_recursive(name)
+      @def.args.select{|arg| arg.name == name}.first || @def.local_vars[name]
     end
 
     def next
@@ -91,8 +108,8 @@ module Crystal
       @class = a_class
     end
 
-    def find_expression(name)
-      name == 'self' ? @class : super
+    def find_local_var(name)
+      name == 'self' ? @class : nil
     end
 
     def define_method(method)
@@ -113,11 +130,11 @@ module Crystal
       @context = context
     end
 
-    def find_expression(name)
-      node = @context.find_expression name
+    def find_local_var(name)
+      node = @context.find_local_var name
       return node if node
 
-      node = self.next.find_expression name
+      node = self.next.find_local_var name
       if node.is_a? BlockReference
         @context.parent = self.next.context
         node.context = @context
@@ -160,11 +177,11 @@ module Crystal
       @references = {}
     end
 
-    def find_expression(name)
+    def find_local_var(name)
       result = @references[name]
       return result if result
 
-      node = @scope.find_local_expression name
+      node = @scope.find_local_var_non_recursive name
       if node
         node = BlockReference.new self, node
         @references[name] = node

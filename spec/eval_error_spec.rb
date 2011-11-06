@@ -14,9 +14,8 @@ describe "ast eval" do
     end
   end
 
-  it_evals_with_error "def Foo\nend\nclass Foo\nend", 3, /can only extend a class/
-  it_evals_with_error "\nclass Bar < Foo\nend", 2, /unknown class 'Foo'/
-  it_evals_with_error "def Foo\nend\nclass Bar < Foo\nend", 3, /can only inherit from a class/
+  it_evals_with_error "\nclass Bar < Foo\nend", 2, /undefined class 'Foo'/
+  it_evals_with_error "def Foo\nend\nclass Bar < Foo\nend", 3, /undefined class 'Foo'/
   it_evals_with_error "\nfoo", 2, /undefined local variable or method 'foo'/
   it_evals_with_error "def foo x; x + 2; end; x + 1; false + 1", 1, //
   it_evals_with_error "def foo; a = 10; yield 42; end; def bar; foo { |x| a }; end; bar", 1, //

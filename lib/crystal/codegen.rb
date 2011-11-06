@@ -20,8 +20,10 @@ module Crystal
     attr_reader :fpm
 
     def initialize
-      @expressions = {}
+      @classes = {}
       @methods = {}
+      @local_vars = {}
+      @def_instances = {}
       @module = LLVM::Module.new ''
       @builder = LLVM::Builder.new
       @engine = LLVM::JITCompiler.new @module
@@ -67,26 +69,6 @@ module Crystal
       else
         yield
       end
-    end
-
-    def define_method(method)
-      @methods[method.name] = method
-    end
-
-    def find_method(name)
-      @methods[name]
-    end
-
-    def add_expression(node)
-      @expressions[node.name] = node
-    end
-
-    def remove_expression(node)
-      @expressions.delete node.name
-    end
-
-    def find_expression(name)
-      @expressions[name] || @methods[name]
     end
 
     def run(fun)
@@ -197,7 +179,7 @@ module Crystal
 
       define_args args_types, mod
 
-      define_local_variables mod
+      define_local_vars mod
       load_context(mod) if is_block?
 
       code = codegen_body(mod, fun)
@@ -210,8 +192,8 @@ module Crystal
       fun
     end
 
-    def define_local_variables(mod)
-      @local_variables.each { |name, var| var.alloca(mod) }
+    def define_local_vars(mod)
+      @local_vars.each { |name, var| var.alloca(mod) }
     end
 
     def define_args_types(mod)

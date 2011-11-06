@@ -1,17 +1,14 @@
 module Crystal
   class Module
     def add_def_instance(instance)
-      @def_instances ||= {}
       @def_instances[instance.name] = instance
     end
 
     def remove_def_instance(name)
-      @def_instances ||= {}
       @def_instances.delete name
     end
 
     def find_def_instance(name)
-      @def_instances ||= {}
       @def_instances[name]
     end
   end

@@ -69,7 +69,7 @@ module Crystal
     end
 
     def define_class(klass)
-      add_expression klass
+      @classes[klass.name] = klass
     end
   end
 

@@ -151,7 +151,7 @@ describe "def instance" do
     call.resolved.should eq(exp)
   end
 
-  it "instantiates a class method with one argument 2" do
+  it "instantiates a class method with one argument 2", :focus => true do
     mod = Crystal::Module.new
     mod.eval "class Int; def foo(x); x + 2; end; end"
 

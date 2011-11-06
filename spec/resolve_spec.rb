@@ -10,7 +10,7 @@ describe "ast resolve" do
       if expected_type.nil?
         last.should be_nil
       else
-        expected_type = mod.find_expression expected_type
+        expected_type = mod.find_class expected_type
         last.resolved_type.should eq(expected_type)
       end
     end

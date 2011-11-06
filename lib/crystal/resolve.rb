@@ -84,9 +84,11 @@ module Crystal
       node.resolved_type = @scope.float_class
     end
 
-    def end_visit_prototype(node)
-      node.resolved_type = @scope.find_expression node.resolved_type.name
-      node.arg_types.map! { |type| @scope.find_expression type.name }
+    def visit_prototype(node)
+      node.arg_types.map! do |arg_type|
+        @scope.find_class arg_type.name or node.raise_error "undefined class #{arg_type}"
+      end
+      node.resolved_type = @scope.find_class(node.resolved_type.name) or node.raise_error "undefined class #{node.resolved_type}"
     end
 
     def visit_def(node)
@@ -117,17 +119,13 @@ module Crystal
     end
 
     def visit_class_def(node)
-      exp = @scope.find_expression node.name
-      if exp
-        node.raise_error "can only extend a class" unless exp.class <= Crystal::Class
-      else
+      exp = @scope.find_class node.name
+      unless exp
         if node.superclass
-          superclass = @scope.find_expression(node.superclass) or node.raise_error "unknown class '#{node.superclass}'"
+          superclass = @scope.find_class(node.superclass) or node.raise_error "undefined class '#{node.superclass}'"
         else
           superclass = @scope.object_class
         end
-
-        node.raise_error "can only inherit from a class" unless superclass.class <= Crystal::Class
 
         exp = Class.new node.name, superclass
         @scope.define_class exp
@@ -142,26 +140,32 @@ module Crystal
     def visit_ref(node)
       return if node.resolved_type
 
-      exp = @scope.find_expression(node.name) || @scope.find_method(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
-
-      if exp.is_a?(Def) || exp.is_a?(Prototype)
-        target = exp.is_a?(Def) && exp.obj ? Ref.new('self') : nil
-        call = Call.new(target, exp.name)
-        call.accept self
-        exp = call.resolved
-      else
+      exp = @scope.find_local_var node.name
+      if exp
         exp.accept self
+      else
+        exp = @scope.find_class node.name
+        if exp
+          exp.accept self
+        else
+          exp = @scope.find_method(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
+          target = exp.is_a?(Def) && exp.obj ? Ref.new('self') : nil
+          call = Call.new(target, exp.name)
+          call.accept self
+          exp = call.resolved
+        end
       end
 
       node.resolved = exp
       node.resolved_type = exp.resolved_type
+
       false
     end
 
     def visit_assign(node)
       node.value.accept self
 
-      node.target.resolved = @scope.find_expression(node.target.name)
+      node.target.resolved = @scope.find_local_var(node.target.name)
 
       if node.target.resolved
         unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference)
@@ -173,7 +177,7 @@ module Crystal
       else
         var = Var.new(node.target.name, node.value.resolved_type)
 
-        @scope.add_expression var
+        @scope.add_local_var var
         node.target.resolved = var
       end
 
@@ -205,7 +209,7 @@ module Crystal
         unless method
           # Check if it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
           if node.args_length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
-            exp = @scope.find_expression node.name
+            exp = @scope.find_local_var node.name
             if exp.is_a? Var
               node.resolved = exp
               node.resolved_type = exp.resolved_type
@@ -305,7 +309,7 @@ module Crystal
     def visit_while(node)
       node.cond.accept self
       node.body.accept self
-      node.resolved_type = @scope.find_expression "Nil"
+      node.resolved_type = @scope.nil_class
       false
     end
 

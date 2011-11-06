@@ -302,7 +302,7 @@ module Crystal
     attr_accessor :receiver
     attr_accessor :block
     attr_accessor :context
-    attr_accessor :local_variables
+    attr_accessor :local_vars
     attr_accessor :yield_types
 
     def initialize(name, args, body, receiver = nil)
@@ -313,7 +313,7 @@ module Crystal
       @body.parent = self
       @receiver = receiver
       @receiver.parent = self if @receiver
-      @local_variables = {}
+      @local_vars = {}
     end
 
     def args_length_is(length)
