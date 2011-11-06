@@ -43,6 +43,10 @@ module Crystal
       @methods = {}
     end
 
+    def real_class
+      @class
+    end
+
     def class_class
       @class.root.class_class
     end
@@ -70,7 +74,6 @@ module Crystal
 
     def name
       "Class"
-      #@class.name
     end
 
     def resolved_type

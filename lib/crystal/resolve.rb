@@ -398,6 +398,21 @@ module Crystal
       false
     end
 
+    def visit_new_static_array(node)
+      node.resolved_type = StaticArrayClass.new @scope.def.args[0].resolved_type.real_class
+      false
+    end
+
+    def visit_static_array_set(node)
+      node.resolved_type = @scope.def.args[0].resolved_type.real_class
+      false
+    end
+
+    def visit_static_array_get(node)
+      node.resolved_type = @scope.def.args[0].resolved_type.real_class
+      false
+    end
+
     def merge_types(node, type1, type2)
       return type2 if type1.nil? || type1 == UnknownType || type1 == @scope.nil_class
       return type1 if type2.nil? || type2 == UnknownType || type2 == @scope.nil_class

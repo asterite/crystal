@@ -18,6 +18,7 @@ module Crystal
     attr_reader :module
     attr_reader :builder
     attr_reader :fpm
+    attr_reader :malloc
 
     def initialize
       @classes = {}
@@ -29,6 +30,7 @@ module Crystal
       @engine = LLVM::JITCompiler.new @module
       create_function_pass_manager
       define_builtin_classes
+      define_malloc
       load_prelude
     end
 
@@ -101,6 +103,10 @@ module Crystal
       @fpm << :gvn
       @fpm << :mem2reg
       @fpm << :simplifycfg
+    end
+
+    def define_malloc
+      @malloc = @module.functions.add('malloc', [LLVM::Int32], LLVM::Pointer(LLVM::Int8))
     end
 
     def load_prelude
@@ -621,6 +627,40 @@ module Crystal
   class Next
     def codegen(mod)
       mod.builder.ret(exp ? exp.codegen(mod) : nil)
+    end
+  end
+
+  class NewStaticArray
+    def codegen(mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      bytes = mod.builder.mul fun.params[-1], LLVM::Int(4)
+      malloc = mod.builder.call mod.malloc, bytes
+      mod.builder.bit_cast malloc, resolved_type.llvm_type(mod)
+    end
+  end
+
+  class StaticArraySet
+    def codegen(mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      pointer = mod.builder.inbounds_gep fun.params[0], [fun.params[1]]
+      mod.builder.store fun.params[2], pointer
+
+      fun.params[2]
+    end
+  end
+
+  class StaticArrayGet
+    def codegen(mod)
+      start_block = mod.builder.insert_block
+      fun = start_block.parent
+
+      pointer = mod.builder.inbounds_gep fun.params[0], [fun.params[1]]
+
+      mod.builder.load pointer
     end
   end
 end

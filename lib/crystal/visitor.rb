@@ -39,6 +39,9 @@ module Crystal
       'return',
       'next',
       'break',
+      'new_static_array',
+      'static_array_set',
+      'static_array_get',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

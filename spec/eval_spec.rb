@@ -95,7 +95,7 @@ describe "ast eval" do
   it_evals "def foo; yield 21; end; def bar; a = 1; a = a + 2; b = 4; b = b + 14; foo { |x| foo { |y| x + a + b} }; end; bar", 42.int
   it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| foo { |z| a + z} } }; end; bar", 42.int
   it_evals "def foo; yield 21; end; def bar; a = 10; a = a + 11; foo { |x| foo { |y| foo { |z| foo { |w| a + w } } } }; end; bar", 42.int
-  it_evals "def foo; yield 42; end; def bar; a = 10; a = a + 2; foo { |x| foo { |y| foo { |z| foo { |w| a = w } } } }; a; end; bar", 42.int, :focus => true
+  it_evals "def foo; yield 42; end; def bar; a = 10; a = a + 2; foo { |x| foo { |y| foo { |z| foo { |w| a = w } } } }; a; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; a = 10; foo { |x| foo { |y| foo { |z| a = y } } }; a; end; bar", 42.int
   it_evals "def foo; yield 42; end; def bar; a = 10; foo { |x| foo { |y| foo { |z| a = x } } }; a; end; bar", 42.int
   it_evals "def foo; return 1; end; foo", 1.int
@@ -122,5 +122,5 @@ describe "ast eval" do
   it_evals "def Int.foo(x); x + 2; end; Int.foo(1)", 3.int
   it_evals "class Int; def self.foo(x); x + 2; end; end; Int.foo(1)", 3.int
   it_evals "def Number.foo; 1; end; Int.foo", 1.int
-  #it_evals "a = Int[1]; a[0] = 1; a[0]", 1
+  it_evals "a = Int[4]; a[0] = 1; a[1] = 2; a[2] = 3; a[3] = 4; a[0] + a[1] + a[2] + a[3]", 10.int
 end

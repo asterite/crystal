@@ -31,6 +31,7 @@ module Crystal
 
     def define_class_class
       @class_class = Class.new "Class", @object_class
+      @class_class.define_method Def.new(:'[ ]', [Var.new('size')], NewStaticArray.new)
       define_class @class_class
 
       @object_class.class_class = @class_class

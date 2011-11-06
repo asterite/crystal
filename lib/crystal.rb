@@ -11,6 +11,7 @@ end
 
 [
   'ast',
+  'array',
   'builtin',
   'class',
   'codegen',
