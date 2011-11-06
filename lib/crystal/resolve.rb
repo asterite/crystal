@@ -177,7 +177,7 @@ module Crystal
       else
         var = Var.new(node.target.name, node.value.resolved_type)
 
-        @scope.add_local_var var
+        @scope.define_local_var var
         node.target.resolved = var
       end
 

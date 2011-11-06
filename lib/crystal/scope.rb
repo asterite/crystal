@@ -30,7 +30,7 @@ module Crystal
       @methods[name]
     end
 
-    def add_local_var(var)
+    def define_local_var(var)
       @local_vars[var.name] = var
     end
 
@@ -47,9 +47,9 @@ module Crystal
       @def = a_def
     end
 
-    def add_local_var(var)
+    def define_local_var(var)
       if @def.is_a?(TopLevelDef)
-        @scope.add_local_var var
+        @scope.define_local_var var
       else
         @def.local_vars[var.name] = var
       end
