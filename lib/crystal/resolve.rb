@@ -310,7 +310,7 @@ module Crystal
 
     def visit_not(node)
       node.exp.accept self
-      node.raise_error "! condition must be Bool" unless node.exp.resolved_type == @scope.bool_class
+      node.raise_error "! condition must be Bool, not #{node.exp.resolved_type}" unless node.exp.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
       false
     end
@@ -318,8 +318,8 @@ module Crystal
     def visit_and(node)
       node.left.accept self
       node.right.accept self
-      node.raise_error "left && condition must be Bool" unless node.left.resolved_type == @scope.bool_class
-      node.raise_error "right && condition must be Bool" unless node.right.resolved_type == @scope.bool_class
+      node.raise_error "left && condition must be Bool, not #{node.left.resolved_type}" unless node.left.resolved_type == @scope.bool_class
+      node.raise_error "right && condition must be Bool, not #{node.left.resolved_type}" unless node.right.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
       false
     end
@@ -327,8 +327,8 @@ module Crystal
     def visit_or(node)
       node.left.accept self
       node.right.accept self
-      node.raise_error "left || condition must be Bool" unless node.left.resolved_type == @scope.bool_class
-      node.raise_error "right || condition must be Bool" unless node.right.resolved_type == @scope.bool_class
+      node.raise_error "left || condition must be Bool, not #{node.left.resolved_type}" unless node.left.resolved_type == @scope.bool_class
+      node.raise_error "right || condition must be Bool, not #{node.right.resolved_type}" unless node.right.resolved_type == @scope.bool_class
       node.resolved_type = @scope.bool_class
       false
     end

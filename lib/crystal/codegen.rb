@@ -77,16 +77,16 @@ module Crystal
       @methods[name]
     end
 
-    def add_expression(node, name = node.name)
-      @expressions["##{name}"] = node
+    def add_expression(node)
+      @expressions[node.name] = node
     end
 
     def remove_expression(node)
-      @expressions.delete "##{node.name}"
+      @expressions.delete node.name
     end
 
     def find_expression(name)
-      exp = @expressions["##{name}"]
+      exp = @expressions[name]
       exp = @methods[name] unless exp
       exp
     end
