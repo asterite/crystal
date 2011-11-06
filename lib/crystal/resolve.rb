@@ -195,7 +195,13 @@ module Crystal
         end
 
         method = node.obj.resolved_type.find_method(node.name)
-        node.raise_error "undefined method '#{node.name}' for #{node.obj.resolved_type}" unless method
+
+        unless method
+          # Special case: rewrite a != b as !(a == b)
+          return rewrite_not_equals node if node.name == :'!='
+
+          node.raise_error "undefined method '#{node.name}' for #{node.obj.resolved_type}" unless method
+        end
       else
         method = @scope.find_method(node.name)
 
@@ -231,11 +237,9 @@ module Crystal
         node.resolved = method
         node.resolved_type = method.resolved_type
         return false
-      elsif method.is_a? Def
-        if !node.obj && method.obj
-          node.obj = Ref.new 'self'
-          node.obj.accept self
-        end
+      elsif !node.obj && method.obj
+        node.obj = Ref.new 'self'
+        node.obj.accept self
       end
 
       instance = method.instantiate self, @scope, node
@@ -261,16 +265,22 @@ module Crystal
       false
     end
 
-    def end_visit_call(node)
-      node.check_break_and_next_type node.resolved_type
-    end
-
-    def new_not_equals(node)
+    def rewrite_not_equals(node)
       node.name = :'=='
       node.resolved_type = nil
+
+      parent = node.parent
+
       not_node = Not.new node
       not_node.accept self
-      return not_node
+
+      parent.replace node, not_node
+
+      false
+    end
+
+    def end_visit_call(node)
+      node.check_break_and_next_type node.resolved_type
     end
 
     def visit_if(node)
