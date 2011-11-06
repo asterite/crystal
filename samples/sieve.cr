@@ -1,18 +1,18 @@
-amount = 100
+max = 100
 
-cells = Bool[amount]
-amount.times do |n|
+cells = Bool[max]
+max.times do |n|
   cells[n] = true
 end
 
-2.upto(amount) do |n|
+2.upto(max) do |n|
   next unless cells[n]
 
-  (n * 2).step(amount, n) do |x|
+  (n * 2).step(max, n) do |x|
     cells[x] = false
   end
 end
 
-amount.times do |n|
+max.times do |n|
   cells[n] ? print '1' : print '0'
 end
