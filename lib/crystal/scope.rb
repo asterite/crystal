@@ -37,6 +37,9 @@ module Crystal
     def find_local_var(name)
       @local_vars[name]
     end
+
+    def returns!(a_def)
+    end
   end
 
   class DefScope < Scope
@@ -199,11 +202,6 @@ module Crystal
 
     def return_type
       @return_def.resolved_type
-    end
-  end
-
-  class Module
-    def returns!(a_def)
     end
   end
 end

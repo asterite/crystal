@@ -168,9 +168,6 @@ module Crystal
       node.target.resolved = @scope.find_local_var(node.target.name)
 
       if node.target.resolved
-        unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference)
-          node.raise_error "can't assign to #{node.target}, it is not a variable"
-        end
         if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type
           node.raise_error "can't assign #{node.value.resolved_type} to #{node.target} of type #{node.target.resolved.resolved_type}"
         end
