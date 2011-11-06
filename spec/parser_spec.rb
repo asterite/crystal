@@ -181,4 +181,12 @@ describe Parser do
   it_parses_single_node "def [](x); end", Def.new(:'[ ]', ["x".var], nil)
 
   it_parses_single_node "foo[0] = 1", Call.new("foo".ref, :[]=, [0.int, 1.int])
+
+  it "parses If with if else correctly" do
+    Parser.parse "def foo; If true; 1; Else; 2; End; if true; 1; else; 2; end; end; foo"
+  end
+
+  it "parses If with if else correctly 2" do
+    Parser.parse "def foo; If true; 1; Else; 2; End\n if true; 1; else; 2; end; end; foo"
+  end
 end

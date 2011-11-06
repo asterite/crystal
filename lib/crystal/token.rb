@@ -5,12 +5,7 @@ module Crystal
     attr_accessor :line_number
 
     def to_s
-      case type
-      when :VAR
-        "@#{value}"
-      else
-        value || type
-      end
+      value || type
     end
   end
 end

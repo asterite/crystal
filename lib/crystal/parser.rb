@@ -522,7 +522,7 @@ module Crystal
 
       if check_end
         check_ident :end
-        next_token_skip_statement_end
+        next_token_skip_space
       end
 
       node = If.new cond, a_then, a_else
@@ -554,7 +554,7 @@ module Crystal
 
       if check_end
         check_ident :End
-        next_token_skip_statement_end
+        next_token_skip_space
       end
 
       node = StaticIf.new cond, a_then, a_else
