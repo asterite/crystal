@@ -50,6 +50,26 @@ class Number
   def zero?
     self == 0
   end
+
+  def step(limit, step)
+    If step.class == Float
+      num = self.to_f
+    Else
+      num = self
+    End
+    if step > 0
+      while num <= limit
+        yield num
+        num += step
+      end
+    elsif step < 0
+      while num >= limit
+        yield num
+        num += step
+      end
+    end
+    num
+  end
 end
 
 class Int < Number
