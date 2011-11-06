@@ -80,7 +80,7 @@ module Crystal
       node.resolved_type = @scope.float_class
     end
 
-    def visit_prototype(node)
+    def visit_extern(node)
       node.arg_types.map! do |arg_type|
         @scope.find_class arg_type.name or node.raise_error "undefined class #{arg_type}"
       end
@@ -220,7 +220,7 @@ module Crystal
 
       node.args.each { |arg| arg.accept self }
 
-      if method.is_a? Prototype
+      if method.is_a? Extern
         method.arg_types.each_with_index do |expected_type, i|
           actual_type = node.args[i].resolved_type
           unless actual_type.subclass_of? expected_type

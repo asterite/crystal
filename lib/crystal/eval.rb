@@ -49,7 +49,7 @@ module Crystal
     end
   end
 
-  class Prototype
+  class Extern
     def compile(scope)
       resolve scope
       codegen scope

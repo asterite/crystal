@@ -207,7 +207,7 @@ module Crystal
       false
     end
 
-    def visit_prototype(node)
+    def visit_extern(node)
       @str << "extern "
       @str << " "
       @str << node.name

@@ -659,7 +659,7 @@ module Crystal
       next_token_skip_space
       return_type = parse_expression
 
-      Prototype.new name, (args_types || []), return_type
+      Extern.new name, (args_types || []), return_type
     end
 
     def node_and_next_token(node)

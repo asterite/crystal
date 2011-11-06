@@ -149,7 +149,7 @@ module Crystal
     end
   end
 
-  class Prototype
+  class Extern
     def codegen(mod)
       @code ||= begin
                   fun = mod.module.functions.named name
@@ -271,7 +271,7 @@ module Crystal
       else
         resolved_code = mod.remember_block { resolved.codegen mod }
         resolved_args = self.args.map { |arg| mod.remember_block { arg.codegen(mod) } }
-        resolved_args.insert 0, obj.codegen(mod) if obj && !resolved.is_a?(Prototype)
+        resolved_args.insert 0, obj.codegen(mod) if obj && !resolved.is_a?(Extern)
 
         if resolved_block
           context_ptr, casted_context_ptr = resolved_block.context.alloca mod

@@ -263,7 +263,7 @@ module Crystal
     end
   end
 
-  class Prototype < Expression
+  class Extern < Expression
     attr_accessor :name
     attr_accessor :arg_types
 
@@ -278,15 +278,15 @@ module Crystal
     end
 
     def accept(visitor)
-      if visitor.visit_prototype self
+      if visitor.visit_extern self
         arg_types.each { |type| type.accept visitor }
         resolved_type.accept visitor
       end
-      visitor.end_visit_prototype self
+      visitor.end_visit_extern self
     end
 
     def ==(other)
-      other.is_a?(Prototype) && other.name == name && other.arg_types == arg_types && other.resolved_type == resolved_type
+      other.is_a?(Extern) && other.name == name && other.arg_types == arg_types && other.resolved_type == resolved_type
     end
   end
 

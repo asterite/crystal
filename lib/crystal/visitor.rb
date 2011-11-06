@@ -24,7 +24,7 @@ module Crystal
       'get',
       'if',
       'static_if',
-      'prototype',
+      'extern',
       'class_def',
       'assign',
       'while',
@@ -39,8 +39,6 @@ module Crystal
       'return',
       'next',
       'break',
-      'new',
-      'instance'
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)
