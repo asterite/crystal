@@ -14,5 +14,8 @@ end
 end
 
 max.times do |n|
-  cells[n] ? print '1' : print '0'
+  print n
+  print ':'
+  print ' '
+  cells[n] ? puts('X') : puts(' ')
 end
