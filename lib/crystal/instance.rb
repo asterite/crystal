@@ -1,4 +1,21 @@
 module Crystal
+  class Module
+    def add_def_instance(instance)
+      @def_instances ||= {}
+      @def_instances[instance.name] = instance
+    end
+
+    def remove_def_instance(name)
+      @def_instances ||= {}
+      @def_instances.delete name
+    end
+
+    def find_def_instance(name)
+      @def_instances ||= {}
+      @def_instances[name]
+    end
+  end
+
   class Def
     def instantiate(resolver, scope, node)
       args_types = node.args.map &:resolved_type
@@ -19,7 +36,7 @@ module Crystal
       end
       instance_name = instance_name name, args_types_signature, args_values_signature
 
-      instance = scope.find_expression instance_name
+      instance = scope.find_def_instance instance_name
       if !instance || node.block
         instance_args = args.map(&:clone)
         instance_args.insert 0, Var.new('self', node.obj.clone) if node.obj
@@ -40,23 +57,21 @@ module Crystal
         instance.replace_yield node, block
         instance.accept resolver
 
-        scope.remove_expression instance
+        scope.remove_def_instance instance
 
         instance.name = instance_name name, args_types_signature, args_values_signature, block.resolved_type
 
-        existing_instance = scope.find_expression instance.name
+        existing_instance = scope.find_def_instance instance.name
         if existing_instance
           instance = existing_instance
           instance.block = block
         end
 
-        scope.add_expression instance
+        scope.add_def_instance instance
       else
-        #begin
-          instance.accept resolver
-        #rescue => ex
-        #  raise_error "#{node.name} #{ex.message}"
-        #end
+        scope.add_def_instance instance
+
+        instance.accept resolver
       end
       instance
     end

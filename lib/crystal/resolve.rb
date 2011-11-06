@@ -92,8 +92,6 @@ module Crystal
     def visit_def(node)
       return false if node.resolved_type
 
-      @scope.add_expression node
-
       return false if @scope.is_a?(ClassDefScope)
 
       if node.body
@@ -121,13 +119,16 @@ module Crystal
     def visit_class_def(node)
       exp = @scope.find_expression node.name
       if exp
-        node.raise_error "can only extend from Class type" unless exp.class <= Crystal::Class
+        node.raise_error "can only extend a class" unless exp.class <= Crystal::Class
       else
-        superclass = if node.superclass
-                       @scope.find_expression(node.superclass) or node.raise_error "unknown class '#{node.superclass}'"
-                     else
-                       @scope.object_class
-                     end
+        if node.superclass
+          superclass = @scope.find_expression(node.superclass) or node.raise_error "unknown class '#{node.superclass}'"
+        else
+          superclass = @scope.object_class
+        end
+
+        node.raise_error "can only inherit from a class" unless superclass.class <= Crystal::Class
+
         exp = Class.new node.name, superclass
         @scope.define_class exp
       end
@@ -334,7 +335,7 @@ module Crystal
     end
 
     def visit_yield(node)
-      raise "expected to be invoked with a block" unless node.block
+      node.raise_error "expected to be invoked with a block" unless node.block
 
       node.args.each { |arg| arg.accept self }
       node.args.each_with_index { |arg, i| node.block.args[i].resolved_type = arg.resolved_type }

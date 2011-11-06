@@ -89,7 +89,7 @@ describe "def instance" do
     result = call.eval mod
     result.should eq(1.int)
 
-    exp = mod.find_expression 'foo<>'
+    exp = mod.find_def_instance 'foo<>'
     exp.should_not be_nil
     exp.obj.should be_nil
     exp.resolved_type.should eq(mod.int_class)
@@ -105,7 +105,7 @@ describe "def instance" do
     result = call.eval mod
     result.should eq(1.int)
 
-    exp = mod.find_expression 'foo<Int>'
+    exp = mod.find_def_instance 'foo<Int>'
     exp.should_not be_nil
     exp.obj.should be_nil
     exp.resolved_type.should eq(mod.int_class)
@@ -122,7 +122,7 @@ describe "def instance" do
     result = call.eval mod
     result.should eq(1.int)
 
-    exp = mod.find_expression 'Int#foo<Int>'
+    exp = mod.find_def_instance 'Int#foo<Int>'
     exp.should_not be_nil
     exp.obj.should eq(mod.int_class)
     exp.resolved_type.should eq(mod.int_class)
@@ -140,7 +140,7 @@ describe "def instance" do
     result = call.eval mod
     result.should eq(1.int)
 
-    exp = mod.find_expression 'Int#foo<Int, Int>'
+    exp = mod.find_def_instance 'Int#foo<Int, Int>'
     exp.should_not be_nil
     exp.obj.should eq(mod.int_class)
     exp.resolved_type.should eq(mod.int_class)
@@ -168,7 +168,7 @@ describe "def instance" do
     result = call.eval mod
     result.should eq(1.int)
 
-    exp = mod.find_expression 'Number#foo<Int>'
+    exp = mod.find_def_instance 'Number#foo<Int>'
     exp.should_not be_nil
     exp.obj.should eq(mod.number_class)
     exp.resolved_type.should eq(mod.int_class)
@@ -186,7 +186,7 @@ describe "def instance" do
     result = call.eval mod
     result.should eq(1.int)
 
-    exp = mod.find_expression 'Int:Class::foo<Int:Class>'
+    exp = mod.find_def_instance 'Int:Class::foo<Int:Class>'
     exp.should_not be_nil
   end
 
@@ -198,7 +198,7 @@ describe "def instance" do
     result = call.eval mod
     result.should eq(1.int)
 
-    exp = mod.find_expression 'Number:Class::foo<Int:Class>'
+    exp = mod.find_def_instance 'Number:Class::foo<Int:Class>'
     exp.should_not be_nil
   end
 end

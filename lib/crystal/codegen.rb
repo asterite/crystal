@@ -86,9 +86,7 @@ module Crystal
     end
 
     def find_expression(name)
-      exp = @expressions[name]
-      exp = @methods[name] unless exp
-      exp
+      @expressions[name] || @methods[name]
     end
 
     def run(fun)

@@ -5,7 +5,7 @@ module Crystal
     attr_accessor :compile_time_value
 
     def raise_error(message)
-      raise "Error on line #{line_number}: #{message}"
+      raise Crystal::Exception.new("Error on line #{line_number}: #{message}", line_number)
     end
 
     def returns?
