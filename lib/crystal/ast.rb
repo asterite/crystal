@@ -295,7 +295,6 @@ module Crystal
   end
 
   class Def < Expression
-    attr_accessor :obj
     attr_accessor :name
     attr_accessor :args
     attr_accessor :body
