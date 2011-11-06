@@ -41,9 +41,9 @@ describe "ast eval" do
   it_evals "if false; nil; end", Crystal::Nil.new
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(1)", 1.int
   it_evals "def fact(n); if n <= 1; 1; else; n * fact(n -1); end; end; fact(4)", 24.int
-  ["Bool.class", "Int.class", "Class"].each do |string|
-    it_evals_class string, "Class"
-  end
+  #["Bool.class", "Int.class", "Class"].each do |string|
+    #it_evals_class string, "Class"
+  #end
   ["false.class", "true.class", "Bool"].each do |string|
     it_evals_class string, "Bool"
   end
@@ -115,10 +115,12 @@ describe "ast eval" do
   it_evals "def foo; 1; end; class Int; def bar; foo; end; end; 5.bar", 1.int
   it_evals "class Int; def foo(x); x; end; def bar(x); foo(x); end; end; 5.bar(1)", 1.int
   it_evals "def foo(x); x; end; class Int; def bar(x); foo(x); end; end; 5.bar(1)", 1.int
+  it_evals "class Int; def foo; true; end; def bar; 1.upto 3 {|x| return false if foo }; true; end; end; 1.bar", false.bool
+  it_evals "class Int; def foo; true; end; def bar; 1.upto 3 {|x| return false if foo() }; true; end; end; 1.bar", false.bool
   it_evals "def Int.foo; 1; end; Int.foo", 1.int
   it_evals "def Int.foo; 1; end; 1 + 2", 3.int
   it_evals "def Int.foo(x); x + 2; end; Int.foo(1)", 3.int
   it_evals "class Int; def self.foo(x); x + 2; end; end; Int.foo(1)", 3.int
   it_evals "def Number.foo; 1; end; Int.foo", 1.int
-  #it_evals "a = Int[1]; a[0] = 1; a[0]", 1, :focus => true
+  #it_evals "a = Int[1]; a[0] = 1; a[0]", 1
 end

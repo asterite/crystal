@@ -1,7 +1,6 @@
 [
   'ast',
   'builtin',
-  'c',
   'class',
   'codegen',
   'compile_time',

@@ -80,12 +80,12 @@ module Crystal
       else
         @str << "." if node.obj
         @str << node.name.to_s
-        @str << "("
+        @str << "(" unless node.obj && node.args.empty?
         node.args.each_with_index do |arg, i|
           @str << ", " if i > 0
           arg.accept self
         end
-        @str << ")"
+        @str << ")" unless node.obj && node.args.empty?
       end
       if node.block
         @str << " "
@@ -312,13 +312,6 @@ module Crystal
 
     def visit_instance(node)
       @str << "#{node.klass}"
-      false
-    end
-
-    def visit_decl(node)
-      @str << node.name
-      @str << " : "
-      node.type.accept self
       false
     end
 

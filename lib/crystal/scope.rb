@@ -34,17 +34,24 @@ module Crystal
     end
 
     def find_expression(name)
-      local = find_local_expression(name)
-      return local if local
+      exp = find_local_expression(name)
+      return exp if exp
+
+      if @def.obj
+        exp = @def.obj.find_method name
+        return exp if exp
+      end
 
       self.next.find_expression name
     end
 
-    def find_variable(name)
-      local = find_local_expression(name)
-      return local if local
+    def find_method(name)
+      if @def.obj
+        exp = @def.obj.find_method name
+        return exp if exp
+      end
 
-      self.next.find_variable name
+      self.next.find_method(name)
     end
 
     def find_local_expression(name)
@@ -84,20 +91,12 @@ module Crystal
       @class = a_class
     end
 
-    def add_expression(node)
-      name = node.name
-      node.name = "#{@class.name}##{name}"
-      node.args.insert 0, Var.new("self")
-      node.args_length = node.args.length - 1
-      @class.define_method name, node
-    end
-
     def find_expression(name)
       name == 'self' ? @class : super
     end
 
-    def declare(node)
-      @class.declare node
+    def define_method(method)
+      @class.define_method method
     end
 
     def to_s
@@ -156,6 +155,11 @@ module Crystal
   class BlockContext
     attr_accessor :parent
 
+    def initialize(scope)
+      @scope = scope
+      @references = {}
+    end
+
     def find_expression(name)
       result = @references[name]
       return result if result
@@ -182,10 +186,6 @@ module Crystal
   end
 
   class Module
-    def find_variable(name)
-      nil
-    end
-
     def returns!(a_def)
     end
   end

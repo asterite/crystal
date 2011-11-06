@@ -302,14 +302,14 @@ module Crystal
         when :break
           parse_break
         else
-          parse_ref_or_call_or_decl
+          parse_ref_or_call
         end
       else
         raise_error "unexpected token: #{@token.to_s}"
       end
     end
 
-    def parse_ref_or_call_or_decl
+    def parse_ref_or_call
       name = @token.value
       next_token
 

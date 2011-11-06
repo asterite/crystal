@@ -57,7 +57,7 @@ module Crystal
     end
 
     def visit_class(node)
-      node.resolved_type = node.type(@scope.class_class)
+      node.resolved_type = node.metaclass
     end
 
     def visit_nil(node)
@@ -141,36 +141,15 @@ module Crystal
     def visit_ref(node)
       return if node.resolved_type
 
-      exp = nil
-      self_var = @scope.find_variable 'self'
+      exp = @scope.find_expression(node.name) || @scope.find_method(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
 
-      if node.local_var?
-        if self_var
-          exp = self_var.resolved_type.find_variable(node.name) or node.raise_error "undeclared instance variable #{node.name}"
-        else
-          node.raise_error "can't reference instance variable #{node.name} outside a class"
-        end
+      if exp.is_a?(Def) || exp.is_a?(Prototype)
+        target = exp.is_a?(Def) && exp.obj ? Ref.new('self') : nil
+        call = Call.new(target, exp.name)
+        call.accept self
+        exp = call.resolved
       else
-        if self_var
-          exp = self_var.resolved_type.find_method node.name
-          if exp
-            call = Call.new(@scope.def.obj, node.name)
-            call.accept self
-            exp = call.resolved
-          end
-        end
-      end
-
-      unless exp
-        exp = @scope.find_expression(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
-
-        if exp.is_a?(Def) || exp.is_a?(Prototype)
-          call = Call.new(nil, exp.name)
-          call.accept self
-          exp = call.resolved
-        else
-          exp.accept self
-        end
+        exp.accept self
       end
 
       node.resolved = exp
@@ -181,16 +160,7 @@ module Crystal
     def visit_assign(node)
       node.value.accept self
 
-      if node.target.local_var?
-        self_var = @scope.find_variable 'self'
-        if self_var
-          node.target.resolved = self_var.resolved_type.find_variable(node.target.name)  or node.raise_error "undeclared instance variable #{node.target.name}"
-        else
-          node.raise_error "can't assign to instance variable #{node.target.name} outside a class"
-        end
-      else
-        node.target.resolved = @scope.find_expression(node.target.name)
-      end
+      node.target.resolved = @scope.find_expression(node.target.name)
 
       if node.target.resolved
         unless node.target.resolved.is_a?(Var) || node.target.resolved.is_a?(BlockReference)
@@ -214,96 +184,64 @@ module Crystal
     def visit_call(node)
       return if node.resolved_type
 
-      self_var = @scope.find_variable 'self'
-      node.obj = Ref.new('self') if !node.obj && self_var && self_var.resolved_type.find_method(node.name)
-
+      node.resolved_type = UnknownType
       node.block.scope = @scope if node.block
 
-      # Solve class method at compile-time
-      if node.obj && node.name == :class && node.args.empty?
+      if node.obj
         node.obj.accept self
-        node.parent.replace node, node.obj.resolved_type
-        return false
-      end
 
-      # This is to prevent recursive resolutions
-      node.resolved_type = UnknownType
-
-      parent = node.parent
-      replacement = resolve_method_call node if node.obj
-      if replacement
-        parent.replace node, replacement
-        return false
-      end
-      resolve_function_call node
-
-      false
-    end
-
-    def resolve_method_call(node)
-      node.obj.accept self
-      resolved_type = node.obj.resolved_type
-
-      exp = @scope.find_expression "#{resolved_type}##{node.name}"
-      unless exp
-        exp = resolved_type.find_method(node.name)
-        unless exp
-          # Special case: rewrite a != b as !(a == b)
-          return new_not_equals(node) if node.name == :'!='
-
-          node.raise_error "undefined method '#{node.name}' for #{resolved_type}"
+        # Solve class method at compile-time
+        if node.obj && node.name == :class && node.args.empty?
+          node.parent.replace node, node.obj.resolved_type
+          return false
         end
 
-        @scope.add_expression exp
+        method = node.obj.resolved_type.find_method(node.name)
+        node.raise_error "undefined method '#{node.name}' for #{node.obj.resolved_type}" unless method
+      else
+        method = @scope.find_method(node.name)
+
+        unless method
+          # Check if it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
+          if node.args_length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
+            exp = @scope.find_expression node.name
+            if exp.is_a? Var
+              node.resolved = exp
+              node.resolved_type = exp.resolved_type
+              return false
+            end
+          end
+
+          node.raise_error "undefined method '#{node.name}'"
+        end
       end
 
-      if !exp.args_length_is(node.args_length + 1) # With self
-        node.raise_error "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
+      if node.args_length != method.args_length
+        node.raise_error "wrong number of arguments (#{node.args_length} for #{method.args_length})"
       end
 
-      node.args = [node.obj] + node.args
-      node.name = exp.name
-      nil
-    end
-
-    def resolve_function_call(node)
       node.args.each { |arg| arg.accept self }
 
-      exp = @scope.find_expression(node.name) or node.raise_error "undefined method '#{node.name}'"
-
-      if exp.is_a?(Prototype) || exp.is_a?(Def)
-        if !exp.args_length_is(node.args_length)
-          node.raise_error "wrong number of arguments (#{node.args_length} for #{exp.args_length})"
-        end
-      end
-
-      if exp.is_a? Prototype
-        node.args.shift
-
-        exp.arg_types.each_with_index do |expected_type, i|
+      if method.is_a? Prototype
+        method.arg_types.each_with_index do |expected_type, i|
           actual_type = node.args[i].resolved_type
           unless actual_type.subclass_of? expected_type
-            node.raise_error "argument number #{i + 1} of C.#{exp.name} must be an #{expected_type}, not #{actual_type}"
+            node.raise_error "argument number #{i + 1} of C.#{method.name} must be an #{expected_type}, not #{actual_type}"
           end
         end
 
-        node.resolved = exp
-        node.resolved_type = exp.resolved_type
+        node.resolved = method
+        node.resolved_type = method.resolved_type
         return false
-      end
-
-      if exp.is_a? Var
-        # Maybe it's foo -1, which is parsed as a call "foo(-1)" but can be understood as "foo - 1"
-        if node.args_length == 1 && node.args[0].is_a?(Int) && node.args[0].has_sign?
-          node.resolved = exp
-          node.resolved_type = exp.resolved_type
-          return false
-        else
-          node.raise_error "undefined method #{node.name}"
+      elsif method.is_a? Def
+        if !node.obj && method.obj
+          node.obj = Ref.new 'self'
+          node.obj.accept self
         end
       end
 
-      instance = exp.instantiate self, @scope, node
+      instance = method.instantiate self, @scope, node
+
       node.resolved_block = instance.block
 
       node.resolved = instance
@@ -321,6 +259,8 @@ module Crystal
           arg.accept self
         end
       end
+
+      false
     end
 
     def end_visit_call(node)
@@ -337,7 +277,7 @@ module Crystal
 
     def visit_if(node)
       node.cond.accept self
-      node.raise_error "if condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
+      node.raise_error "if condition must be Bool, not #{node.cond.resolved_type}" unless node.cond.resolved_type == @scope.bool_class
 
       node.then.accept self
       node.else.accept self
@@ -347,7 +287,7 @@ module Crystal
 
     def visit_static_if(node)
       node.cond.accept self
-      node.raise_error "If condition must be Bool" unless node.cond.resolved_type == @scope.bool_class
+      node.raise_error "If condition must be Bool, not #{node.cond.resolved_type}" unless node.cond.resolved_type == @scope.bool_class
       node.raise_error "can't evaluate If at compile-time" unless node.cond.can_be_evaluated_at_compile_time?
 
       cond_value = @scope.eval_anon node.cond
@@ -447,18 +387,6 @@ module Crystal
       else
         node.resolved_type = @scope.nil_class
       end
-      false
-    end
-
-    def visit_new(node)
-      node.resolved_type = Instance.new node.klass
-    end
-
-    def visit_decl(node)
-      node.type.accept self
-      node.resolved_type = node.type.resolved
-
-      @scope.declare node
       false
     end
 

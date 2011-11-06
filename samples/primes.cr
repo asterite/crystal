@@ -11,6 +11,7 @@ class Int
   end
 end
 
-1.upto 10000 do |x|
-  puts x if x.prime?
-end
+puts 2.prime?
+#1.upto 10000 do |x|
+#  puts x if x.prime?
+#end

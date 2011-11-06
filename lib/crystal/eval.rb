@@ -29,13 +29,9 @@ module Crystal
     def compile(scope)
       if receiver
         receiver.resolve scope
-        name = self.name
-        self.name = "#{receiver.resolved.name}::#{name}"
-        self.args.insert 0, Var.new("self")
-        self.args_length = self.args.length - 1
-        receiver.resolved.define_static_method name, self, scope.class_class
+        receiver.resolved.metaclass.define_method self
       else
-        scope.add_expression self
+        scope.define_method self
       end
       nil
     end
@@ -57,7 +53,7 @@ module Crystal
     def compile(scope)
       resolve scope
       codegen scope
-      scope.add_c_expression self
+      scope.c_class.metaclass.define_method self
       nil
     end
 

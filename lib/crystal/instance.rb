@@ -2,6 +2,7 @@ module Crystal
   class Def
     def instantiate(resolver, scope, node)
       args_types = node.args.map &:resolved_type
+      args_types.insert 0, node.obj.resolved_type if node.obj
       args_types_signature = args_types.join ', '
       args_values = []
       args_values_signature = ""
@@ -21,10 +22,11 @@ module Crystal
       instance = scope.find_expression instance_name
       if !instance || node.block
         instance_args = args.map(&:clone)
+        instance_args.insert 0, Var.new('self', node.obj.clone) if node.obj
         instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
         args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
         instance = Def.new instance_name, instance_args, body.clone
-        instance.obj = node.obj
+        instance.obj = obj
       end
 
       if node.block
@@ -60,7 +62,12 @@ module Crystal
     end
 
     def instance_name(name, args_types, args_values, block_type = nil)
-      i = "#{name}"
+      i = ""
+      if obj
+        i << obj.name
+        i << (obj.is_a?(Metaclass) ? '::' : '#')
+      end
+      i << name.to_s
       i << "<#{args_types}>"
       i << "(#{args_values})" if args_values.length > 0
       i << "&#{block_type}" if block_type

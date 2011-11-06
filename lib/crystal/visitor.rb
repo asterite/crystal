@@ -40,8 +40,7 @@ module Crystal
       'next',
       'break',
       'new',
-      'instance',
-      'decl',
+      'instance'
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)

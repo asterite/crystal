@@ -131,25 +131,6 @@ module Crystal
     end
   end
 
-  class Instance < Expression
-    def initialize(a_class)
-      @class = a_class
-    end
-
-    def klass
-      @class
-    end
-
-    def accept(visitor)
-      visitor.visit_instance self
-      visitor.end_visit_instance self
-    end
-
-    def ==(other)
-      other.is_a?(Instance) && other.klass == klass
-    end
-  end
-
   class Nil < Expression
     def accept(visitor)
       visitor.visit_nil self
@@ -424,7 +405,7 @@ module Crystal
     end
 
     def ==(other)
-      other.is_a?(Var) && other.name == name
+      other.is_a?(Var) && other.name == name && other.resolved_type == resolved_type
     end
 
     def clone

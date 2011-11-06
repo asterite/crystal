@@ -21,6 +21,7 @@ module Crystal
 
     def initialize
       @expressions = {}
+      @methods = {}
       @module = LLVM::Module.new ''
       @builder = LLVM::Builder.new
       @engine = LLVM::JITCompiler.new @module
@@ -68,6 +69,14 @@ module Crystal
       end
     end
 
+    def define_method(method)
+      @methods[method.name] = method
+    end
+
+    def find_method(name)
+      @methods[name]
+    end
+
     def add_expression(node, name = node.name)
       @expressions["##{name}"] = node
     end
@@ -77,7 +86,9 @@ module Crystal
     end
 
     def find_expression(name)
-      @expressions["##{name}"]
+      exp = @expressions["##{name}"]
+      exp = @methods[name] unless exp
+      exp
     end
 
     def run(fun)
@@ -280,6 +291,7 @@ module Crystal
       else
         resolved_code = mod.remember_block { resolved.codegen mod }
         resolved_args = self.args.map { |arg| mod.remember_block { arg.codegen(mod) } }
+        resolved_args.insert 0, obj.codegen(mod) if obj && !resolved.is_a?(Prototype)
 
         if resolved_block
           context_ptr, casted_context_ptr = resolved_block.context.alloca mod

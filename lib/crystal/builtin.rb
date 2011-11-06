@@ -9,6 +9,7 @@ module Crystal
     attr_reader :long_class
     attr_reader :float_class
     attr_reader :char_class
+    attr_reader :c_class
 
     def define_builtin_classes
       define_object_class
@@ -21,6 +22,7 @@ module Crystal
       define_long_class
       define_float_class
       define_char_class
+      define_c_class
     end
 
     def define_object_class
@@ -30,6 +32,8 @@ module Crystal
     def define_class_class
       @class_class = Class.new "Class", @object_class
       define_class @class_class
+
+      @object_class.class_class = @class_class
     end
 
     def define_nil_class
@@ -60,6 +64,10 @@ module Crystal
       @char_class = define_class CharClass.new("Char", @object_class)
     end
 
+    def define_c_class
+      @c_class = define_class Class.new("C", @object_class)
+    end
+
     def define_class(klass)
       add_expression klass
     end
@@ -85,20 +93,6 @@ module Crystal
                                 mod.module.types.add "#{@name}", type
                                 type
                               end
-    end
-  end
-
-  class Instance
-    def llvm_type(mod)
-      LLVM::Pointer(@class.instance_llvm_type(mod))
-    end
-
-    def reference_llvm_type(mod)
-      @class.instance_llvm_type(mod)
-    end
-
-    def llvm_cast(value)
-      "#<#{@class.name}:0x#{value.to_ptr.address.to_s 16}>"
     end
   end
 
