@@ -273,12 +273,8 @@ module Crystal
       @resolved_type = resolved_type
     end
 
-    def args_length_is(length)
-      @arg_types.length == length - 1
-    end
-
     def args_length
-      @arg_types.length
+      arg_types.length
     end
 
     def accept(visitor)
@@ -316,16 +312,8 @@ module Crystal
       @local_vars = {}
     end
 
-    def args_length_is(length)
-      args.length == length
-    end
-
     def args_length
-      @args_length || args.length
-    end
-
-    def args_length=(value)
-      @args_length = value
+      args.length
     end
 
     def accept(visitor)

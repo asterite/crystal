@@ -18,10 +18,6 @@ module Crystal
   end
 
   class UnknownMethod
-    def self.args_length_is(length)
-      true
-    end
-
     def self.instantiate(scope, arg_types)
       self
     end
