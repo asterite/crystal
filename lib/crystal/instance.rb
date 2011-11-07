@@ -11,6 +11,14 @@ module Crystal
     def find_def_instance(name)
       @def_instances[name]
     end
+
+    def add_class_instance(instance)
+      @class_instances[instance.name] = instance
+    end
+
+    def find_class_instance(name)
+      @class_instances[name]
+    end
   end
 
   class Def
@@ -92,6 +100,27 @@ module Crystal
       i << "(#{args_values})" if args_values.length > 0
       i << "&#{block_type}" if block_type
       i
+    end
+  end
+
+  class Class
+    def instantiate(resolver, scope, arg_types)
+      return self if self.args.length == 0
+
+      instance_name = "#{name}(#{arg_types.join ','})"
+
+      instance = scope.find_class_instance instance_name
+      unless instance
+        instance_args = args.clone
+        instance_args.each_with_index do |instance_arg, i|
+          instance_arg.resolved_type = arg_types[i]
+        end
+        instance = self.class.new instance_name, superclass, instance_args
+        instance.methods = methods
+        instance.metaclass.methods = metaclass.methods
+        instance.accept resolver
+      end
+      instance
     end
   end
 end

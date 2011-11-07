@@ -25,6 +25,7 @@ module Crystal
       @methods = {}
       @local_vars = {}
       @def_instances = {}
+      @class_instances = {}
       @module = LLVM::Module.new ''
       @builder = LLVM::Builder.new
       @engine = LLVM::JITCompiler.new @module

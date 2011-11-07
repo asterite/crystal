@@ -23,6 +23,7 @@ module Crystal
       define_float_class
       define_char_class
       define_c_class
+      define_static_array_class
     end
 
     def define_object_class
@@ -30,10 +31,7 @@ module Crystal
     end
 
     def define_class_class
-      @class_class = Class.new "Class", @object_class
-      @class_class.define_method Def.new(:'[ ]', [Var.new('size')], NewStaticArray.new)
-      define_class @class_class
-
+      @class_class = define_class Class.new("Class", @object_class)
       @object_class.class_class = @class_class
     end
 
@@ -67,6 +65,14 @@ module Crystal
 
     def define_c_class
       @c_class = define_class Class.new("C", @object_class)
+    end
+
+    def define_static_array_class
+      @static_array_class = define_class StaticArrayClass.new("StaticArray", @object_class, [Var.new("T")])
+      @static_array_class.metaclass.define_method Def.new('new', [Var.new('size')], NewStaticArray.new)
+
+      @static_array_class.define_method Def.new(:'[ ]', [Var.new('index')], StaticArrayGet.new)
+      @static_array_class.define_method Def.new(:'[]=', [Var.new('index'), Var.new('value')], StaticArraySet.new)
     end
 
     def define_class(klass)
@@ -174,6 +180,16 @@ module Crystal
 
     def codegen_default(mod)
       LLVM::Int8.from_i 0
+    end
+  end
+
+  class StaticArrayClass < Class
+    def llvm_type(mod)
+      LLVM::Pointer(args[0].resolved_type.llvm_type(mod))
+    end
+
+    def llvm_cast(value)
+      "#{args[0].resolved_type}[?]"
     end
   end
 end

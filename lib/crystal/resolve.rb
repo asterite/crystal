@@ -216,6 +216,26 @@ module Crystal
             end
           end
 
+          # Check if it's a class template
+          klass = @scope.find_class node.name
+          if klass
+            if node.args_length != klass.args_length
+              node.raise_error "wrong number of arguments (#{node.args_length} for #{klass.args_length})"
+            end
+
+            node.args.each_with_index do |arg, i|
+              arg.accept self
+
+              if arg.resolved_type.class != Metaclass
+                node.raise_error "expected argument #{i + 1} of #{node.name}(...) to be a Class, not #{arg.resolved_type}"
+              end
+            end
+
+            instance = klass.instantiate self, @scope, node.args.map(&:resolved_type).map(&:real_class)
+            node.parent.replace node, instance
+            return false
+          end
+
           node.raise_error "undefined method '#{node.name}'"
         end
       end
@@ -399,17 +419,17 @@ module Crystal
     end
 
     def visit_new_static_array(node)
-      node.resolved_type = StaticArrayClass.new @scope.def.args[0].resolved_type.real_class
+      node.resolved_type = @scope.def.obj.real_class
       false
     end
 
     def visit_static_array_set(node)
-      node.resolved_type = @scope.def.args[0].resolved_type.real_class
+      node.resolved_type = @scope.def.obj.args[0].resolved_type
       false
     end
 
     def visit_static_array_get(node)
-      node.resolved_type = @scope.def.args[0].resolved_type.real_class
+      node.resolved_type = @scope.def.obj.args[0].resolved_type
       false
     end
 

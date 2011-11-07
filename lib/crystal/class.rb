@@ -1,10 +1,14 @@
 module Crystal
   class Class
     attr_accessor :class_class
+    attr_accessor :superclass
+    attr_accessor :args
+    attr_accessor :methods
 
-    def initialize(name, superclass = nil)
+    def initialize(name, superclass = nil, args = nil)
       @name = name
       @superclass = superclass
+      @args = args || []
       @methods = {}
     end
 
@@ -14,8 +18,16 @@ module Crystal
       root
     end
 
+    def args_length
+      args.length
+    end
+
     def metaclass
       @metaclass ||= Metaclass.new self
+    end
+
+    def metaclass=(metaclass)
+      @metaclass = metaclass
     end
 
     def subclass_of?(other)
@@ -23,14 +35,15 @@ module Crystal
     end
 
     def define_method(method)
-      method.obj = self if method.respond_to? :obj
       @methods[method.name] = method
     end
 
     def find_method(name)
       method = @methods[name]
       if method
-        method.dup
+        m = method.dup
+        m.obj = self if method.respond_to? :obj
+        m
       else
         @superclass ? @superclass.find_method(name) : nil
       end
@@ -54,7 +67,9 @@ module Crystal
     def find_method(name)
       method = @methods[name]
       if method
-        method.dup
+        m = method.dup
+        m.obj = self if method.respond_to? :obj
+        m
       else
         if @class.superclass
           @class.superclass.metaclass.find_method name

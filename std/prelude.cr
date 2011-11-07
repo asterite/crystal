@@ -10,6 +10,10 @@ class Class
   def ==(other)
     self.object_id == other.object_id
   end
+
+  def [](size)
+    StaticArray(self).new size
+  end
 end
 
 class Bool
@@ -68,7 +72,7 @@ class Number
         num += step
       end
     end
-    num
+    self
   end
 end
 

@@ -43,30 +43,4 @@ module Crystal
       StaticArrayGet.new
     end
   end
-
-  class StaticArrayClass < Class
-    def initialize(a_class)
-      super 'StaticArray', a_class.root
-      @class = a_class
-
-      define_method Def.new(:'[ ]', [Var.new('index')], StaticArrayGet.new)
-      define_method Def.new(:'[]=', [Var.new('index'), Var.new('value')], StaticArraySet.new)
-    end
-
-    def real_class
-      @class
-    end
-
-    def llvm_type(mod)
-      LLVM::Pointer(@class.llvm_type(mod))
-    end
-
-    def llvm_cast(value)
-      "#{@class}[?]"
-    end
-
-    def to_s
-      "StaticArray(#{@class})"
-    end
-  end
 end
