@@ -36,8 +36,16 @@ module Crystal
       instance = scope.find_def_instance instance_name
       if !instance || node.block
         instance_args = args.map(&:clone)
-        instance_args.insert 0, Var.new('self', node.obj.clone) if node.obj
+
+        if node.obj
+          node_obj_clone = node.obj.clone
+          self_var = Var.new('self', node.obj.clone)
+          instance_args.insert 0, self_var
+        end
         instance_args.each_with_index { |arg, index| arg.compile_time_value = args_values[index] }
+        if node.obj && node.obj.resolved.is_a?(Class)
+          self_var.compile_time_value = node.obj.resolved.compile_time_value
+        end
         args_types.each_with_index { |arg_type, i| instance_args[i].resolved_type = arg_type }
         instance = Def.new instance_name, instance_args, body.clone
         instance.obj = obj

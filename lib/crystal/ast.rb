@@ -426,6 +426,7 @@ module Crystal
 
     def accept(visitor)
       if visitor.visit_call self
+        obj.accept visitor if obj
         args.each { |arg| arg.accept visitor }
         block.accept visitor if block
       end
