@@ -78,7 +78,12 @@ module Crystal
     end
 
     def find_local_var_non_recursive(name)
-      @def.args.select{|arg| arg.name == name}.first || @def.local_vars[name]
+      result = @def.args.select{|arg| arg.name == name}.first || @def.local_vars[name]
+      if !result && @def.obj && @def.obj.args
+        arg = @def.obj.args.select{|x| x.name == name}.first
+        result = arg.resolved_type if arg
+      end
+      result
     end
 
     def next
