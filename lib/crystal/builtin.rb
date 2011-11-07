@@ -69,14 +69,33 @@ module Crystal
 
     def define_static_array_class
       @static_array_class = define_class StaticArrayClass.new("StaticArray", @object_class, [Var.new("T")])
-      @static_array_class.metaclass.define_method Def.new('new', [Var.new('size')], NewStaticArray.new)
-
-      @static_array_class.define_method Def.new(:'[ ]', [Var.new('index')], StaticArrayGet.new)
-      @static_array_class.define_method Def.new(:'[]=', [Var.new('index'), Var.new('value')], StaticArraySet.new)
+      @static_array_class.metaclass.define_method Def.new('new', [Var.new('size')], static_array_new)
+      @static_array_class.define_method Def.new(:'[ ]', [Var.new('index')], static_array_get)
+      @static_array_class.define_method Def.new(:'[]=', [Var.new('index'), Var.new('value')], static_array_set)
     end
 
     def define_class(klass)
       @classes[klass.name] = klass
+    end
+
+    private
+
+    def static_array_new
+      exps = Parser.parse("If size.class != Int; static_array_new_size_must_be_int; End")
+      exps.expressions << NewStaticArray.new
+      exps
+    end
+
+    def static_array_get
+      exps = Parser.parse("If index.class != Int; static_array_get_index_must_be_int; End")
+      exps.expressions << StaticArrayGet.new
+      exps
+    end
+
+    def static_array_set
+      exps = Parser.parse("If index.class != Int; static_array_set_index_must_be_int; End If value.class != T; static_array_set_value_must_be_T; End")
+      exps.expressions << StaticArraySet.new
+      exps
     end
   end
 
