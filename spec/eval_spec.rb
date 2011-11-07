@@ -125,6 +125,7 @@ describe "ast eval" do
   it_evals "a = Int[4]; a[0] = 1; a[1] = 2; a[2] = 3; a[3] = 4; a[0] + a[1] + a[2] + a[3]", 10.int
   it_evals "a = StaticArray(Int).new 4; a[0] = 1; a[1] = 2; a[2] = 3; a[3] = 4; a[0] + a[1] + a[2] + a[3]", 10.int
   it_evals "def Int.bar; 1; end; class StaticArray; def foo; T; end; end; StaticArray(Int).new(4).foo.bar", 1.int
+  it_evals "def Int.bar; 1; end; def StaticArray.foo; T; end; StaticArray(Int).foo.bar", 1.int
   it_evals "class Number; def foo; If self.class == Int; 1; Else; 2; End; end; end; 1.foo + 1.0.foo", 3.int
   it_evals "def Number.foo; If self == Int; 1; Else; 2; End; end; Int.foo + Float.foo", 3.int
 end

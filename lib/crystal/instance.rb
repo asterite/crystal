@@ -118,6 +118,7 @@ module Crystal
         instance = self.class.new instance_name, superclass, instance_args
         instance.methods = methods
         instance.metaclass.methods = metaclass.methods
+        instance.metaclass.args = instance_args
         instance.accept resolver
       end
       instance
