@@ -554,6 +554,11 @@ module Crystal
       assign.line_number = line_number
       assign
     end
+
+    def replace(node, replacement)
+      return @target = replacement if @target == node
+      return @value = replacement if @value == node
+    end
   end
 
   class While < Expression
