@@ -863,4 +863,11 @@ module Crystal
       true
     end
   end
+
+  class NewClass < Expression
+    def accept(visitor)
+      visitor.visit_new_class self
+      visitor.end_visit_new_class self
+    end
+  end
 end

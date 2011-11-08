@@ -32,6 +32,7 @@ module Crystal
 
     def define_class_class
       @class_class = define_class Class.new("Class", @object_class)
+      @class_class.define_method Def.new('new', [], NewClass.new)
       @object_class.class_class = @class_class
     end
 
@@ -209,6 +210,16 @@ module Crystal
 
     def llvm_cast(value)
       "#{args[0].resolved_type}[?]"
+    end
+  end
+
+  class InstantiatableClass < Class
+    def llvm_type(mod)
+      LLVM::Pointer(LLVM::Struct())
+    end
+
+    def llvm_cast(value)
+      "#<#{self.name}>"
     end
   end
 end

@@ -123,7 +123,7 @@ module Crystal
           superclass = @scope.object_class
         end
 
-        exp = Class.new node.name, superclass
+        exp = InstantiatableClass.new node.name, superclass
         @scope.define_class exp
       end
 
@@ -430,6 +430,11 @@ module Crystal
 
     def visit_static_array_get(node)
       node.resolved_type = @scope.def.obj.args[0].resolved_type
+      false
+    end
+
+    def visit_new_class(node)
+      node.resolved_type = @scope.def.args[0].resolved_type.real_class
       false
     end
 

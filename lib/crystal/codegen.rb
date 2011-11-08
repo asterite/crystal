@@ -664,4 +664,11 @@ module Crystal
       mod.builder.load pointer
     end
   end
+
+  class NewClass
+    def codegen(mod)
+      malloc = mod.builder.call mod.malloc, LLVM::Int(0)
+      mod.builder.bit_cast malloc, resolved_type.llvm_type(mod)
+    end
+  end
 end

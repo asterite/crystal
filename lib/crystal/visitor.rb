@@ -42,6 +42,7 @@ module Crystal
       'new_static_array',
       'static_array_set',
       'static_array_get',
+      'new_class',
     ].each do |name|
       class_eval %Q(
         def visit_#{name}(node)
