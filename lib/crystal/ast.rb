@@ -270,7 +270,9 @@ module Crystal
     def initialize(name, arg_types, resolved_type)
       @name = name
       @arg_types = arg_types
+      @arg_types.each {|x| x.parent = self} if @arg_types
       @resolved_type = resolved_type
+      @resolved_type.parent = self
     end
 
     def args_length
@@ -287,6 +289,13 @@ module Crystal
 
     def ==(other)
       other.is_a?(Extern) && other.name == name && other.arg_types == arg_types && other.resolved_type == resolved_type
+    end
+
+    def replace(node, replacement)
+      @arg_types.each_with_index do |arg, i|
+        return @arg_types[i] = replacement if arg == node
+      end
+      @resolved_type = replacement if @resolved_type == node
     end
   end
 
