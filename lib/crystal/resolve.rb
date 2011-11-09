@@ -196,7 +196,11 @@ module Crystal
 
         method = node.obj.resolved_type.find_method(node.name)
 
-        unless method
+        if method
+          #if method.obj == @scope.class_class && method.name == 'new'
+
+          #end
+        else
           # Special case: rewrite a != b as !(a == b)
           return rewrite_not_equals node if node.name == :'!='
 

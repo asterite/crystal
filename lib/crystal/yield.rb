@@ -56,12 +56,20 @@ module Crystal
     end
 
     def visit_break(node)
-      node.raise_error "Can't break with type #{node.resolved_type}, must break with #{@type}" if node.exp && node.resolved_type != @type
+      if node.exp
+        node.raise_error "Can't break with type #{node.resolved_type}, must break with #{@type}" if node.resolved_type != @type
+      else
+        node.exp = @type.default_value
+      end
       true
     end
 
     def visit_next(node)
-      node.raise_error "Can't next with type #{node.resolved_type}, must next with #{@type}" if node.exp && node.resolved_type != @type
+      if node.exp
+        node.raise_error "Can't next with type #{node.resolved_type}, must next with #{@type}" if node.resolved_type != @type
+      else
+        node.exp = @type.default_value
+      end
       true
     end
   end

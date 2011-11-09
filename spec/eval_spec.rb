@@ -105,6 +105,8 @@ describe "ast eval" do
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x; 10 }; end; bar", 2.int
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next x if x == 1; 10 }; end; bar", 10.int
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| break x; 10 }; end; bar", 1.int
+  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next if x == 1; 10 }; end; bar", 10.int
+  it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| break if x == 1; 10 }; end; bar", 0.int
   it_evals "a = 0; def bar; 10.times { |x| a += x; break if x > 5 }; end; bar", 0.int
   it_evals "def bar; a = 10.times { |x| break if x > 5 }; a; end; bar", 0.int
   it_evals "def bar; a = 10.times { |x| break 5 if x > 5 }; a; end; bar", 5.int
@@ -128,5 +130,6 @@ describe "ast eval" do
   it_evals "def Int.bar; 1; end; def StaticArray.foo; T; end; StaticArray(Int).foo.bar", 1.int
   it_evals "class Number; def foo; If self.class == Int; 1; Else; 2; End; end; end; 1.foo + 1.0.foo", 3.int
   it_evals "def Number.foo; If self == Int; 1; Else; 2; End; end; Int.foo + Float.foo", 3.int
-  it_evals "class Foo; def bar; 1; end; end; foo = Foo.new; foo.bar", 1.int, :focus => true
+  it_evals "class Foo; def bar; 1; end; end; foo = Foo.new; foo.bar", 1.int
+  it_evals "class Foo; def initialize(x); end; def bar; 1; end; end; foo = Foo.new(1); foo.bar", 1.int
 end

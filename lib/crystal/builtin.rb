@@ -135,6 +135,10 @@ module Crystal
     def codegen_default(mod)
       nil
     end
+
+    def default_value
+      Nil.new
+    end
   end
 
   class BoolClass < Class
@@ -148,6 +152,10 @@ module Crystal
 
     def codegen_default(mod)
       LLVM::Int1.from_i 0
+    end
+
+    def default_value
+      Bool.new false
     end
   end
 
@@ -163,6 +171,10 @@ module Crystal
     def codegen_default(mod)
       LLVM::Int 0
     end
+
+    def default_value
+      Int.new '0'
+    end
   end
 
   class LongClass < Class
@@ -172,6 +184,10 @@ module Crystal
 
     def llvm_cast(value)
       Long.new(value.to_i LLVM::Int64.type)
+    end
+
+    def default_value
+      Long.new '0'
     end
   end
 
@@ -187,6 +203,10 @@ module Crystal
     def codegen_default(mod)
       LLVM::Float 0.0
     end
+
+    def default_value
+      Float.new '0.0'
+    end
   end
 
   class CharClass < Class
@@ -201,6 +221,10 @@ module Crystal
     def codegen_default(mod)
       LLVM::Int8.from_i 0
     end
+
+    def default_value
+      Char.new 0
+    end
   end
 
   class StaticArrayClass < Class
@@ -211,6 +235,10 @@ module Crystal
     def llvm_cast(value)
       "#{args[0].resolved_type}[?]"
     end
+
+    def default_value
+      Nil.new
+    end
   end
 
   class InstantiatableClass < Class
@@ -220,6 +248,10 @@ module Crystal
 
     def llvm_cast(value)
       "#<#{self.name}>"
+    end
+
+    def default_value
+      Nil.new
     end
   end
 end
