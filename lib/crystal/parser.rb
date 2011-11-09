@@ -638,7 +638,7 @@ module Crystal
 
           next_token_skip_space
 
-          node = if @token.type == :EOF || @token.type == :NEWLINE || @token.type == :';' || @token.value == :if || @token.value == :unless || @token.value == :while || @token.value == :until
+          node = if @token.type == :EOF || @token.type == :NEWLINE || @token.type == :';' || @token.type == :'}' || @token.value == :if || @token.value == :unless || @token.value == :while || @token.value == :until
                    #{keyword.capitalize}.new
                  else
                    #{keyword.capitalize}.new parse_op_assign
