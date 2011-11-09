@@ -27,13 +27,13 @@ module Crystal
       elsif match = scan(/(\+|-)?\d+/)
         @token.type = :INT
         @token.value = match
-      elsif match = scan(/'\\n'/)
+      elsif match = scan(/'\\n'|"\\n"/)
         @token.type = :CHAR
         @token.value = ?\n.ord
-      elsif match = scan(/'\\t'/)
+      elsif match = scan(/'\\t'|"\\t"/)
         @token.type = :CHAR
         @token.value = ?\t.ord
-      elsif match = scan(/'.'/)
+      elsif match = scan(/'.'|"."/)
         @token.type = :CHAR
         @token.value = match[1 .. -2].ord
       elsif match = scan(%r(!=|!|==|=|<<=|<<|<=|<|>>=|>>|>=|>|\+@|\+=|\+|-@|-=|-|\*=|\*\*=|\*\*|\*|/=|%=|&=|\|=|\^=|/|\(|\)|,|\.|&&|&|\|\||\||\{|\}|\?|:|%|\^|~@|~|\[\]|\[|\]))
