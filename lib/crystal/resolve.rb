@@ -81,10 +81,19 @@ module Crystal
     end
 
     def visit_extern(node)
-      node.arg_types.map! do |arg_type|
-        @scope.find_class arg_type.name or node.raise_error "undefined class #{arg_type}"
+      node.arg_types.each_with_index do |arg_type, i|
+        arg_type.accept self
+        arg_type = node.arg_types[i] if node.arg_types[i] != arg_type
+        unless arg_type.resolved_type.is_a? Metaclass
+          node.raise_error "#{arg_type} is not a class"
+        end
+        node.arg_types[i] = arg_type.resolved_type.real_class
       end
-      node.resolved_type = @scope.find_class(node.resolved_type.name) or node.raise_error "undefined class #{node.resolved_type}"
+      node.resolved_type.accept self
+      unless node.resolved_type.resolved_type.is_a? Metaclass
+        node.raise_error "#{node.resolved_type} is not a class"
+      end
+      node.resolved_type = node.resolved_type.resolved_type.real_class
     end
 
     def visit_def(node)

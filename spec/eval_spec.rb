@@ -107,6 +107,7 @@ describe "ast eval" do
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| break x; 10 }; end; bar", 1.int
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| next if x == 1; 10 }; end; bar", 10.int
   it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| break if x == 1; 10 }; end; bar", 0.int
+  #it_evals "def foo; yield 1; yield 2; end; def bar; foo { |x| break }; end; bar", Crystal::Nil.new, :focus => true
   it_evals "a = 0; def bar; 10.times { |x| a += x; break if x > 5 }; end; bar", 0.int
   it_evals "def bar; a = 10.times { |x| break if x > 5 }; a; end; bar", 0.int
   it_evals "def bar; a = 10.times { |x| break 5 if x > 5 }; a; end; bar", 5.int
