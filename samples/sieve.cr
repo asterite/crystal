@@ -5,7 +5,7 @@ max.times do |n|
   cells[n] = true
 end
 
-2.upto(max) do |n|
+2.upto(Math.sqrt(max).to_i) do |n|
   next unless cells[n]
 
   (n * 2).step(max, n) do |x|
@@ -13,9 +13,15 @@ end
   end
 end
 
-max.times do |n|
-  print n
-  print ':'
-  print ' '
-  cells[n] ? puts('X') : puts(' ')
+found = false
+2.upto(max) do |n|
+  if cells[n]
+    if found
+      print ','
+      print ' '
+    else
+      found = true
+    end
+    print n
+  end
 end
