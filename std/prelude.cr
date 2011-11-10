@@ -341,6 +341,13 @@ class Float < Number
   end
 end
 
+class Math
+  extern crystal_math_sqrt Float : Float
+  def self.sqrt(value)
+    C.crystal_math_sqrt(value.to_f)
+  end
+end
+
 extern puts_bool Bool : Nil
 extern puts_int Int : Nil
 extern puts_char Char : Nil

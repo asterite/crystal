@@ -40,6 +40,8 @@ int crystal_to_i_float(float x) { return (float) x; }
 
 char crystal_eq_char_char(char x, char y) { return x == y; }
 
+float crystal_math_sqrt(float value) { return (float) sqrt(value); }
+
 void puts_bool(int x) {
   if (x == 0) {
     printf("false\n");
