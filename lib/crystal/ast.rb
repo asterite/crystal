@@ -122,10 +122,6 @@ module Crystal
       visitor.end_visit_class self
     end
 
-    def ==(other)
-      other.is_a?(Class) && other.name == name
-    end
-
     def to_s
       @name
     end
@@ -873,10 +869,10 @@ module Crystal
     end
   end
 
-  class NewClass < Expression
+  class Alloc < Expression
     def accept(visitor)
-      visitor.visit_new_class self
-      visitor.end_visit_new_class self
+      visitor.visit_alloc self
+      visitor.end_visit_alloc self
     end
   end
 end

@@ -28,11 +28,13 @@ module Crystal
 
     def define_object_class
       @object_class = define_class Class.new("Object")
+      @object_class.define_method Def.new('initialize', [], nil)
     end
 
     def define_class_class
       @class_class = define_class Class.new("Class", @object_class)
-      @class_class.define_method Def.new('new', [], NewClass.new)
+      @class_class.define_method Def.new('new', [], nil)
+      @class_class.define_method Def.new('alloc', [], Alloc.new)
       @object_class.class_class = @class_class
     end
 

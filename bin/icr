@@ -17,7 +17,7 @@ def count_openings(string)
     when :IDENT
       case token.value
       when :begin, :class, :def, :if, :If, :unless, :Unless, :while
-        openings += 1 if last_token.nil? || last_token == :';' || last_token == :NEWLINE
+        openings += 1
       when :do
         openings += 1
       when :end, :End

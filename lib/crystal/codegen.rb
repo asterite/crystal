@@ -665,7 +665,7 @@ module Crystal
     end
   end
 
-  class NewClass
+  class Alloc
     def codegen(mod)
       malloc = mod.builder.call mod.malloc, LLVM::Int(0)
       mod.builder.bit_cast malloc, resolved_type.llvm_type(mod)

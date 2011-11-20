@@ -206,9 +206,9 @@ module Crystal
         method = node.obj.resolved_type.find_method(node.name)
 
         if method
-          #if method.obj == @scope.class_class && method.name == 'new'
-
-          #end
+          if method.is_a?(Def) && method.obj == @scope.class_class && method.name == 'new'
+            return replace_new_with_alloc_and_initialize node
+          end
         else
           # Special case: rewrite a != b as !(a == b)
           return rewrite_not_equals node if node.name == :'!='
@@ -296,6 +296,21 @@ module Crystal
       end
 
       false
+    end
+
+    def replace_new_with_alloc_and_initialize(node)
+      @@temp_name_index ||= 0
+      @@temp_name_index += 1
+      temp_name = "*temp#{@@temp_name_index}"
+
+      exps = Expressions.new
+      exps.expressions << Assign.new(Ref.new(temp_name), Call.new(node.obj, "alloc"))
+      exps.expressions << Call.new(Ref.new(temp_name), "initialize", node.args)
+      exps.expressions << Ref.new(temp_name)
+      exps.accept self
+
+      node.parent.replace node, exps
+      return false
     end
 
     def rewrite_not_equals(node)
@@ -446,7 +461,7 @@ module Crystal
       false
     end
 
-    def visit_new_class(node)
+    def visit_alloc(node)
       node.resolved_type = @scope.def.args[0].resolved_type.real_class
       false
     end
