@@ -189,4 +189,6 @@ describe Parser do
   it "parses If with if else correctly 2" do
     Parser.parse "def foo; If true; 1; Else; 2; End\n if true; 1; else; 2; end; end; foo"
   end
+
+  it_parses_single_node "begin; 1; 2; 3; end;", Expressions.new([1.int, 2.int, 3.int])
 end

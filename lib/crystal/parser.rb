@@ -271,6 +271,8 @@ module Crystal
         node_and_next_token Char.new(@token.value)
       when :IDENT
         case @token.value
+        when :begin
+          parse_begin
         when :nil
           node_and_next_token Nil.new
         when :false
@@ -307,6 +309,14 @@ module Crystal
       else
         raise_error "unexpected token: #{@token.to_s}"
       end
+    end
+
+    def parse_begin
+      next_token_skip_statement_end
+      exps = parse_expressions
+      check_ident :end
+      next_token_skip_statement_end
+      exps
     end
 
     def parse_ref_or_call
