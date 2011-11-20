@@ -35,11 +35,11 @@ module Crystal
       load_prelude
     end
 
-    def define_at_top_level(exp)
+    def define_at_top_level(exps)
       @top_level_expressions_count ||= 0
       @top_level_expressions_count += 1
 
-      anon_def = TopLevelDef.new "&main#{@top_level_expressions_count}", [], [exp]
+      anon_def = TopLevelDef.new "&main#{@top_level_expressions_count}", [], exps
       anon_def.resolve self
       anon_def.codegen self
       anon_def

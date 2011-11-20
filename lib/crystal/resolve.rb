@@ -354,6 +354,7 @@ module Crystal
         node.else.accept self
         node.parent.replace node, node.else
       end
+
       false
     end
 

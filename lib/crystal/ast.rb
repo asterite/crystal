@@ -52,6 +52,15 @@ module Crystal
       @expressions.each { |e| e.parent = self }
     end
 
+    def <<(exp)
+      exp.parent = self
+      @expressions << exp
+    end
+
+    def empty?
+      @expressions.empty?
+    end
+
     def accept(visitor)
       if visitor.visit_expressions self
         expressions.each { |exp| exp.accept visitor }

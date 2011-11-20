@@ -209,14 +209,15 @@ module Crystal
 
     def visit_extern(node)
       @str << "extern "
-      @str << " "
       @str << node.name
-      @str << " "
-      node.arg_types.each_with_index do |type, i|
-        @str << ", " if i > 0
-        type.accept self
+      if node.arg_types.length > 0
+        @str << " "
+        node.arg_types.each_with_index do |type, i|
+          @str << ", " if i > 0
+          type.accept self
+        end
       end
-      @str << " #=> "
+      @str << " : "
       node.resolved_type.accept self
       false
     end

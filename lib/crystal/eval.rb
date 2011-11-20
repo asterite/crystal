@@ -1,7 +1,7 @@
 module Crystal
   class ASTNode
     def compile(scope)
-      scope.define_at_top_level self
+      scope.define_at_top_level [self]
     end
 
     def eval(scope)
@@ -77,11 +77,41 @@ module Crystal
 
     def eval(string)
       exps = Parser.parse string
+      grouped_exps = group_exps exps
+
       last = nil
-      exps.compile self do |exp|
-        last = run exp
+      grouped_exps.each do |grouped_exp|
+        if is_code?(grouped_exp.expressions[0])
+          fun = define_at_top_level grouped_exp
+          last = run fun
+        else
+          grouped_exp.compile self do |exp|
+            last = run exp
+          end
+        end
       end
       last
+    end
+
+    def group_exps(exps)
+      groups = []
+      group = Expressions.new
+      last_group_type = nil
+      exps.expressions.each do |exp|
+        group_type = is_code?(exp) ? :code : :def
+        if last_group_type != group_type
+          groups << group unless group.empty?
+          group = Expressions.new
+        end
+        group << exp
+        last_group_type = group_type
+      end
+      groups << group
+      groups
+    end
+
+    def is_code?(exp)
+      !exp.is_a?(Def) && !exp.is_a?(ClassDef) && !exp.is_a?(Extern)
     end
   end
 end
