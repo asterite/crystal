@@ -123,5 +123,14 @@ module Crystal
       end
       instance
     end
+
+    def alloc(resolver)
+      allocated = self.class.new name, superclass, args
+      allocated.methods = methods
+      allocated.metaclass.methods = metaclass.methods
+      allocated.metaclass.args = args
+      allocated.accept resolver
+      allocated
+    end
   end
 end

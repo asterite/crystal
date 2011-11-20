@@ -68,6 +68,14 @@ module Crystal
       end
     end
 
+    def find_instance_var(name)
+      @def.obj ? @def.obj.find_instance_var(name) : nil
+    end
+
+    def define_instance_var(var)
+      @def.obj.define_instance_var var
+    end
+
     def find_method(name)
       if @def.obj
         exp = @def.obj.find_method name

@@ -4,11 +4,13 @@ module Crystal
     attr_accessor :superclass
     attr_accessor :args
     attr_accessor :methods
+    attr_reader :instance_vars
 
     def initialize(name, superclass = nil, args = nil)
       @name = name
       @superclass = superclass
       @args = args || []
+      @instance_vars = {}
       @methods = {}
     end
 
@@ -30,6 +32,14 @@ module Crystal
       @metaclass = metaclass
     end
 
+    def find_instance_var(name)
+      @instance_vars[name]
+    end
+
+    def define_instance_var(var)
+      @instance_vars[var.name] = var
+    end
+
     def subclass_of?(other)
       self == other || @superclass == other
     end
@@ -46,6 +56,24 @@ module Crystal
         m
       else
         @superclass ? @superclass.find_method(name) : nil
+      end
+    end
+
+    def to_s
+      if @instance_vars.empty?
+        @name
+      else
+        str = "#{@name}"
+        str << "<"
+        @instance_vars.keys.sort.each_with_index do |key, i|
+          str << ', ' unless i == 0
+          var = @instance_vars[key]
+          str << key
+          str << ":"
+          str << var.resolved_type.to_s
+        end
+        str << ">"
+        str
       end
     end
   end

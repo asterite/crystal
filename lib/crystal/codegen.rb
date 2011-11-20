@@ -12,6 +12,11 @@ end
 module Crystal
   class ASTNode
     attr_accessor :code
+
+    def enclosing_fun(mod)
+      start_block = mod.builder.insert_block
+      start_block.parent
+    end
   end
 
   class Module
@@ -296,8 +301,7 @@ module Crystal
     end
 
     def check_block_return(context_ptr, mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
+      fun = enclosing_fun(mod)
 
       normal_block = fun.basic_blocks.append 'normal'
       return_block = fun.basic_blocks.append 'return'
@@ -330,12 +334,25 @@ module Crystal
       if compile_time_value
         compile_time_value.codegen mod
       else
-        mod.builder.load code, name
+        if obj
+          instance = mod.builder.load enclosing_fun(mod).params[0]
+          mod.builder.extract_value instance, index, name
+        else
+          mod.builder.load code, name
+        end
       end
+    end
+
+    def codegen_ptr(mod)
+      mod.builder.inbounds_gep enclosing_fun(mod).params[0], [LLVM::Int32.from_i(0), LLVM::Int32.from_i(index)]
     end
 
     def alloca(mod)
       @code = mod.builder.alloca resolved_type.llvm_type(mod), name
+    end
+
+    def index
+      obj.instance_vars.keys.index name
     end
   end
 
@@ -420,7 +437,7 @@ module Crystal
 
   class Assign
     def codegen(mod)
-      if target.resolved.is_a?(BlockReference)
+      if target.resolved.is_a?(BlockReference) || (target.resolved.is_a?(Var) && target.resolved.obj)
         target.resolved.code = target.resolved.codegen_ptr(mod)
       else
         unless target.resolved.code
@@ -466,8 +483,7 @@ module Crystal
     ExitReturn = LLVM::Int32.from_i 2
 
     def codegen(mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
+      fun = enclosing_fun(mod)
 
       normal_block = fun.basic_blocks.append 'normal'
       break_block = fun.basic_blocks.append 'break'
@@ -601,10 +617,7 @@ module Crystal
   class Return
     def codegen(mod)
       if in_block?
-        start_block = mod.builder.insert_block
-        fun = start_block.parent
-
-        context.return_from_block(exp ? exp.codegen(mod) : nil, fun, mod)
+        context.return_from_block(exp ? exp.codegen(mod) : nil, enclosing_fun(mod), mod)
 
         mod.builder.ret(exp && exp.resolved_type == block.resolved_type ? exp.codegen(mod) : block.resolved_type.codegen_default(mod))
       else
@@ -615,10 +628,7 @@ module Crystal
 
   class Break
     def codegen(mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
-
-      casted_result = mod.builder.bit_cast fun.params[-1], Yield::ExitPointerType, 'casted_result_ptr'
+      casted_result = mod.builder.bit_cast enclosing_fun(mod).params[-1], Yield::ExitPointerType, 'casted_result_ptr'
       mod.builder.store Yield::ExitBreak, casted_result
 
       mod.builder.ret(exp ? exp.codegen(mod) : nil)
@@ -633,10 +643,7 @@ module Crystal
 
   class NewStaticArray
     def codegen(mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
-
-      bytes = mod.builder.mul fun.params[-1], LLVM::Int(4)
+      bytes = mod.builder.mul enclosing_fun(mod).params[-1], LLVM::Int(4)
       malloc = mod.builder.call mod.malloc, bytes
       mod.builder.bit_cast malloc, resolved_type.llvm_type(mod)
     end
@@ -644,8 +651,7 @@ module Crystal
 
   class StaticArraySet
     def codegen(mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
+      fun = enclosing_fun(mod)
 
       pointer = mod.builder.inbounds_gep fun.params[0], [fun.params[1]]
       mod.builder.store fun.params[2], pointer
@@ -656,9 +662,7 @@ module Crystal
 
   class StaticArrayGet
     def codegen(mod)
-      start_block = mod.builder.insert_block
-      fun = start_block.parent
-
+      fun = enclosing_fun(mod)
       pointer = mod.builder.inbounds_gep fun.params[0], [fun.params[1]]
 
       mod.builder.load pointer
@@ -667,7 +671,7 @@ module Crystal
 
   class Alloc
     def codegen(mod)
-      malloc = mod.builder.call mod.malloc, LLVM::Int(0)
+      malloc = mod.builder.call mod.malloc, LLVM::Int(resolved_type.byte_size(mod))
       mod.builder.bit_cast malloc, resolved_type.llvm_type(mod)
     end
   end

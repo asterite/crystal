@@ -145,19 +145,23 @@ module Crystal
     def visit_ref(node)
       return if node.resolved_type
 
-      exp = @scope.find_local_var node.name
-      if exp
-        exp.accept self
+      if node.instance_var?
+        exp = @scope.find_instance_var(node.name) or node.raise_error "uninitializaed instance variable '#{node.name}'"
       else
-        exp = @scope.find_class node.name
+        exp = @scope.find_local_var node.name
         if exp
           exp.accept self
         else
-          exp = @scope.find_method(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
-          target = exp.is_a?(Def) && exp.obj ? Ref.new('self') : nil
-          call = Call.new(target, exp.name)
-          call.accept self
-          exp = call.resolved
+          exp = @scope.find_class node.name
+          if exp
+            exp.accept self
+          else
+            exp = @scope.find_method(node.name) or node.raise_error "undefined local variable or method '#{node.name}'"
+            target = exp.is_a?(Def) && exp.obj ? Ref.new('self') : nil
+            call = Call.new(target, exp.name)
+            call.accept self
+            exp = call.resolved
+          end
         end
       end
 
@@ -170,7 +174,11 @@ module Crystal
     def visit_assign(node)
       node.value.accept self
 
-      node.target.resolved = @scope.find_local_var(node.target.name)
+      if node.target.instance_var?
+        node.target.resolved = @scope.find_instance_var(node.target.name)
+      else
+        node.target.resolved = @scope.find_local_var(node.target.name)
+      end
 
       if node.target.resolved
         if node.value.resolved_type != UnknownType && node.target.resolved.resolved_type != node.value.resolved_type
@@ -179,7 +187,16 @@ module Crystal
       else
         var = Var.new(node.target.name, node.value.resolved_type)
 
-        @scope.define_local_var var
+        if node.target.instance_var?
+          if @scope.def.obj
+            var.obj = @scope.def.obj
+            @scope.define_instance_var var
+          else
+            node.raise_error "can't assign to instance variable '#{node.target.name}' outside of class scope"
+          end
+        else
+          @scope.define_local_var var
+        end
         node.target.resolved = var
       end
 
@@ -304,7 +321,7 @@ module Crystal
       temp_name = "*temp#{@@temp_name_index}"
 
       exps = Expressions.new
-      exps.expressions << Assign.new(Ref.new(temp_name), Call.new(node.obj, "alloc"))
+      exps.expressions << Assign.new(Ref.new(temp_name), Alloc.new(node.obj))
       exps.expressions << Call.new(Ref.new(temp_name), "initialize", node.args)
       exps.expressions << Ref.new(temp_name)
       exps.accept self
@@ -463,7 +480,7 @@ module Crystal
     end
 
     def visit_alloc(node)
-      node.resolved_type = @scope.def.args[0].resolved_type.real_class
+      node.resolved_type = node.obj.resolved_type.real_class.alloc(self)
       false
     end
 

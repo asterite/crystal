@@ -130,10 +130,6 @@ module Crystal
       visitor.visit_class self
       visitor.end_visit_class self
     end
-
-    def to_s
-      @name
-    end
   end
 
   class Nil < Expression
@@ -369,7 +365,7 @@ module Crystal
       @name = name
     end
 
-    def local_var?
+    def instance_var?
       @name.start_with? '@'
     end
 
@@ -391,6 +387,7 @@ module Crystal
 
   class Var < ASTNode
     attr_accessor :name
+    attr_accessor :obj
 
     def initialize(name, resolved_type = nil)
       @name = name
@@ -879,6 +876,12 @@ module Crystal
   end
 
   class Alloc < Expression
+    attr_accessor :obj
+
+    def initialize(obj)
+      @obj = obj
+    end
+
     def accept(visitor)
       visitor.visit_alloc self
       visitor.end_visit_alloc self

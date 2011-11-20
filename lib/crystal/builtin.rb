@@ -34,7 +34,6 @@ module Crystal
     def define_class_class
       @class_class = define_class Class.new("Class", @object_class)
       @class_class.define_method Def.new('new', [], nil)
-      @class_class.define_method Def.new('alloc', [], Alloc.new)
       @object_class.class_class = @class_class
     end
 
@@ -123,6 +122,10 @@ module Crystal
                                 type
                               end
     end
+
+    def byte_size(mod)
+      8
+    end
   end
 
   class NilClass < Class
@@ -140,6 +143,10 @@ module Crystal
 
     def default_value
       Nil.new
+    end
+
+    def byte_size(mod)
+      0
     end
   end
 
@@ -159,6 +166,10 @@ module Crystal
     def default_value
       Bool.new false
     end
+
+    def byte_size(mod)
+      1
+    end
   end
 
   class IntClass < Class
@@ -177,6 +188,10 @@ module Crystal
     def default_value
       Int.new '0'
     end
+
+    def byte_size(mod)
+      4
+    end
   end
 
   class LongClass < Class
@@ -190,6 +205,10 @@ module Crystal
 
     def default_value
       Long.new '0'
+    end
+
+    def byte_size(mod)
+      8
     end
   end
 
@@ -209,6 +228,10 @@ module Crystal
     def default_value
       Float.new '0.0'
     end
+
+    def byte_size(mod)
+      4
+    end
   end
 
   class CharClass < Class
@@ -227,6 +250,10 @@ module Crystal
     def default_value
       Char.new 0
     end
+
+    def byte_size(mod)
+      1
+    end
   end
 
   class StaticArrayClass < Class
@@ -241,11 +268,26 @@ module Crystal
     def default_value
       Nil.new
     end
+
+    def byte_size(mod)
+      1
+    end
   end
 
   class InstantiatableClass < Class
     def llvm_type(mod)
-      LLVM::Pointer(LLVM::Struct())
+      @llvm_type ||= begin
+                       struct_types = @instance_vars.keys.sort.map{|key| @instance_vars[key].resolved_type.llvm_type(mod)}
+                       LLVM::Pointer(LLVM::Struct(*struct_types))
+                     end
+    end
+
+    def byte_size(mod)
+      sum = 0
+      @instance_vars.values.each do |value|
+        sum += value.resolved_type.byte_size(mod)
+      end
+      sum
     end
 
     def llvm_cast(value)
